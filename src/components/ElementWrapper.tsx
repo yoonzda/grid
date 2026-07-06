@@ -9,7 +9,6 @@ interface ElementWrapperProps {
   onClick: (e: React.MouseEvent) => void;
   onDragStart: (e: React.MouseEvent, sectionId: string, element: EditorElement, containerWidth: number) => void;
   onResizeStart: (e: React.MouseEvent, sectionId: string, element: EditorElement, handle: 'r' | 'b' | 'br', containerWidth: number) => void;
-  gridContainerRef: React.RefObject<HTMLDivElement>;
   onTextChange?: (sectionId: string, elementId: string, newText: string) => void;
 }
 
@@ -20,7 +19,6 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   onClick,
   onDragStart,
   onResizeStart,
-  gridContainerRef,
   onTextChange,
 }) => {
   const isEditingRef = useRef(false);
@@ -31,8 +29,9 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
     // Prevent dragging if double clicked to edit text
     if (isEditingRef.current) return;
     
-    if (gridContainerRef.current) {
-      const containerWidth = gridContainerRef.current.getBoundingClientRect().width;
+    const gridContainer = (e.currentTarget as HTMLElement).closest('.section-grid-container');
+    if (gridContainer) {
+      const containerWidth = gridContainer.getBoundingClientRect().width;
       onDragStart(e, sectionId, element, containerWidth);
     }
   };
@@ -40,8 +39,9 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   // Trigger resize start
   const handleResizeMouseDown = (e: React.MouseEvent, handle: 'r' | 'b' | 'br') => {
     e.stopPropagation();
-    if (gridContainerRef.current) {
-      const containerWidth = gridContainerRef.current.getBoundingClientRect().width;
+    const gridContainer = (e.currentTarget as HTMLElement).closest('.section-grid-container');
+    if (gridContainer) {
+      const containerWidth = gridContainer.getBoundingClientRect().width;
       onResizeStart(e, sectionId, element, handle, containerWidth);
     }
   };

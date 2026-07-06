@@ -234,7 +234,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                     onClick={() => setActiveElement({ sectionId: sec.id, elementId: el.id })}
                     onDragStart={onElementDragStart}
                     onResizeStart={onElementResizeStart}
-                    gridContainerRef={gridContainerRef} // remains for legacy typings in wrapper
                     onTextChange={handleTextChange}
                   />
                 ))}
