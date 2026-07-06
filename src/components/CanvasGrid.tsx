@@ -1,5 +1,7 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { Section, EditorElement, GuidelineWidth } from '../types';
+import { ElementWrapper } from './ElementWrapper';
+import { useGridSnap } from '../hooks/useGridSnap';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface CanvasGridProps {
@@ -18,10 +20,51 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   setActiveElement,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
+  const gridContainerRef = useRef<HTMLDivElement>(null);
   const [resizingSection, setResizingSection] = useState<{ id: string; startHeight: number; startY: number } | null>(null);
 
-  // Section Height resizing logic
-  const handleResizeStart = (e: React.MouseEvent, sectionId: string, currentHeight: number) => {
+  // Retrieve drag & snap controls from custom hook
+  const {
+    dragState,
+    resizeState,
+    alignmentLines,
+    handleDragStart,
+    handleDragMove,
+    handleResizeStart,
+    handleResizeMove,
+    handleActionEnd,
+  } = useGridSnap(sections, setSections);
+
+  // Global mouse handlers for Drag and Resize operations
+  useEffect(() => {
+    if (!dragState && !resizeState) return;
+
+    const handleGlobalMouseMove = (e: MouseEvent) => {
+      if (gridContainerRef.current) {
+        const containerWidth = gridContainerRef.current.getBoundingClientRect().width;
+        if (dragState) {
+          handleDragMove(e.clientX, e.clientY, containerWidth, dragState.sectionId, dragState.elementId);
+        } else if (resizeState) {
+          handleResizeMove(e.clientX, e.clientY, containerWidth, resizeState.sectionId, resizeState.elementId);
+        }
+      }
+    };
+
+    const handleGlobalMouseUp = () => {
+      handleActionEnd();
+    };
+
+    window.addEventListener('mousemove', handleGlobalMouseMove);
+    window.addEventListener('mouseup', handleGlobalMouseUp);
+
+    return () => {
+      window.removeEventListener('mousemove', handleGlobalMouseMove);
+      window.removeEventListener('mouseup', handleGlobalMouseUp);
+    };
+  }, [dragState, resizeState]);
+
+  // Section Height Resizing
+  const handleSectionResizeStart = (e: React.MouseEvent, sectionId: string, currentHeight: number) => {
     e.preventDefault();
     e.stopPropagation();
     setResizingSection({
@@ -47,6 +90,21 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
 
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
+  };
+
+  // Inline text editing updates
+  const handleTextChange = (sectionId: string, elementId: string, newText: string) => {
+    setSections(prev =>
+      prev.map(s => {
+        if (s.id !== sectionId) return s;
+        return {
+          ...s,
+          elements: s.elements.map(el =>
+            el.id === elementId ? { ...el, content: newText } : el
+          ),
+        };
+      })
+    );
   };
 
   // Section CRUD operations
@@ -93,21 +151,18 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     });
   };
 
-  // Grid lines renderer
   const renderGridCols = () => {
     return Array.from({ length: 12 }).map((_, idx) => (
       <div key={idx} className="grid-guide-col"></div>
     ));
   };
 
-  // Helper to get margin width percentage
   const getMarginPercent = () => {
     if (guideline === '80%') return '10%';
     if (guideline === '60%') return '20%';
     return '0%';
   };
 
-  // Helper to get content width percentage
   const getContentPercent = () => {
     if (guideline === '80%') return '80%';
     if (guideline === '60%') return '60%';
@@ -124,134 +179,124 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         </button>
       </div>
 
-      {sections.map((sec, secIdx) => (
-        <div
-          key={sec.id}
-          className="canvas-section-node relative w-full"
-          style={{
-            height: sec.height,
-            backgroundColor: sec.backgroundColor,
-            backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
-          }}
-          onClick={() => setActiveElement(null)}
-        >
-          {/* 1. Left Dimmed Margin Shading Layer */}
-          {guideline !== '100%' && (
-            <div className="side-margin-shading left" style={{ width: getMarginPercent() }}>
-              <div className="margin-border-line right-border"></div>
-            </div>
-          )}
+      {sections.map((sec, secIdx) => {
+        const isDraggingInThisSection = dragState?.sectionId === sec.id;
 
-          {/* 2. Centered Content Grid Container */}
-          <div className="section-grid-container" style={{ width: getContentPercent() }}>
-            {/* Grid column guidelines */}
-            <div className="grid-guides-overlay">
-              {renderGridCols()}
-            </div>
-
-            {/* Elements container utilizing real CSS Grid for placement layout */}
-            <div className="elements-box">
-              {sec.elements.map(el => (
-                <div
-                  key={el.id}
-                  className={`mock-canvas-element ${activeElement?.elementId === el.id ? 'active' : ''}`}
-                  style={{
-                    gridColumn: `${el.gridX + 1} / span ${el.gridW}`,
-                    gridRow: `${el.gridY + 1} / span ${el.gridH}`,
-                    fontFamily: el.fontFamily.includes('Noto') ? "'Noto Sans KR', sans-serif" : 'inherit',
-                    color: el.color,
-                    fontSize: el.fontSize,
-                    textAlign: el.align,
-                    background: el.type === 'button' 
-                      ? (el.btnBgColor || '#18a0fb') 
-                      : (el.type === 'image' ? '#eee' : 'rgba(24, 160, 251, 0.03)'),
-                    borderRadius: el.borderRadius ?? 4,
-                    boxShadow: el.boxShadow || 'none',
-                    border: el.type === 'image' || el.type === 'button' 
-                      ? 'none' 
-                      : '1px dashed rgba(24, 160, 251, 0.2)',
-                    cursor: 'pointer',
-                    zIndex: activeElement?.elementId === el.id ? 10 : 2,
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start',
-                    alignItems: el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start',
-                    padding: el.type === 'button' ? '0' : '10px',
-                    pointerEvents: 'auto',
-                    overflow: 'hidden',
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveElement({ sectionId: sec.id, elementId: el.id });
-                  }}
-                >
-                  {el.type === 'image' ? (
-                    <img src={el.src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: el.borderRadius }} alt="element" />
-                  ) : el.type === 'button' ? (
-                    <span style={{ color: el.btnTextColor || '#fff', fontSize: el.fontSize, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
-                      {el.content}
-                    </span>
-                  ) : (
-                    <span style={{ width: '100%' }}>{el.content}</span>
-                  )}
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 3. Right Dimmed Margin Shading Layer */}
-          {guideline !== '100%' && (
-            <div className="side-margin-shading right" style={{ width: getMarginPercent() }}>
-              <div className="margin-border-line left-border"></div>
-            </div>
-          )}
-
-          {/* Section Operations Bar (Floating controller) */}
-          <div className="section-operations">
-            <div className="operation-tag">섹션 {secIdx + 1}</div>
-            <button
-              className="op-btn"
-              disabled={secIdx === 0}
-              onClick={(e) => moveSection(sec.id, 'up', e)}
-              title="위로 이동"
-            >
-              <ChevronUp size={14} />
-            </button>
-            <button
-              className="op-btn"
-              disabled={secIdx === sections.length - 1}
-              onClick={(e) => moveSection(sec.id, 'down', e)}
-              title="아래로 이동"
-            >
-              <ChevronDown size={14} />
-            </button>
-            <button
-              className="op-btn delete"
-              onClick={(e) => deleteSection(sec.id, e)}
-              title="섹션 삭제"
-            >
-              <Trash2 size={13} />
-            </button>
-          </div>
-
-          {/* Section Height Resize Handle (Bottom border drag) */}
+        return (
           <div
-            className="section-resize-handle"
-            onMouseDown={(e) => handleResizeStart(e, sec.id, sec.height)}
-            title="섹션 높이 조절"
+            key={sec.id}
+            className="canvas-section-node relative w-full"
+            style={{
+              height: sec.height,
+              backgroundColor: sec.backgroundColor,
+              backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
+            }}
+            onClick={() => setActiveElement(null)}
           >
-            <div className="resize-indicator"></div>
-          </div>
+            {/* 1. Left Dimmed Margin Shading Layer */}
+            {guideline !== '100%' && (
+              <div className="side-margin-shading left" style={{ width: getMarginPercent() }}>
+                <div className="margin-border-line right-border"></div>
+              </div>
+            )}
 
-          {/* Section Insert Divider Line */}
-          <div className="section-insert-line">
-            <button className="insert-btn" onClick={() => addSection(secIdx)}>
-              <Plus size={12} />
-              <span>섹션 추가</span>
-            </button>
+            {/* 2. Centered Content Grid Container */}
+            <div
+              className="section-grid-container"
+              ref={gridContainerRef}
+              style={{ width: getContentPercent() }}
+            >
+              {/* Grid column guidelines */}
+              <div className="grid-guides-overlay">
+                {renderGridCols()}
+              </div>
+
+              {/* Elements container utilizing real CSS Grid for placement layout */}
+              <div className="elements-box">
+                {sec.elements.map(el => (
+                  <ElementWrapper
+                    key={el.id}
+                    element={el}
+                    sectionId={sec.id}
+                    isActive={activeElement?.elementId === el.id}
+                    onClick={() => setActiveElement({ sectionId: sec.id, elementId: el.id })}
+                    onDragStart={handleDragStart}
+                    onResizeStart={handleResizeStart}
+                    gridContainerRef={gridContainerRef}
+                    onTextChange={handleTextChange}
+                  />
+                ))}
+              </div>
+
+              {/* Smart Guide lines drawing during drag */}
+              {isDraggingInThisSection &&
+                alignmentLines.map((line, idx) => (
+                  <div
+                    key={idx}
+                    className={`smart-guide-line ${line.type}`}
+                    style={
+                      line.type === 'vertical'
+                        ? { left: line.position }
+                        : { top: line.position }
+                    }
+                  />
+                ))}
+            </div>
+
+            {/* 3. Right Dimmed Margin Shading Layer */}
+            {guideline !== '100%' && (
+              <div className="side-margin-shading right" style={{ width: getMarginPercent() }}>
+                <div className="margin-border-line left-border"></div>
+              </div>
+            )}
+
+            {/* Section Operations Bar (Floating controller) */}
+            <div className="section-operations">
+              <div className="operation-tag">섹션 {secIdx + 1}</div>
+              <button
+                className="op-btn"
+                disabled={secIdx === 0}
+                onClick={(e) => moveSection(sec.id, 'up', e)}
+                title="위로 이동"
+              >
+                <ChevronUp size={14} />
+              </button>
+              <button
+                className="op-btn"
+                disabled={secIdx === sections.length - 1}
+                onClick={(e) => moveSection(sec.id, 'down', e)}
+                title="아래로 이동"
+              >
+                <ChevronDown size={14} />
+              </button>
+              <button
+                className="op-btn delete"
+                onClick={(e) => deleteSection(sec.id, e)}
+                title="섹션 삭제"
+              >
+                <Trash2 size={13} />
+              </button>
+            </div>
+
+            {/* Section Height Resize Handle (Bottom border drag) */}
+            <div
+              className="section-resize-handle"
+              onMouseDown={(e) => handleSectionResizeStart(e, sec.id, sec.height)}
+              title="섹션 높이 조절"
+            >
+              <div className="resize-indicator"></div>
+            </div>
+
+            {/* Section Insert Divider Line */}
+            <div className="section-insert-line">
+              <button className="insert-btn" onClick={() => addSection(secIdx)}>
+                <Plus size={12} />
+                <span>섹션 추가</span>
+              </button>
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       <style>{`
         .canvas-grid-root {
@@ -261,7 +306,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           padding: 40px 0;
         }
 
-        /* Full width section node */
         .canvas-section-node {
           border-bottom: 1px solid var(--figma-border);
           position: relative;
@@ -270,7 +314,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           transition: background-color 0.2s;
         }
 
-        /* Center content container */
         .section-grid-container {
           margin: 0 auto;
           height: 100%;
@@ -279,12 +322,11 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           transition: width 0.25s ease-in-out;
         }
 
-        /* Side margin shading layers */
         .side-margin-shading {
           position: absolute;
           top: 0;
           height: 100%;
-          background-color: var(--figma-margin-dim); /* Overlay shading */
+          background-color: var(--figma-margin-dim);
           z-index: 10;
           pointer-events: none;
           transition: width 0.25s ease-in-out;
@@ -298,7 +340,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           right: 0;
         }
 
-        /* Solid guideline border lines */
         .margin-border-line {
           position: absolute;
           width: 1px;
@@ -335,7 +376,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           height: 100%;
         }
 
-        /* Section height resize handle */
         .section-resize-handle {
           position: absolute;
           bottom: 0;
@@ -368,7 +408,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           opacity: 1;
         }
 
-        /* Add section divider line buttons */
         .section-insert-line {
           position: absolute;
           left: 0;
@@ -423,7 +462,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           transform: scale(1.05);
         }
 
-        /* Section Operations */
         .section-operations {
           position: absolute;
           left: 10px;
@@ -484,7 +522,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           cursor: not-allowed;
         }
 
-        /* Elements Grid box matching guides */
         .elements-box {
           position: absolute;
           top: 0;
@@ -500,20 +537,26 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           z-index: 2;
         }
 
-        /* Element wrapper */
-        .mock-canvas-element {
-          user-select: none;
-          transition: border-color 0.15s, background-color 0.15s;
+        /* Smart Alignment Guides */
+        .smart-guide-line {
+          position: absolute;
+          background-color: var(--figma-danger);
+          pointer-events: none;
+          z-index: 100;
         }
 
-        .mock-canvas-element.active {
-          outline: 2px solid var(--figma-accent);
-          outline-offset: -1px;
+        .smart-guide-line.vertical {
+          width: 1px;
+          height: 100%;
+          top: 0;
+          border-left: 1px dashed var(--figma-danger);
         }
 
-        .mock-canvas-element:hover:not(.active) {
-          outline: 1px dashed var(--figma-accent);
-          outline-offset: -1px;
+        .smart-guide-line.horizontal {
+          height: 1px;
+          width: 100%;
+          left: 0;
+          border-top: 1px dashed var(--figma-danger);
         }
       `}</style>
     </div>
