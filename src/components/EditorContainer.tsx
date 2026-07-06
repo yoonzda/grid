@@ -1,6 +1,7 @@
 import React from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType } from '../types';
 import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, Trash2, AlignCenter, AlignLeft, AlignRight, FileOutput, HelpCircle } from 'lucide-react';
+import { CanvasGrid } from './CanvasGrid';
 
 interface EditorContainerProps {
   guideline: GuidelineWidth;
@@ -49,7 +50,15 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         <div className="toolbar-center flex items-center">
           <div className="tool-group flex items-center">
             <span className="group-label">섹션:</span>
-            <button className="icon-tool-btn" onClick={() => {}} title="새 섹션 추가">
+            <button className="icon-tool-btn" onClick={() => {
+              const newSection: Section = {
+                id: `s_${Date.now()}`,
+                height: 350,
+                backgroundColor: '#ffffff',
+                elements: [],
+              };
+              setSections(prev => [...prev, newSection]);
+            }} title="새 섹션 추가">
               <Plus size={16} />
               <span>추가</span>
             </button>
@@ -90,20 +99,14 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         </div>
 
         {/* Center Canvas Area with guideline shading */}
-        <div className="canvas-wrapper flex-1 overflow-auto flex justify-center">
-          <div className="canvas-scroller relative w-full h-full flex flex-col items-center py-10">
-            {/* Shaded margins container */}
-            <div className={`canvas-guide-overlay ${guideline === '80%' ? 'g-80' : guideline === '60%' ? 'g-60' : 'g-100'}`}>
-              <div className="side-margin left-margin"></div>
-              <div className="canvas-content-area">
-                {/* Sections will go here */}
-                <div style={{ color: '#aaa', padding: 20 }}>
-                  [섹션 렌더링 영역 - 3단계에서 구현 예정]
-                </div>
-              </div>
-              <div className="side-margin right-margin"></div>
-            </div>
-          </div>
+        <div className="canvas-wrapper flex-1 overflow-auto">
+          <CanvasGrid
+            guideline={guideline}
+            sections={sections}
+            setSections={setSections}
+            activeElement={activeElement}
+            setActiveElement={setActiveElement}
+          />
         </div>
 
         {/* Right Properties Panel */}
