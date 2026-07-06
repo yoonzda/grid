@@ -2,6 +2,7 @@ import React from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType } from '../types';
 import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, Trash2, AlignCenter, AlignLeft, AlignRight, FileOutput, HelpCircle } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
+import { SidebarProperty } from './SidebarProperty';
 
 interface EditorContainerProps {
   guideline: GuidelineWidth;
@@ -22,6 +23,63 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   setActiveElement,
   onExport,
 }) => {
+  
+  // Adds a new element below the existing elements in the active/first section
+  const addElement = (type: ElementType) => {
+    if (sections.length === 0) return;
+    
+    // Choose section: use activeElement's section, or default to first section
+    const targetSectionId = activeElement ? activeElement.sectionId : sections[0].id;
+    const targetSection = sections.find(s => s.id === targetSectionId) || sections[0];
+    
+    // Calculate gridY (vertical placement) to append at the bottom row
+    let maxGridY = 0;
+    targetSection.elements.forEach(el => {
+      maxGridY = Math.max(maxGridY, el.gridY + el.gridH);
+    });
+
+    const newElement: EditorElement = {
+      id: `el_${Date.now()}`,
+      type,
+      gridX: 4, // Center horizontally by default
+      gridW: type === 'button' ? 4 : (type === 'image' ? 6 : 8),
+      gridY: maxGridY,
+      gridH: type === 'image' ? 4 : (type === 'text' ? 2 : 1),
+      content: type === 'title' ? '새 타이틀 텍스트' : (type === 'button' ? '버튼 텍스트' : '여기에 본문 글상자 텍스트를 입력하세요.'),
+      color: type === 'title' ? '#1f2937' : '#4b5563',
+      fontSize: type === 'title' ? '24px' : (type === 'button' ? '14px' : '14px'),
+      fontFamily: '본고딕 (Noto Sans KR)',
+      align: 'center',
+    };
+
+    if (type === 'image') {
+      newElement.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800';
+      newElement.borderRadius = 8;
+      newElement.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)';
+    }
+
+    if (type === 'button') {
+      newElement.btnBgColor = '#18a0fb';
+      newElement.btnTextColor = '#ffffff';
+      newElement.iconType = 'none';
+      newElement.iconPosition = 'after';
+      newElement.borderRadius = 6;
+    }
+
+    setSections(prev =>
+      prev.map(s => {
+        if (s.id !== targetSection.id) return s;
+        return {
+          ...s,
+          elements: [...s.elements, newElement],
+        };
+      })
+    );
+
+    // Set new element as active
+    setActiveElement({ sectionId: targetSection.id, elementId: newElement.id });
+  };
+
   return (
     <div className="editor-shell flex flex-col h-full">
       {/* Top Figma-like Toolbar */}
@@ -79,19 +137,19 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         <div className="elements-palette flex flex-col">
           <div className="panel-header">요소 추가</div>
           <div className="palette-grid">
-            <button className="add-el-btn flex flex-col items-center">
+            <button className="add-el-btn flex flex-col items-center" onClick={() => addElement('title')}>
               <Type size={20} />
               <span>타이틀</span>
             </button>
-            <button className="add-el-btn flex flex-col items-center">
+            <button className="add-el-btn flex flex-col items-center" onClick={() => addElement('text')}>
               <Type size={20} style={{ opacity: 0.6 }} />
               <span>글상자</span>
             </button>
-            <button className="add-el-btn flex flex-col items-center">
+            <button className="add-el-btn flex flex-col items-center" onClick={() => addElement('image')}>
               <ImageIcon size={20} />
               <span>이미지</span>
             </button>
-            <button className="add-el-btn flex flex-col items-center">
+            <button className="add-el-btn flex flex-col items-center" onClick={() => addElement('button')}>
               <Link size={20} />
               <span>버튼</span>
             </button>
@@ -110,14 +168,12 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         </div>
 
         {/* Right Properties Panel */}
-        <div className="properties-panel flex flex-col">
-          <div className="panel-header">속성 설정</div>
-          <div className="properties-body flex flex-col items-center justify-center p-4">
-            <span style={{ color: '#666', textAlign: 'center' }}>
-              캔버스에서 요소를 선택하면 스타일 조절 옵션이 나타납니다.
-            </span>
-          </div>
-        </div>
+        <SidebarProperty
+          activeElement={activeElement}
+          sections={sections}
+          setSections={setSections}
+          setActiveElement={setActiveElement}
+        />
       </div>
 
       {/* Bottom Figma-like Help/Status Bar */}
