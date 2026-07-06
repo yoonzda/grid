@@ -18,6 +18,7 @@ export interface EditorElement {
   
   // Image properties
   src?: string;
+  imageName?: string; // The filename of the uploaded image
   borderRadius?: number; // border-radius in px
   boxShadow?: string; // shadow style preset
   
@@ -33,7 +34,8 @@ export interface Section {
   id: string;
   height: number; // in pixels (default 400 or 500)
   backgroundColor: string; // background color hex
-  backgroundImage?: string; // background image URL
+  backgroundImage?: string; // background image URL or base64 data URL
+  backgroundImageName?: string; // The filename of the uploaded background image
   backgroundPosition?: string; // background position, e.g. center
   backgroundSize?: string; // background size, e.g. cover
   backgroundRepeat?: string; // background repeat, e.g. no-repeat

@@ -106,15 +106,70 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             </div>
           </div>
 
-          {/* Background Image URL */}
+          {/* Background Image Source or Upload */}
           <div className="property-group flex flex-col gap-2">
-            <label className="group-title">배경 이미지 경로 (Image URL)</label>
-            <input
-              type="text"
-              value={section.backgroundImage || ''}
-              onChange={(e) => updateSection({ backgroundImage: e.target.value || undefined })}
-              placeholder="https://example.com/image.jpg"
-            />
+            <label className="group-title">배경 이미지 설정</label>
+            {section.backgroundImageName ? (
+              <div className="flex items-center justify-between p-2 rounded border text-xs" style={{ background: 'var(--figma-bg)', border: '1px solid var(--figma-border)' }}>
+                <div className="flex items-center gap-1.5 overflow-hidden">
+                  <span className="font-semibold truncate max-w-[160px]">{section.backgroundImageName.replace(/^section-[a-zA-Z0-9]+-bg-/, '')}</span>
+                  <span className="text-[10px] text-muted-foreground" style={{ opacity: 0.6 }}>(업로드됨)</span>
+                </div>
+                <button
+                  className="del-el-btn p-1"
+                  onClick={() => updateSection({ backgroundImage: undefined, backgroundImageName: undefined })}
+                  title="이미지 삭제"
+                >
+                  <Trash2 size={12} style={{ color: 'var(--figma-danger)' }} />
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  value={section.backgroundImage || ''}
+                  onChange={(e) => updateSection({ backgroundImage: e.target.value || undefined, backgroundImageName: undefined })}
+                  placeholder="외부 이미지 URL 또는 파일 업로드"
+                />
+                
+                <label className="upload-btn-label" style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  padding: '8px',
+                  border: '1px dashed var(--figma-border)',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '11px',
+                  fontWeight: 600,
+                  color: 'var(--figma-text)',
+                  background: 'var(--figma-bg)',
+                  textAlign: 'center'
+                }}>
+                  <span>이미지 파일 업로드</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      const reader = new FileReader();
+                      reader.onloadend = () => {
+                        const base64 = reader.result as string;
+                        const cleanName = `section-${section.id}-bg-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                        updateSection({
+                          backgroundImage: base64,
+                          backgroundImageName: cleanName
+                        });
+                      };
+                      reader.readAsDataURL(file);
+                    }}
+                  />
+                </label>
+              </div>
+            )}
           </div>
 
           {/* Background Image Options */}
@@ -534,15 +589,70 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           <div className="property-group flex flex-col gap-3">
             <label className="group-title">이미지 설정</label>
 
-            {/* Image Source */}
+            {/* Image Source or Upload */}
             <div className="input-block">
-              <span className="input-label">이미지 URL</span>
-              <input
-                type="text"
-                value={element.src || ''}
-                onChange={(e) => updateElement({ src: e.target.value })}
-                placeholder="https://example.com/image.jpg"
-              />
+              <span className="input-label">이미지 파일</span>
+              {element.imageName ? (
+                <div className="flex items-center justify-between p-2 rounded border text-xs mt-1" style={{ background: 'var(--figma-bg)', border: '1px solid var(--figma-border)' }}>
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    <span className="font-semibold truncate max-w-[160px]">{element.imageName.replace(/^element-[a-zA-Z0-9]+-/, '')}</span>
+                    <span className="text-[10px] text-muted-foreground" style={{ opacity: 0.6 }}>(업로드됨)</span>
+                  </div>
+                  <button
+                    className="del-el-btn p-1"
+                    onClick={() => updateElement({ src: '', imageName: undefined })}
+                    title="이미지 삭제"
+                  >
+                    <Trash2 size={12} style={{ color: 'var(--figma-danger)' }} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2 mt-1">
+                  <input
+                    type="text"
+                    value={element.src || ''}
+                    onChange={(e) => updateElement({ src: e.target.value, imageName: undefined })}
+                    placeholder="외부 이미지 URL 또는 파일 업로드"
+                  />
+                  
+                  <label className="upload-btn-label" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '8px',
+                    border: '1px dashed var(--figma-border)',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: 'var(--figma-text)',
+                    background: 'var(--figma-bg)',
+                    textAlign: 'center'
+                  }}>
+                    <span>이미지 파일 업로드</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const base64 = reader.result as string;
+                          const cleanName = `element-${element.id}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                          updateElement({
+                            src: base64,
+                            imageName: cleanName
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
 
             {/* Image border radius */}

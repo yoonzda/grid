@@ -45,7 +45,8 @@ ${fontImports.join('\n')}
     variablesCss += `\n  /* --- Section ${sIdx + 1} (${sec.id}) --- */\n`;
     variablesCss += `  --sec-${sec.id}-bg-color: ${sec.backgroundColor};\n`;
     if (sec.backgroundImage) {
-      variablesCss += `  --sec-${sec.id}-bg-image: url('${sec.backgroundImage}');\n`;
+      const bgImgUrl = sec.backgroundImageName ? `./images/${sec.backgroundImageName}` : sec.backgroundImage;
+      variablesCss += `  --sec-${sec.id}-bg-image: url('${bgImgUrl}');\n`;
       variablesCss += `  --sec-${sec.id}-bg-pos: ${sec.backgroundPosition || 'center'};\n`;
       variablesCss += `  --sec-${sec.id}-bg-size: ${sec.backgroundSize || 'cover'};\n`;
       variablesCss += `  --sec-${sec.id}-bg-repeat: ${sec.backgroundRepeat || 'no-repeat'};\n`;
@@ -309,8 +310,9 @@ ${fontLinksHtml}
       } else if (el.type === 'text') {
         indexHtml += `          <div class="text-element text-${el.id}">${el.content}</div>\n`;
       } else if (el.type === 'image') {
+        const imgSrc = el.imageName ? `./images/${el.imageName}` : (el.src || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800');
         indexHtml += `          <div class="image-element img-${el.id}">\n`;
-        indexHtml += `            <img src="${el.src || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800'}" alt="이미지">\n`;
+        indexHtml += `            <img src="${imgSrc}" alt="이미지">\n`;
         indexHtml += `          </div>\n`;
       } else if (el.type === 'button') {
         const iconSvg = getIconSvg(el.iconType);

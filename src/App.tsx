@@ -58,6 +58,23 @@ function App() {
       zip.file('style.css', generatedFiles['style.css']);
       zip.file('variables.css', generatedFiles['variables.css']);
 
+      // Pack uploaded images if any into 'images/' folder
+      const imagesFolder = zip.folder('images');
+      if (imagesFolder) {
+        sections.forEach(sec => {
+          if (sec.backgroundImage && sec.backgroundImage.startsWith('data:image/') && sec.backgroundImageName) {
+            const base64Data = sec.backgroundImage.split(',')[1];
+            imagesFolder.file(sec.backgroundImageName, base64Data, { base64: true });
+          }
+          sec.elements.forEach(el => {
+            if (el.type === 'image' && el.src && el.src.startsWith('data:image/') && el.imageName) {
+              const base64Data = el.src.split(',')[1];
+              imagesFolder.file(el.imageName, base64Data, { base64: true });
+            }
+          });
+        });
+      }
+
       const content = await zip.generateAsync({ type: 'blob' });
       const url = URL.createObjectURL(content);
       const link = document.createElement('a');
