@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { ExportFileName, GeneratedFiles } from '../types';
-import { FileCode, Copy, Check, ChevronRight, ChevronDown, FolderOpen } from 'lucide-react';
+import { FileCode, ChevronDown, FolderOpen } from 'lucide-react';
 
 interface CodeViewerContainerProps {
   generatedFiles: GeneratedFiles;
@@ -13,15 +13,7 @@ export const CodeViewerContainer: React.FC<CodeViewerContainerProps> = ({
   activeFile,
   setActiveFile,
 }) => {
-  const [copied, setCopied] = useState(false);
-
   const code = generatedFiles[activeFile] || '';
-
-  const handleCopy = () => {
-    navigator.clipboard.writeText(code);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   // Simple HTML and CSS syntax highlighter for VSCode visual style
   const renderHighlightedCode = (text: string, filename: string) => {
@@ -80,7 +72,7 @@ export const CodeViewerContainer: React.FC<CodeViewerContainerProps> = ({
         html = html.replace(/([a-zA-Z0-9-]+)\s*:/g, '<span style="color: var(--vscode-css-prop);">$1</span>:');
 
         // Values: : val
-        html = html.replace(/:\s*([^;]+)/g, (match, p1) => {
+        html = html.replace(/:\s*([^;]+)/g, (_, p1) => {
           let val = p1;
           // Highlight colors/variables/etc inside CSS values
           val = val.replace(/(var\([^)]+\))/g, '<span style="color: var(--vscode-variable);">$1</span>');

@@ -1,4 +1,4 @@
-import { Section, EditorElement, GuidelineWidth, GeneratedFiles } from '../types';
+import { Section, GuidelineWidth, GeneratedFiles } from '../types';
 import { SUPPORTED_FONTS, getFontFamilyByFamilyName } from './fontManager';
 import { getIconSvg } from './iconTemplates';
 

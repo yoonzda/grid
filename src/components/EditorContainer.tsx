@@ -1,6 +1,6 @@
 import React from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType } from '../types';
-import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, Trash2, AlignCenter, AlignLeft, AlignRight, FileOutput, HelpCircle } from 'lucide-react';
+import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 

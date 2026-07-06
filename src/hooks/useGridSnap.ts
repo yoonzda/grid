@@ -111,9 +111,6 @@ export const useGridSnap = (
     const dragB = newTop + heightPx;
     const dragCY = newTop + heightPx / 2;
 
-    let snappedX = false;
-    let snappedY = false;
-
     // Check alignments against other elements in same section
     section.elements.forEach(other => {
       if (other.id === elementId) return;
@@ -129,30 +126,24 @@ export const useGridSnap = (
       if (Math.abs(dragL - otherL) < SNAP_THRESHOLD) {
         newLeft = otherL;
         lines.push({ type: 'vertical', position: otherL, targetId: other.id });
-        snappedX = true;
       } else if (Math.abs(dragR - otherR) < SNAP_THRESHOLD) {
         newLeft = otherR - widthPx;
         lines.push({ type: 'vertical', position: otherR, targetId: other.id });
-        snappedX = true;
       } else if (Math.abs(dragC - otherC) < SNAP_THRESHOLD) {
         newLeft = otherC - widthPx / 2;
         lines.push({ type: 'vertical', position: otherC, targetId: other.id });
-        snappedX = true;
       }
 
       // Horizontal guides (matching Y coordinates)
       if (Math.abs(dragT - otherT) < SNAP_THRESHOLD) {
         newTop = otherT;
         lines.push({ type: 'horizontal', position: otherT, targetId: other.id });
-        snappedY = true;
       } else if (Math.abs(dragB - otherB) < SNAP_THRESHOLD) {
         newTop = otherB - heightPx;
         lines.push({ type: 'horizontal', position: otherB, targetId: other.id });
-        snappedY = true;
       } else if (Math.abs(dragCY - otherCY) < SNAP_THRESHOLD) {
         newTop = otherCY - heightPx / 2;
         lines.push({ type: 'horizontal', position: otherCY, targetId: other.id });
-        snappedY = true;
       }
     });
 
@@ -161,7 +152,6 @@ export const useGridSnap = (
     if (Math.abs(dragC - canvasCenterX) < SNAP_THRESHOLD) {
       newLeft = canvasCenterX - widthPx / 2;
       lines.push({ type: 'vertical', position: canvasCenterX, targetId: 'canvas-center' });
-      snappedX = true;
     }
 
     // Grid coordinates snap mapping

@@ -20,7 +20,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   setActiveElement,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [resizingSection, setResizingSection] = useState<{ id: string; startHeight: number; startY: number } | null>(null);
   const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
 
   // Retrieve drag & snap controls from custom hook
@@ -79,11 +78,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   const handleSectionResizeStart = (e: React.MouseEvent, sectionId: string, currentHeight: number) => {
     e.preventDefault();
     e.stopPropagation();
-    setResizingSection({
-      id: sectionId,
-      startHeight: currentHeight,
-      startY: e.clientY,
-    });
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       const deltaY = moveEvent.clientY - e.clientY;
@@ -97,7 +91,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     const handleMouseUp = () => {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
-      setResizingSection(null);
     };
 
     window.addEventListener('mousemove', handleMouseMove);

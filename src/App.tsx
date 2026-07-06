@@ -84,6 +84,7 @@ const INITIAL_SECTIONS: Section[] = [
         gridY: 2,
         gridH: 5,
         src: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800',
+        content: '',
         color: '',
         fontSize: '14px',
         fontFamily: '본고딕 (Noto Sans KR)',
