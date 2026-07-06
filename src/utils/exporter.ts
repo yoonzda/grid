@@ -46,6 +46,9 @@ ${fontImports.join('\n')}
     variablesCss += `  --sec-${sec.id}-bg-color: ${sec.backgroundColor};\n`;
     if (sec.backgroundImage) {
       variablesCss += `  --sec-${sec.id}-bg-image: url('${sec.backgroundImage}');\n`;
+      variablesCss += `  --sec-${sec.id}-bg-pos: ${sec.backgroundPosition || 'center'};\n`;
+      variablesCss += `  --sec-${sec.id}-bg-size: ${sec.backgroundSize || 'cover'};\n`;
+      variablesCss += `  --sec-${sec.id}-bg-repeat: ${sec.backgroundRepeat || 'no-repeat'};\n`;
     } else {
       variablesCss += `  --sec-${sec.id}-bg-image: none;\n`;
     }
@@ -174,6 +177,11 @@ body {
     styleCss += `.section-${sec.id} {\n`;
     styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
     styleCss += `  background-image: var(--sec-${sec.id}-bg-image);\n`;
+    if (sec.backgroundImage) {
+      styleCss += `  background-position: var(--sec-${sec.id}-bg-pos);\n`;
+      styleCss += `  background-size: var(--sec-${sec.id}-bg-size);\n`;
+      styleCss += `  background-repeat: var(--sec-${sec.id}-bg-repeat);\n`;
+    }
     styleCss += `  min-height: var(--sec-${sec.id}-height);\n`;
     styleCss += `}\n`;
 

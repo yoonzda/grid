@@ -10,6 +10,8 @@ interface CanvasGridProps {
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
   activeElement: { sectionId: string; elementId: string } | null;
   setActiveElement: (val: { sectionId: string; elementId: string } | null) => void;
+  activeSectionId: string | null;
+  setActiveSectionId: (val: string | null) => void;
 }
 
 export const CanvasGrid: React.FC<CanvasGridProps> = ({
@@ -18,6 +20,8 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   setSections,
   activeElement,
   setActiveElement,
+  activeSectionId,
+  setActiveSectionId,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
@@ -190,14 +194,21 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         return (
           <div
             key={sec.id}
-            className="canvas-section-node relative w-full"
+            className={`canvas-section-node relative w-full ${activeSectionId === sec.id ? 'active-section' : ''}`}
             style={{
               minHeight: sec.height,
               height: 'auto', // dynamic height flow
               backgroundColor: sec.backgroundColor,
               backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
+              backgroundPosition: sec.backgroundPosition || 'center',
+              backgroundSize: sec.backgroundSize || 'cover',
+              backgroundRepeat: sec.backgroundRepeat || 'no-repeat',
             }}
-            onClick={() => setActiveElement(null)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveSectionId(sec.id);
+              setActiveElement(null);
+            }}
           >
             {/* 1. Left Dimmed Margin Shading Layer */}
             {guideline !== '100%' && (
@@ -316,7 +327,12 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           position: relative;
           background-size: cover;
           background-position: center;
-          transition: background-color 0.2s;
+          transition: background-color 0.2s, box-shadow 0.2s;
+        }
+
+        .canvas-section-node.active-section {
+          box-shadow: inset 0 0 0 2px var(--figma-accent);
+          z-index: 6;
         }
 
         /* Center content container */

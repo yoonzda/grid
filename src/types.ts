@@ -34,6 +34,9 @@ export interface Section {
   height: number; // in pixels (default 400 or 500)
   backgroundColor: string; // background color hex
   backgroundImage?: string; // background image URL
+  backgroundPosition?: string; // background position, e.g. center
+  backgroundSize?: string; // background size, e.g. cover
+  backgroundRepeat?: string; // background repeat, e.g. no-repeat
   elements: EditorElement[];
 }
 

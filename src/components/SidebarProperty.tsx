@@ -6,24 +6,201 @@ import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Tr
 
 interface SidebarPropertyProps {
   activeElement: { sectionId: string; elementId: string } | null;
+  activeSectionId: string | null;
   sections: Section[];
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
   setActiveElement: (val: { sectionId: string; elementId: string } | null) => void;
+  setActiveSectionId: (val: string | null) => void;
 }
 
 export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   activeElement,
+  activeSectionId,
   sections,
   setSections,
   setActiveElement,
+  setActiveSectionId,
 }) => {
+  if (!activeElement && activeSectionId) {
+    const section = sections.find(s => s.id === activeSectionId);
+    if (!section) {
+      return (
+        <div className="properties-panel flex flex-col h-full">
+          <div className="panel-header">속성 설정</div>
+          <div className="properties-empty flex flex-col items-center justify-center p-6 text-center">
+            <span className="empty-text">섹션을 찾을 수 없습니다.</span>
+          </div>
+        </div>
+      );
+    }
+
+    const updateSection = (fields: Partial<Section>) => {
+      setSections(prev =>
+        prev.map(s => (s.id === activeSectionId ? { ...s, ...fields } : s))
+      );
+    };
+
+    const deleteSection = () => {
+      if (sections.length <= 1) {
+        alert('최소 하나의 섹션은 존재해야 합니다.');
+        return;
+      }
+      setSections(prev => prev.filter(s => s.id !== activeSectionId));
+      setActiveSectionId(null);
+    };
+
+    const moveSection = (direction: 'up' | 'down') => {
+      const index = sections.findIndex(s => s.id === activeSectionId);
+      if (index === -1) return;
+      const targetIndex = direction === 'up' ? index - 1 : index + 1;
+      if (targetIndex < 0 || targetIndex >= sections.length) return;
+      setSections(prev => {
+        const updated = [...prev];
+        const temp = updated[index];
+        updated[index] = updated[targetIndex];
+        updated[targetIndex] = temp;
+        return updated;
+      });
+    };
+
+    return (
+      <div className="properties-panel flex flex-col h-full">
+        <div className="panel-header flex items-center justify-between">
+          <span>섹션 설정</span>
+          <button className="del-el-btn" onClick={deleteSection} title="섹션 삭제">
+            <Trash2 size={13} />
+          </button>
+        </div>
+
+        <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
+          {/* Section Height */}
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">섹션 높이 (Height)</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="150"
+                max="1000"
+                value={section.height}
+                onChange={(e) => updateSection({ height: parseInt(e.target.value) || 300 })}
+              />
+              <span className="text-xs font-semibold w-12 text-right">{section.height}px</span>
+            </div>
+          </div>
+
+          {/* Background Color */}
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">배경 색상 (Background Color)</label>
+            <div className="color-picker-wrapper">
+              <input
+                type="color"
+                value={section.backgroundColor.startsWith('#') && section.backgroundColor.length === 7 ? section.backgroundColor : '#ffffff'}
+                onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+              />
+              <input
+                type="text"
+                value={section.backgroundColor}
+                onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+                placeholder="#ffffff"
+              />
+            </div>
+          </div>
+
+          {/* Background Image URL */}
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">배경 이미지 경로 (Image URL)</label>
+            <input
+              type="text"
+              value={section.backgroundImage || ''}
+              onChange={(e) => updateSection({ backgroundImage: e.target.value || undefined })}
+              placeholder="https://example.com/image.jpg"
+            />
+          </div>
+
+          {/* Background Image Options */}
+          {section.backgroundImage && (
+            <>
+              {/* Background Position */}
+              <div className="property-group flex flex-col gap-2">
+                <label className="group-title">배경 위치 (background-position)</label>
+                <select
+                  value={section.backgroundPosition || 'center'}
+                  onChange={(e) => updateSection({ backgroundPosition: e.target.value })}
+                >
+                  <option value="center">center (가운데)</option>
+                  <option value="top">top (위)</option>
+                  <option value="bottom">bottom (아래)</option>
+                  <option value="left">left (왼쪽)</option>
+                  <option value="right">right (오른쪽)</option>
+                  <option value="top left">top left (왼쪽 위)</option>
+                  <option value="top right">top right (오른쪽 위)</option>
+                </select>
+              </div>
+
+              {/* Background Size */}
+              <div className="property-group flex flex-col gap-2">
+                <label className="group-title">배경 크기 (background-size)</label>
+                <select
+                  value={section.backgroundSize || 'cover'}
+                  onChange={(e) => updateSection({ backgroundSize: e.target.value })}
+                >
+                  <option value="cover">cover (꽉 채우기 - 비율유지)</option>
+                  <option value="contain">contain (비율 맞춤)</option>
+                  <option value="auto">auto (원본 크기)</option>
+                  <option value="100% 100%">100% 100% (비율 왜곡 채우기)</option>
+                </select>
+              </div>
+
+              {/* Background Repeat */}
+              <div className="property-group flex flex-col gap-2">
+                <label className="group-title">배경 반복 (background-repeat)</label>
+                <select
+                  value={section.backgroundRepeat || 'no-repeat'}
+                  onChange={(e) => updateSection({ backgroundRepeat: e.target.value })}
+                >
+                  <option value="no-repeat">no-repeat (반복 없음)</option>
+                  <option value="repeat">repeat (바둑판 반복)</option>
+                  <option value="repeat-x">repeat-x (가로 반복)</option>
+                  <option value="repeat-y">repeat-y (세로 반복)</option>
+                </select>
+              </div>
+            </>
+          )}
+
+          {/* Section Ordering Operations */}
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">섹션 위치 순서 변경</label>
+            <div className="flex gap-2">
+              <button
+                className="align-btn"
+                style={{ fontSize: '11px', padding: '8px' }}
+                disabled={sections.findIndex(s => s.id === activeSectionId) === 0}
+                onClick={() => moveSection('up')}
+              >
+                위로 이동
+              </button>
+              <button
+                className="align-btn"
+                style={{ fontSize: '11px', padding: '8px' }}
+                disabled={sections.findIndex(s => s.id === activeSectionId) === sections.length - 1}
+                onClick={() => moveSection('down')}
+              >
+                아래로 이동
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!activeElement) {
     return (
       <div className="properties-panel flex flex-col h-full">
         <div className="panel-header">속성 설정</div>
         <div className="properties-empty flex flex-col items-center justify-center p-6 text-center">
           <HelpCircle size={24} className="text-muted mb-2" style={{ opacity: 0.5 }} />
-          <span className="empty-text">캔버스에서 요소를 선택하면 스타일 조절 옵션이 나타납니다.</span>
+          <span className="empty-text">캔버스에서 요소를 선택하거나 섹션 배경을 선택하면 스타일 조절 옵션이 나타납니다.</span>
         </div>
       </div>
     );

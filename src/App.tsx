@@ -22,6 +22,7 @@ function App() {
   const [guideline, setGuideline] = useState<GuidelineWidth>('80%');
   const [sections, setSections] = useState<Section[]>(INITIAL_SECTIONS);
   const [activeElement, setActiveElement] = useState<{ sectionId: string; elementId: string } | null>(null);
+  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [activeFile, setActiveFile] = useState<ExportFileName>('index.html');
   const [isCodeViewerOpen, setIsCodeViewerOpen] = useState(false);
   const [generatedFiles, setGeneratedFiles] = useState<GeneratedFiles>({
@@ -92,6 +93,8 @@ function App() {
           setSections={setSections}
           activeElement={activeElement}
           setActiveElement={setActiveElement}
+          activeSectionId={activeSectionId}
+          setActiveSectionId={setActiveSectionId}
           onExport={handleExport}
           isCodeViewerOpen={isCodeViewerOpen}
           setIsCodeViewerOpen={setIsCodeViewerOpen}

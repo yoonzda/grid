@@ -11,6 +11,8 @@ interface EditorContainerProps {
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
   activeElement: { sectionId: string; elementId: string } | null;
   setActiveElement: (val: { sectionId: string; elementId: string } | null) => void;
+  activeSectionId: string | null;
+  setActiveSectionId: (val: string | null) => void;
   onExport: () => void;
   isCodeViewerOpen: boolean;
   setIsCodeViewerOpen: (val: boolean) => void;
@@ -23,6 +25,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   setSections,
   activeElement,
   setActiveElement,
+  activeSectionId,
+  setActiveSectionId,
   onExport,
   isCodeViewerOpen,
   setIsCodeViewerOpen,
@@ -32,8 +36,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   const addElement = (type: ElementType) => {
     if (sections.length === 0) return;
     
-    // Choose section: use activeElement's section, or default to first section
-    const targetSectionId = activeElement ? activeElement.sectionId : sections[0].id;
+    // Choose section: use activeElement's section, activeSectionId, or default to first section
+    const targetSectionId = activeElement?.sectionId || activeSectionId || sections[0].id;
     const targetSection = sections.find(s => s.id === targetSectionId) || sections[0];
     
     // Calculate gridY (vertical placement) to append at the bottom row
@@ -172,15 +176,19 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             setSections={setSections}
             activeElement={activeElement}
             setActiveElement={setActiveElement}
+            activeSectionId={activeSectionId}
+            setActiveSectionId={setActiveSectionId}
           />
         </div>
 
         {/* Right Properties Panel */}
         <SidebarProperty
           activeElement={activeElement}
+          activeSectionId={activeSectionId}
           sections={sections}
           setSections={setSections}
           setActiveElement={setActiveElement}
+          setActiveSectionId={setActiveSectionId}
         />
       </div>
 
@@ -376,6 +384,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         .canvas-wrapper {
           background-color: var(--figma-canvas);
           position: relative;
+          height: 100%;
+          overflow-y: auto;
         }
 
         /* Margin shading mechanism */
