@@ -117,6 +117,7 @@ function App() {
   const [sections, setSections] = useState<Section[]>(INITIAL_SECTIONS);
   const [activeElement, setActiveElement] = useState<{ sectionId: string; elementId: string } | null>(null);
   const [activeFile, setActiveFile] = useState<ExportFileName>('index.html');
+  const [isCodeViewerOpen, setIsCodeViewerOpen] = useState(false);
   const [generatedFiles, setGeneratedFiles] = useState<GeneratedFiles>({
     'index.html': '',
     'style.css': '',
@@ -176,8 +177,8 @@ function App() {
 
   return (
     <div className="app-split-container">
-      {/* 60% Width Left Pane: Web Page Editor */}
-      <div className="pane-editor">
+      {/* Left Pane: Web Page Editor */}
+      <div className={`pane-editor ${isCodeViewerOpen ? 'code-open' : 'code-closed'}`}>
         <EditorContainer
           guideline={guideline}
           setGuideline={setGuideline}
@@ -186,11 +187,13 @@ function App() {
           activeElement={activeElement}
           setActiveElement={setActiveElement}
           onExport={handleExport}
+          isCodeViewerOpen={isCodeViewerOpen}
+          setIsCodeViewerOpen={setIsCodeViewerOpen}
         />
       </div>
 
-      {/* 40% Width Right Pane: VSCode Code Viewer */}
-      <div className="pane-viewer">
+      {/* Right Pane: VSCode Code Viewer */}
+      <div className={`pane-viewer ${isCodeViewerOpen ? 'code-open' : 'code-closed'}`}>
         <CodeViewerContainer
           generatedFiles={generatedFiles}
           activeFile={activeFile}
@@ -207,17 +210,36 @@ function App() {
         }
 
         .pane-editor {
-          width: 60%;
           height: 100%;
           overflow: hidden;
           position: relative;
+          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .pane-editor.code-open {
+          width: 60%;
+        }
+
+        .pane-editor.code-closed {
+          width: 100%;
         }
 
         .pane-viewer {
-          width: 40%;
           height: 100%;
           overflow: hidden;
           position: relative;
+          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-left-color 0.3s;
+          background-color: var(--vscode-bg);
+        }
+
+        .pane-viewer.code-open {
+          width: 40%;
+          border-left: 1px solid var(--figma-border);
+        }
+
+        .pane-viewer.code-closed {
+          width: 0;
+          border-left: 0 solid transparent;
         }
       `}</style>
     </div>

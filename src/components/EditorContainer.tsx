@@ -1,6 +1,6 @@
 import React from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType } from '../types';
-import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle } from 'lucide-react';
+import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 
@@ -12,6 +12,8 @@ interface EditorContainerProps {
   activeElement: { sectionId: string; elementId: string } | null;
   setActiveElement: (val: { sectionId: string; elementId: string } | null) => void;
   onExport: () => void;
+  isCodeViewerOpen: boolean;
+  setIsCodeViewerOpen: (val: boolean) => void;
 }
 
 export const EditorContainer: React.FC<EditorContainerProps> = ({
@@ -22,6 +24,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   activeElement,
   setActiveElement,
   onExport,
+  isCodeViewerOpen,
+  setIsCodeViewerOpen,
 }) => {
   
   // Adds a new element below the existing elements in the active/first section
@@ -123,7 +127,11 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           </div>
         </div>
 
-        <div className="toolbar-right flex items-center">
+        <div className="toolbar-right flex items-center gap-2">
+          <button className={`toggle-code-action-btn flex items-center gap-1 ${isCodeViewerOpen ? 'active' : ''}`} onClick={() => setIsCodeViewerOpen(!isCodeViewerOpen)} title={isCodeViewerOpen ? '코드 접기' : '코드 보기'}>
+            <Terminal size={14} />
+            <span>{isCodeViewerOpen ? '코드 접기' : '코드 보기'}</span>
+          </button>
           <button className="export-action-btn flex items-center gap-1" onClick={onExport}>
             <FileOutput size={15} />
             <span>내보내기</span>
@@ -275,6 +283,32 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
 
         .icon-tool-btn:hover {
           background: rgba(255, 255, 255, 0.1);
+        }
+
+        .toggle-code-action-btn {
+          background: var(--figma-bg);
+          border: 1px solid var(--figma-border);
+          color: var(--figma-text);
+          padding: 6px 12px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          transition: all 0.2s;
+        }
+
+        .toggle-code-action-btn:hover {
+          background: rgba(0, 0, 0, 0.02);
+          border-color: var(--figma-accent);
+        }
+
+        .toggle-code-action-btn.active {
+          background: rgba(24, 160, 251, 0.05);
+          border-color: var(--figma-accent);
+          color: var(--figma-accent);
         }
 
         .export-action-btn {
