@@ -31,14 +31,12 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     });
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (!resizingSection) {
-        const deltaY = moveEvent.clientY - e.clientY;
-        const newHeight = Math.max(150, Math.min(1000, currentHeight + deltaY));
-        
-        setSections(prev =>
-          prev.map(s => (s.id === sectionId ? { ...s, height: newHeight } : s))
-        );
-      }
+      const deltaY = moveEvent.clientY - e.clientY;
+      const newHeight = Math.max(150, Math.min(1000, currentHeight + deltaY));
+      
+      setSections(prev =>
+        prev.map(s => (s.id === sectionId ? { ...s, height: newHeight } : s))
+      );
     };
 
     const handleMouseUp = () => {
@@ -102,199 +100,218 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     ));
   };
 
+  // Helper to get margin width percentage
+  const getMarginPercent = () => {
+    if (guideline === '80%') return '10%';
+    if (guideline === '60%') return '20%';
+    return '0%';
+  };
+
+  // Helper to get content width percentage
+  const getContentPercent = () => {
+    if (guideline === '80%') return '80%';
+    if (guideline === '60%') return '60%';
+    return '100%';
+  };
+
   return (
     <div className="canvas-grid-root" ref={containerRef}>
-      {/* Centered Guide Overlay holding sections */}
-      <div className={`canvas-guide-overlay ${guideline === '80%' ? 'g-80' : guideline === '60%' ? 'g-60' : 'g-100'}`}>
-        
-        {/* Left Dimmed Margin Shading */}
-        <div className="side-margin left-margin">
-          <div className="margin-border-line"></div>
-        </div>
+      {/* Top section divider button */}
+      <div className="section-insert-line top-line">
+        <button className="insert-btn" onClick={() => addSection(-1)}>
+          <Plus size={12} />
+          <span>섹션 추가</span>
+        </button>
+      </div>
 
-        {/* Content Container spanning the guideline width */}
-        <div className="canvas-content-area">
-          
-          {/* Top section divider button */}
-          <div className="section-insert-line top-line">
-            <button className="insert-btn" onClick={() => addSection(-1)}>
+      {sections.map((sec, secIdx) => (
+        <div
+          key={sec.id}
+          className="canvas-section-node relative w-full"
+          style={{
+            height: sec.height,
+            backgroundColor: sec.backgroundColor,
+            backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
+          }}
+          onClick={() => setActiveElement(null)}
+        >
+          {/* 1. Left Dimmed Margin Shading Layer */}
+          {guideline !== '100%' && (
+            <div className="side-margin-shading left" style={{ width: getMarginPercent() }}>
+              <div className="margin-border-line right-border"></div>
+            </div>
+          )}
+
+          {/* 2. Centered Content Grid Container */}
+          <div className="section-grid-container" style={{ width: getContentPercent() }}>
+            {/* Grid column guidelines */}
+            <div className="grid-guides-overlay">
+              {renderGridCols()}
+            </div>
+
+            {/* Elements container utilizing real CSS Grid for placement layout */}
+            <div className="elements-box">
+              {sec.elements.map(el => (
+                <div
+                  key={el.id}
+                  className={`mock-canvas-element ${activeElement?.elementId === el.id ? 'active' : ''}`}
+                  style={{
+                    gridColumn: `${el.gridX + 1} / span ${el.gridW}`,
+                    gridRow: `${el.gridY + 1} / span ${el.gridH}`,
+                    fontFamily: el.fontFamily.includes('Noto') ? "'Noto Sans KR', sans-serif" : 'inherit',
+                    color: el.color,
+                    fontSize: el.fontSize,
+                    textAlign: el.align,
+                    background: el.type === 'button' 
+                      ? (el.btnBgColor || '#18a0fb') 
+                      : (el.type === 'image' ? '#eee' : 'rgba(24, 160, 251, 0.03)'),
+                    borderRadius: el.borderRadius ?? 4,
+                    boxShadow: el.boxShadow || 'none',
+                    border: el.type === 'image' || el.type === 'button' 
+                      ? 'none' 
+                      : '1px dashed rgba(24, 160, 251, 0.2)',
+                    cursor: 'pointer',
+                    zIndex: activeElement?.elementId === el.id ? 10 : 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start',
+                    alignItems: el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start',
+                    padding: el.type === 'button' ? '0' : '10px',
+                    pointerEvents: 'auto',
+                    overflow: 'hidden',
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveElement({ sectionId: sec.id, elementId: el.id });
+                  }}
+                >
+                  {el.type === 'image' ? (
+                    <img src={el.src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: el.borderRadius }} alt="element" />
+                  ) : el.type === 'button' ? (
+                    <span style={{ color: el.btnTextColor || '#fff', fontSize: el.fontSize, display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+                      {el.content}
+                    </span>
+                  ) : (
+                    <span style={{ width: '100%' }}>{el.content}</span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* 3. Right Dimmed Margin Shading Layer */}
+          {guideline !== '100%' && (
+            <div className="side-margin-shading right" style={{ width: getMarginPercent() }}>
+              <div className="margin-border-line left-border"></div>
+            </div>
+          )}
+
+          {/* Section Operations Bar (Floating controller) */}
+          <div className="section-operations">
+            <div className="operation-tag">섹션 {secIdx + 1}</div>
+            <button
+              className="op-btn"
+              disabled={secIdx === 0}
+              onClick={(e) => moveSection(sec.id, 'up', e)}
+              title="위로 이동"
+            >
+              <ChevronUp size={14} />
+            </button>
+            <button
+              className="op-btn"
+              disabled={secIdx === sections.length - 1}
+              onClick={(e) => moveSection(sec.id, 'down', e)}
+              title="아래로 이동"
+            >
+              <ChevronDown size={14} />
+            </button>
+            <button
+              className="op-btn delete"
+              onClick={(e) => deleteSection(sec.id, e)}
+              title="섹션 삭제"
+            >
+              <Trash2 size={13} />
+            </button>
+          </div>
+
+          {/* Section Height Resize Handle (Bottom border drag) */}
+          <div
+            className="section-resize-handle"
+            onMouseDown={(e) => handleResizeStart(e, sec.id, sec.height)}
+            title="섹션 높이 조절"
+          >
+            <div className="resize-indicator"></div>
+          </div>
+
+          {/* Section Insert Divider Line */}
+          <div className="section-insert-line">
+            <button className="insert-btn" onClick={() => addSection(secIdx)}>
               <Plus size={12} />
               <span>섹션 추가</span>
             </button>
           </div>
-
-          {sections.map((sec, secIdx) => (
-            <div
-              key={sec.id}
-              className="canvas-section-node relative"
-              style={{
-                height: sec.height,
-                backgroundColor: sec.backgroundColor,
-                backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
-              }}
-              onClick={() => setActiveElement(null)}
-            >
-              {/* Grid guide overlay (dashed lines) - shown in editor */}
-              <div className="grid-guides-overlay">
-                {renderGridCols()}
-              </div>
-
-              {/* Elements rendering box */}
-              <div className="elements-box w-full h-full relative">
-                {/* Element rendering will be placed here in step 5 */}
-                {sec.elements.map(el => (
-                  <div
-                    key={el.id}
-                    className={`mock-canvas-element absolute flex items-center justify-center ${activeElement?.elementId === el.id ? 'active' : ''}`}
-                    style={{
-                      left: `calc(${(el.gridX / 12) * 100}% + 8px)`,
-                      width: `calc(${(el.gridW / 12) * 100}% - 16px)`,
-                      top: el.gridY * 55 + 20,
-                      height: el.gridH * 55 - 15,
-                      fontFamily: el.fontFamily.includes('Noto') ? "'Noto Sans KR', sans-serif" : 'inherit',
-                      color: el.color,
-                      fontSize: el.fontSize,
-                      textAlign: el.align,
-                      background: el.type === 'button' ? (el.btnBgColor || '#18a0fb') : (el.type === 'image' ? '#eee' : 'transparent'),
-                      borderRadius: el.borderRadius ?? 4,
-                      boxShadow: el.boxShadow || 'none',
-                      border: el.type === 'image' || el.type === 'button' ? 'none' : '1px dashed rgba(0,0,0,0.1)',
-                      cursor: 'pointer',
-                      zIndex: activeElement?.elementId === el.id ? 10 : 2
-                    }}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setActiveElement({ sectionId: sec.id, elementId: el.id });
-                    }}
-                  >
-                    {el.type === 'image' ? (
-                      <img src={el.src} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: el.borderRadius }} alt="element" />
-                    ) : el.type === 'button' ? (
-                      <span style={{ color: el.btnTextColor || '#fff', fontSize: el.fontSize }}>{el.content}</span>
-                    ) : (
-                      <span>{el.content}</span>
-                    )}
-                  </div>
-                ))}
-              </div>
-
-              {/* Section Operations Bar (Floating controller) */}
-              <div className="section-operations">
-                <div className="operation-tag">섹션 {secIdx + 1}</div>
-                <button
-                  className="op-btn"
-                  disabled={secIdx === 0}
-                  onClick={(e) => moveSection(sec.id, 'up', e)}
-                  title="위로 이동"
-                >
-                  <ChevronUp size={14} />
-                </button>
-                <button
-                  className="op-btn"
-                  disabled={secIdx === sections.length - 1}
-                  onClick={(e) => moveSection(sec.id, 'down', e)}
-                  title="아래로 이동"
-                >
-                  <ChevronDown size={14} />
-                </button>
-                <button
-                  className="op-btn delete"
-                  onClick={(e) => deleteSection(sec.id, e)}
-                  title="섹션 삭제"
-                >
-                  <Trash2 size={13} />
-                </button>
-              </div>
-
-              {/* Section Height Resize Handle (Bottom border drag) */}
-              <div
-                className="section-resize-handle"
-                onMouseDown={(e) => handleResizeStart(e, sec.id, sec.height)}
-                title="섹션 높이 조절"
-              >
-                <div className="resize-indicator"></div>
-              </div>
-
-              {/* Section Insert Divider Line */}
-              <div className="section-insert-line">
-                <button className="insert-btn" onClick={() => addSection(secIdx)}>
-                  <Plus size={12} />
-                  <span>섹션 추가</span>
-                </button>
-              </div>
-            </div>
-          ))}
         </div>
-
-        {/* Right Dimmed Margin Shading */}
-        <div className="side-margin right-margin">
-          <div className="margin-border-line"></div>
-        </div>
-
-      </div>
+      ))}
 
       <style>{`
         .canvas-grid-root {
           width: 100%;
           min-height: 100%;
           position: relative;
+          padding: 40px 0;
         }
 
-        .canvas-guide-overlay {
-          display: flex;
-          width: 100%;
-          min-height: 100%;
-        }
-
-        .canvas-content-area {
-          flex: 1;
-          background-color: transparent;
-          transition: flex 0.25s ease-in-out;
-          position: relative;
-          z-index: 5;
-        }
-
-        .side-margin {
-          background-color: var(--figma-margin-dim);
-          transition: width 0.25s ease-in-out;
-          position: relative;
-          z-index: 10;
-          pointer-events: none;
-        }
-
-        .margin-border-line {
-          width: 1px;
-          height: 100%;
-          background: rgba(24, 160, 251, 0.25);
-          position: absolute;
-        }
-
-        .left-margin .margin-border-line {
-          right: 0;
-          border-right: 1px dashed rgba(24, 160, 251, 0.4);
-        }
-
-        .right-margin .margin-border-line {
-          left: 0;
-          border-left: 1px dashed rgba(24, 160, 251, 0.4);
-        }
-
-        /* Dimension definitions */
-        .canvas-guide-overlay.g-100 .side-margin { width: 0%; }
-        .canvas-guide-overlay.g-100 .canvas-content-area { flex: 0 0 100%; }
-
-        .canvas-guide-overlay.g-80 .side-margin { width: 10%; }
-        .canvas-guide-overlay.g-80 .canvas-content-area { flex: 0 0 80%; }
-
-        .canvas-guide-overlay.g-60 .side-margin { width: 20%; }
-        .canvas-guide-overlay.g-60 .canvas-content-area { flex: 0 0 60%; }
-
-        /* Canvas Section nodes styling */
+        /* Full width section node */
         .canvas-section-node {
           border-bottom: 1px solid var(--figma-border);
           position: relative;
-          box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+          background-size: cover;
+          background-position: center;
           transition: background-color 0.2s;
+        }
+
+        /* Center content container */
+        .section-grid-container {
+          margin: 0 auto;
+          height: 100%;
+          position: relative;
+          z-index: 5;
+          transition: width 0.25s ease-in-out;
+        }
+
+        /* Side margin shading layers */
+        .side-margin-shading {
+          position: absolute;
+          top: 0;
+          height: 100%;
+          background-color: var(--figma-margin-dim); /* Overlay shading */
+          z-index: 10;
+          pointer-events: none;
+          transition: width 0.25s ease-in-out;
+        }
+
+        .side-margin-shading.left {
+          left: 0;
+        }
+
+        .side-margin-shading.right {
+          right: 0;
+        }
+
+        /* Solid guideline border lines */
+        .margin-border-line {
+          position: absolute;
+          width: 1px;
+          height: 100%;
+          border-left: 1px dashed rgba(24, 160, 251, 0.4);
+        }
+
+        .right-border {
+          right: 0;
+        }
+
+        .left-border {
+          left: 0;
         }
 
         .grid-guides-overlay {
@@ -305,7 +322,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           height: 100%;
           display: grid;
           grid-template-columns: repeat(12, 1fr);
-          padding: 0 8px;
+          padding: 40px 8px;
           gap: 16px;
           pointer-events: none;
           z-index: 1;
@@ -314,7 +331,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         .grid-guide-col {
           border-left: 1px dashed var(--figma-grid-line);
           border-right: 1px dashed var(--figma-grid-line);
-          background-color: rgba(24, 160, 251, 0.005);
+          background-color: rgba(24, 160, 251, 0.003);
           height: 100%;
         }
 
@@ -335,7 +352,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         }
 
         .section-resize-handle:hover {
-          background: rgba(24, 160, 251, 0.3);
+          background: rgba(24, 160, 251, 0.2);
         }
 
         .resize-indicator {
@@ -367,7 +384,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           pointer-events: none;
         }
 
-        /* Placement */
         .canvas-section-node .section-insert-line {
           bottom: -1px;
         }
@@ -379,8 +395,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         }
 
         .canvas-section-node:hover .section-insert-line,
-        .section-insert-line.top-line:hover,
-        .canvas-content-area:hover .section-insert-line.top-line {
+        .section-insert-line.top-line:hover {
           opacity: 1;
           pointer-events: auto;
         }
@@ -411,7 +426,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         /* Section Operations */
         .section-operations {
           position: absolute;
-          left: -45px;
+          left: 10px;
           top: 10px;
           display: flex;
           flex-direction: column;
@@ -469,12 +484,36 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           cursor: not-allowed;
         }
 
-        /* Mock Element */
-        .mock-canvas-element {
-          transition: border-color 0.15s;
+        /* Elements Grid box matching guides */
+        .elements-box {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          display: grid;
+          grid-template-columns: repeat(12, 1fr);
+          grid-auto-rows: 40px;
+          padding: 40px 8px;
+          gap: 16px;
+          pointer-events: none;
+          z-index: 2;
         }
+
+        /* Element wrapper */
+        .mock-canvas-element {
+          user-select: none;
+          transition: border-color 0.15s, background-color 0.15s;
+        }
+
         .mock-canvas-element.active {
           outline: 2px solid var(--figma-accent);
+          outline-offset: -1px;
+        }
+
+        .mock-canvas-element:hover:not(.active) {
+          outline: 1px dashed var(--figma-accent);
+          outline-offset: -1px;
         }
       `}</style>
     </div>
