@@ -216,21 +216,17 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       <style>{`
         .editor-element-wrapper {
           border: 1.5px solid transparent;
-          transition: all 0.15s ease-in-out;
-          padding: 8px;
-          border-radius: 4px;
+          transition: border-color 0.15s;
+          padding: 0;
         }
 
         .editor-element-wrapper:hover {
-          border-color: rgba(24, 160, 251, 0.25);
-          border-radius: 4px;
+          border-color: rgba(24, 160, 251, 0.4);
         }
 
         .editor-element-wrapper.active {
           border: 1.5px solid var(--figma-accent) !important;
-          border-radius: 4px;
-          /* Double ring box shadow: white inner stroke separator + soft outer shadow */
-          box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--figma-accent), 0 4px 12px rgba(24, 160, 251, 0.15);
+          box-shadow: 0 2px 6px rgba(24, 160, 251, 0.2);
         }
 
         .element-inner-content {
