@@ -118,9 +118,9 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               <AlignCenter size={14} />
               <span>가로 중앙</span>
             </button>
-            <button className="shortcut-btn fill" onClick={fillGuidelineWidth} title="가이드 가로 100% 채우기">
+            <button className="shortcut-btn fill" onClick={fillGuidelineWidth} title="가이드라인 폭에 맞게 12컬럼 전체 채우기">
               <Maximize2 size={14} />
-              <span>영역 채우기</span>
+              <span>그리드 꽉 채우기</span>
             </button>
           </div>
         </div>
@@ -174,21 +174,21 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
         {/* Width Mode Settings (Stretch vs Fit Content) */}
         <div className="property-group flex flex-col gap-2">
-          <label className="group-title">너비 유형 설정</label>
+          <label className="group-title">가로 크기 설정 (Width Mode)</label>
           <div className="align-buttons-row">
             <button
               className={`align-btn ${element.widthMode !== 'fit-content' ? 'active' : ''}`}
               onClick={() => updateElement({ widthMode: 'stretch' })}
-              title="지정한 컬럼 폭(W)만큼 전체 영역을 꽉 채웁니다."
+              title="지정한 컬럼 폭(W)만큼 가로를 꽉 채웁니다 (Stretch)"
             >
-              <span>영역 채우기</span>
+              <span>컨테이너 채우기</span>
             </button>
             <button
               className={`align-btn ${element.widthMode === 'fit-content' ? 'active' : ''}`}
               onClick={() => updateElement({ widthMode: 'fit-content' })}
-              title="글자 길이/텍스트 내용만큼만 너비를 가집니다."
+              title="글자 내용의 폭만큼 너비를 자동으로 맞춥니다 (Hug Contents)"
             >
-              <span>텍스트 맞춤</span>
+              <span>콘텐츠 맞춤</span>
             </button>
           </div>
         </div>
