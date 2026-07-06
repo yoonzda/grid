@@ -342,7 +342,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           position: absolute;
           top: 0;
           bottom: 0;
-          background-color: rgba(15, 23, 42, 0.12); /* Dynamic dark overlay shading */
+          background-color: transparent; /* No side shading overlay to ensure backgrounds stretch 100% */
           z-index: 10;
           pointer-events: none;
           transition: width 0.25s ease-in-out;
@@ -361,7 +361,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           position: absolute;
           width: 1px;
           height: 100%;
-          border-left: 1px dashed rgba(24, 160, 251, 0.7); /* High visibility blue boundary */
+          border-left: 1.5px dashed rgba(24, 160, 251, 0.8); /* Clean dashed boundary guidelines */
         }
 
         .right-border {
