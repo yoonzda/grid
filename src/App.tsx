@@ -108,6 +108,8 @@ const INITIAL_SECTIONS: Section[] = [
   }
 ];
 
+import { updateGoogleFontsInDOM } from './utils/fontManager';
+
 function App() {
   const [guideline, setGuideline] = useState<GuidelineWidth>('80%');
   const [sections, setSections] = useState<Section[]>(INITIAL_SECTIONS);
@@ -124,6 +126,19 @@ function App() {
     const code = generateCode(sections, guideline);
     setGeneratedFiles(code);
   }, [sections, guideline]);
+
+  // Synchronize Google Fonts dynamic imports in document head
+  useEffect(() => {
+    const activeFonts: string[] = [];
+    sections.forEach(sec => {
+      sec.elements.forEach(el => {
+        if (el.fontFamily) {
+          activeFonts.push(el.fontFamily);
+        }
+      });
+    });
+    updateGoogleFontsInDOM(activeFonts);
+  }, [sections]);
 
   // Export single page layout as a download
   const handleExport = () => {

@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { EditorElement } from '../types';
 import { getIconSvg } from '../utils/iconTemplates';
+import { getFontFamilyByFamilyName } from '../utils/fontManager';
 
 interface ElementWrapperProps {
   element: EditorElement;
@@ -69,7 +70,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   };
 
   const renderContent = () => {
-    const fontStyle = element.fontFamily.includes('Noto') ? "'Noto Sans KR', sans-serif" : 'inherit';
+    const fontStyle = getFontFamilyByFamilyName(element.fontFamily);
     const textStyle: React.CSSProperties = {
       fontFamily: fontStyle,
       color: element.color,

@@ -81,3 +81,29 @@ export const getFontFamilyByFamilyName = (familyName: string): string => {
   const font = SUPPORTED_FONTS.find(f => f.name === familyName || f.family.includes(familyName));
   return font ? font.family : "'Inter', sans-serif";
 };
+
+export const updateGoogleFontsInDOM = (fontNames: string[]) => {
+  const urlsToInject: string[] = [];
+  
+  // Collect all unique import urls for used fonts
+  const uniqueNames = Array.from(new Set(fontNames));
+  uniqueNames.forEach(name => {
+    const font = SUPPORTED_FONTS.find(f => f.name === name);
+    if (font && font.importUrl) {
+      urlsToInject.push(font.importUrl);
+    }
+  });
+
+  // Remove existing dynamically loaded link tags
+  const existingLinks = document.querySelectorAll('link.dynamic-google-font');
+  existingLinks.forEach(el => el.remove());
+
+  // Insert link tag for each used font
+  urlsToInject.forEach(url => {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.className = 'dynamic-google-font';
+    link.href = url;
+    document.head.appendChild(link);
+  });
+};
