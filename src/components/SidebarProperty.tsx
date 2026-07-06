@@ -172,6 +172,27 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           </div>
         </div>
 
+        {/* Width Mode Settings (Stretch vs Fit Content) */}
+        <div className="property-group flex flex-col gap-2">
+          <label className="group-title">너비 유형 설정</label>
+          <div className="align-buttons-row">
+            <button
+              className={`align-btn ${element.widthMode !== 'fit-content' ? 'active' : ''}`}
+              onClick={() => updateElement({ widthMode: 'stretch' })}
+              title="지정한 컬럼 폭(W)만큼 전체 영역을 꽉 채웁니다."
+            >
+              <span>영역 채우기</span>
+            </button>
+            <button
+              className={`align-btn ${element.widthMode === 'fit-content' ? 'active' : ''}`}
+              onClick={() => updateElement({ widthMode: 'fit-content' })}
+              title="글자 길이/텍스트 내용만큼만 너비를 가집니다."
+            >
+              <span>텍스트 맞춤</span>
+            </button>
+          </div>
+        </div>
+
         {/* 3. Text Controls (for Title, Text, Button) */}
         {(element.type === 'title' || element.type === 'text' || element.type === 'button') && (
           <div className="property-group flex flex-col gap-3">

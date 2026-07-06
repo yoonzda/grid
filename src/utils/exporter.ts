@@ -181,6 +181,13 @@ body {
       styleCss += `\n#el-id-${el.id} {\n`;
       styleCss += `  grid-column: calc(var(--el-${el.id}-grid-x) + 1) / span var(--el-${el.id}-grid-w);\n`;
       styleCss += `  grid-row: calc(var(--el-${el.id}-grid-y) + 1) / span var(--el-${el.id}-grid-h);\n`;
+      if (el.widthMode === 'fit-content') {
+        styleCss += `  width: fit-content;\n`;
+        const justify = el.align === 'center' ? 'center' : el.align === 'right' ? 'end' : 'start';
+        styleCss += `  justify-self: ${justify};\n`;
+      } else {
+        styleCss += `  width: 100%;\n`;
+      }
       styleCss += `}\n`;
 
       if (el.type === 'title') {

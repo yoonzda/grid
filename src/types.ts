@@ -26,6 +26,7 @@ export interface EditorElement {
   btnTextColor?: string;
   iconType?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
   iconPosition?: 'before' | 'after';
+  widthMode?: 'stretch' | 'fit-content';
 }
 
 export interface Section {

@@ -176,6 +176,10 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
         pointerEvents: 'auto',
         borderRadius: element.type === 'button' || element.type === 'image' ? element.borderRadius : 0,
         boxShadow: element.boxShadow || 'none',
+        width: element.widthMode === 'fit-content' ? 'fit-content' : '100%',
+        justifySelf: element.widthMode === 'fit-content'
+          ? (element.align === 'center' ? 'center' : element.align === 'right' ? 'end' : 'start')
+          : 'stretch',
       }}
       onClick={(e) => {
         e.stopPropagation();
