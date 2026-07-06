@@ -388,7 +388,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
       <style>{`
         .properties-panel {
-          width: 240px;
+          width: 280px;
           background-color: var(--figma-panel);
           border-left: 1px solid var(--figma-border);
         }

@@ -393,7 +393,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         .properties-panel {
-          width: 240px;
+          width: 280px;
           background-color: var(--figma-panel);
           border-left: 1px solid var(--figma-border);
         }

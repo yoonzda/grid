@@ -113,7 +113,7 @@ body {
   min-height: 100%;
   display: grid;
   grid-template-columns: repeat(12, 1fr);
-  grid-auto-rows: var(--grid-row-height);
+  grid-auto-rows: minmax(var(--grid-row-height), auto);
   column-gap: var(--grid-gap);
   row-gap: var(--grid-gap);
   position: relative;

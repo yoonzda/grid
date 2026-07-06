@@ -20,8 +20,8 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   setActiveElement,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const gridContainerRef = useRef<HTMLDivElement>(null);
   const [resizingSection, setResizingSection] = useState<{ id: string; startHeight: number; startY: number } | null>(null);
+  const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
 
   // Retrieve drag & snap controls from custom hook
   const {
@@ -40,13 +40,10 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     if (!dragState && !resizeState) return;
 
     const handleGlobalMouseMove = (e: MouseEvent) => {
-      if (gridContainerRef.current) {
-        const containerWidth = gridContainerRef.current.getBoundingClientRect().width;
-        if (dragState) {
-          handleDragMove(e.clientX, e.clientY, containerWidth, dragState.sectionId, dragState.elementId);
-        } else if (resizeState) {
-          handleResizeMove(e.clientX, e.clientY, containerWidth, resizeState.sectionId, resizeState.elementId);
-        }
+      if (dragState) {
+        handleDragMove(e.clientX, e.clientY, activeDragContainerWidth, dragState.sectionId, dragState.elementId);
+      } else if (resizeState) {
+        handleResizeMove(e.clientX, e.clientY, activeDragContainerWidth, resizeState.sectionId, resizeState.elementId);
       }
     };
 
@@ -61,7 +58,22 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       window.removeEventListener('mousemove', handleGlobalMouseMove);
       window.removeEventListener('mouseup', handleGlobalMouseUp);
     };
-  }, [dragState, resizeState]);
+  }, [dragState, resizeState, activeDragContainerWidth]);
+
+  // Dynamic start triggers using closest DOM element to get accurate container width
+  const onElementDragStart = (e: React.MouseEvent, sectionId: string, element: EditorElement) => {
+    const gridContainer = (e.currentTarget as HTMLElement).closest('.section-grid-container');
+    const width = gridContainer ? gridContainer.getBoundingClientRect().width : 1200;
+    setActiveDragContainerWidth(width);
+    handleDragStart(e, sectionId, element, width);
+  };
+
+  const onElementResizeStart = (e: React.MouseEvent, sectionId: string, element: EditorElement, handle: 'r' | 'b' | 'br') => {
+    const gridContainer = (e.currentTarget as HTMLElement).closest('.section-grid-container');
+    const width = gridContainer ? gridContainer.getBoundingClientRect().width : 1200;
+    setActiveDragContainerWidth(width);
+    handleResizeStart(e, sectionId, element, handle, width);
+  };
 
   // Section Height Resizing
   const handleSectionResizeStart = (e: React.MouseEvent, sectionId: string, currentHeight: number) => {
@@ -187,7 +199,8 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             key={sec.id}
             className="canvas-section-node relative w-full"
             style={{
-              height: sec.height,
+              minHeight: sec.height,
+              height: 'auto', // dynamic height flow
               backgroundColor: sec.backgroundColor,
               backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
             }}
@@ -203,7 +216,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             {/* 2. Centered Content Grid Container */}
             <div
               className="section-grid-container"
-              ref={gridContainerRef}
               style={{ width: getContentPercent() }}
             >
               {/* Grid column guidelines */}
@@ -220,9 +232,9 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                     sectionId={sec.id}
                     isActive={activeElement?.elementId === el.id}
                     onClick={() => setActiveElement({ sectionId: sec.id, elementId: el.id })}
-                    onDragStart={handleDragStart}
-                    onResizeStart={handleResizeStart}
-                    gridContainerRef={gridContainerRef}
+                    onDragStart={onElementDragStart}
+                    onResizeStart={onElementResizeStart}
+                    gridContainerRef={gridContainerRef} // remains for legacy typings in wrapper
                     onTextChange={handleTextChange}
                   />
                 ))}
@@ -306,6 +318,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           padding: 40px 0;
         }
 
+        /* Full width section node */
         .canvas-section-node {
           border-bottom: 1px solid var(--figma-border);
           position: relative;
@@ -314,19 +327,23 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           transition: background-color 0.2s;
         }
 
+        /* Center content container */
         .section-grid-container {
           margin: 0 auto;
-          height: 100%;
+          min-height: 100%;
           position: relative;
           z-index: 5;
           transition: width 0.25s ease-in-out;
+          display: flex;
+          flex-direction: column;
         }
 
+        /* Side margin shading layers */
         .side-margin-shading {
           position: absolute;
           top: 0;
-          height: 100%;
-          background-color: var(--figma-margin-dim);
+          bottom: 0;
+          background-color: var(--figma-margin-dim); /* Overlay shading */
           z-index: 10;
           pointer-events: none;
           transition: width 0.25s ease-in-out;
@@ -340,6 +357,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           right: 0;
         }
 
+        /* Solid guideline border lines */
         .margin-border-line {
           position: absolute;
           width: 1px;
@@ -372,10 +390,11 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         .grid-guide-col {
           border-left: 1px dashed var(--figma-grid-line);
           border-right: 1px dashed var(--figma-grid-line);
-          background-color: rgba(24, 160, 251, 0.003);
+          background-color: rgba(24, 160, 251, 0.002);
           height: 100%;
         }
 
+        /* Section height resize handle */
         .section-resize-handle {
           position: absolute;
           bottom: 0;
@@ -408,6 +427,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           opacity: 1;
         }
 
+        /* Add section divider line buttons */
         .section-insert-line {
           position: absolute;
           left: 0;
@@ -522,15 +542,14 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           cursor: not-allowed;
         }
 
+        /* Dynamic row height grid to accommodate wrap and auto-expands */
         .elements-box {
-          position: absolute;
-          top: 0;
-          left: 0;
+          position: relative;
           width: 100%;
-          height: 100%;
+          min-height: 100%;
           display: grid;
           grid-template-columns: repeat(12, 1fr);
-          grid-auto-rows: 40px;
+          grid-auto-rows: minmax(40px, auto); /* auto expanding rows! */
           padding: 40px 8px;
           gap: 16px;
           pointer-events: none;
