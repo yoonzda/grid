@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { EditorElement, Section } from '../types';
+import { resolveCollisions } from '../utils/collision';
 
 export interface AlignmentLine {
   type: 'vertical' | 'horizontal';
@@ -169,11 +170,15 @@ export const useGridSnap = (
     setSections(prev =>
       prev.map(s => {
         if (s.id !== sectionId) return s;
+        
+        const updatedElements = s.elements.map(el =>
+          el.id === elementId ? { ...el, gridX, gridY } : el
+        );
+        const resolvedElements = resolveCollisions(updatedElements, elementId);
+        
         return {
           ...s,
-          elements: s.elements.map(el =>
-            el.id === elementId ? { ...el, gridX, gridY } : el
-          ),
+          elements: resolvedElements,
         };
       })
     );
@@ -255,11 +260,15 @@ export const useGridSnap = (
     setSections(prev =>
       prev.map(s => {
         if (s.id !== sectionId) return s;
+        
+        const updatedElements = s.elements.map(el =>
+          el.id === elementId ? { ...el, gridW, gridH } : el
+        );
+        const resolvedElements = resolveCollisions(updatedElements, elementId);
+        
         return {
           ...s,
-          elements: s.elements.map(el =>
-            el.id === elementId ? { ...el, gridW, gridH } : el
-          ),
+          elements: resolvedElements,
         };
       })
     );

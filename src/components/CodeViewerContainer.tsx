@@ -1,17 +1,19 @@
 import React from 'react';
 import { ExportFileName, GeneratedFiles } from '../types';
-import { FileCode, ChevronDown, FolderOpen } from 'lucide-react';
+import { FileCode, ChevronDown, FolderOpen, X } from 'lucide-react';
 
 interface CodeViewerContainerProps {
   generatedFiles: GeneratedFiles;
   activeFile: ExportFileName;
   setActiveFile: (file: ExportFileName) => void;
+  onClose?: () => void;
 }
 
 export const CodeViewerContainer: React.FC<CodeViewerContainerProps> = ({
   generatedFiles,
   activeFile,
   setActiveFile,
+  onClose,
 }) => {
   const code = generatedFiles[activeFile] || '';
 
@@ -95,8 +97,37 @@ export const CodeViewerContainer: React.FC<CodeViewerContainerProps> = ({
     <div className="vscode-container">
       {/* VSCode Sidebar (File Explorer) */}
       <div className="vscode-sidebar">
-        <div className="sidebar-header">
+        <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', boxSizing: 'border-box' }}>
           <span>EXPLORER: GRID-EXPORT</span>
+          {onClose && (
+            <button
+              onClick={onClose}
+              style={{
+                background: 'transparent',
+                border: 'none',
+                color: 'var(--vscode-comment)',
+                cursor: 'pointer',
+                padding: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '4px',
+                opacity: 0.7,
+                transition: 'opacity 0.2s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.opacity = '1';
+                e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.08)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.opacity = '0.7';
+                e.currentTarget.style.backgroundColor = 'transparent';
+              }}
+              title="코드 뷰어 닫기"
+            >
+              <X size={14} />
+            </button>
+          )}
         </div>
         <div className="folder-tree">
           <div className="tree-node active">

@@ -1,5 +1,8 @@
 export type GuidelineWidth = '100%' | '80%' | '60%';
 
+export type ButtonSize = 'small' | 'medium' | 'large';
+export type ButtonVariant = 'filled' | 'outlined' | 'ghost';
+
 export type ElementType = 'title' | 'text' | 'image' | 'button';
 
 export interface EditorElement {
@@ -28,6 +31,19 @@ export interface EditorElement {
   iconType?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
   iconPosition?: 'before' | 'after';
   widthMode?: 'stretch' | 'fit-content';
+  btnSize?: ButtonSize;
+  btnVariant?: ButtonVariant;
+  fontPresetId?: string;
+  marginBottom?: number;
+  marginRight?: number;
+}
+
+export type HeaderLayoutType = 'spread-center' | 'spread-between' | 'left' | 'center' | 'right' | 'even-space';
+
+export interface HeaderMenuItem {
+  id: string;
+  name: string;
+  fileName: string;
 }
 
 export interface Section {
@@ -40,12 +56,78 @@ export interface Section {
   backgroundSize?: string; // background size, e.g. cover
   backgroundRepeat?: string; // background repeat, e.g. no-repeat
   elements: EditorElement[];
+  isShared?: boolean; // Common layout section (Header/Footer)
+  sharedType?: 'header' | 'footer';
+  
+  // Layout and alignment mode (Grid or Flex Flow)
+  layoutMode?: 'grid' | 'flex';
+  flexDirection?: 'vertical' | 'horizontal';
+  flexGap?: number;
+  flexAlign?: 'start' | 'center' | 'end' | 'space-between';
+  
+  // Header Component fields
+  headerLayout?: HeaderLayoutType;
+  headerShowLogo?: boolean;
+  headerShowMenu?: boolean;
+  headerShowBtn?: boolean;
+  
+  headerLogoText?: string;
+  headerLogoColor?: string;
+  headerLogoSize?: string;
+  headerLogoType?: 'text' | 'image';
+  headerLogoImg?: string;
+  headerLogoImgName?: string;
+  headerLogoWidth?: number;
+  
+  headerMenuItems?: HeaderMenuItem[];
+  headerMenuColor?: string;
+  headerMenuSize?: string;
+  
+  headerBtnText?: string;
+  headerBtnBgColor?: string;
+  headerBtnTextColor?: string;
+  headerBtnRadius?: number;
+  
+  // Custom Gaps & Fonts for Header Component
+  headerGap?: number;
+  headerMenuGap?: number;
+  headerLogoFont?: string;
+  headerMenuFont?: string;
+  headerBtnFont?: string;
+  headerBtnSize?: ButtonSize;
+  headerBtnVariant?: ButtonVariant;
+  headerPaddingY?: number;
 }
 
-export type ExportFileName = 'index.html' | 'style.css' | 'variables.css';
+export interface Page {
+  id: string;
+  name: string; // Korean / display name (e.g. '메인')
+  fileName: string; // HTML filename (e.g. 'index.html', 'introduce.html')
+  sections: Section[];
+}
+
+export interface FontPreset {
+  id: string;
+  name: string;
+  fontSize: string;
+  fontFamily: string;
+  fontWeight: string;
+  color: string;
+}
+
+export interface ThemeSettings {
+  primaryColor: string;
+  secondaryColor: string;
+  backgroundColor: string;
+  textColor: string;
+  fontFamily: string;
+  fontPresets: FontPreset[];
+  gridGap?: number;
+  gridRowHeight?: number;
+}
+
+export type ExportFileName = string;
 
 export interface GeneratedFiles {
-  'index.html': string;
-  'style.css': string;
-  'variables.css': string;
+  [fileName: string]: string;
 }

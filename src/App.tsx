@@ -1,76 +1,233 @@
 import { useState, useEffect } from 'react';
-import { Section, GuidelineWidth, ExportFileName, GeneratedFiles } from './types';
+import { Section, Page, ThemeSettings, GuidelineWidth, ExportFileName, GeneratedFiles } from './types';
 import { EditorContainer } from './components/EditorContainer';
 import { CodeViewerContainer } from './components/CodeViewerContainer';
+import { StyleViewerContainer } from './components/StyleViewerContainer';
 import { generateCode } from './utils/exporter';
+import { BUSINESS_TEMPLATE, BUSINESS_THEME, MODERN_TEMPLATE, MODERN_THEME } from './utils/templates';
 import './App.css';
-
-// Initial high-fidelity template sections and elements
-const INITIAL_SECTIONS: Section[] = [
-  {
-    id: 's1',
-    height: 450,
-    backgroundColor: '#ffffff', // Clean white background
-    elements: [],
-  }
-];
-
 import JSZip from 'jszip';
 import { updateGoogleFontsInDOM } from './utils/fontManager';
 
+const ensurePresets = (pagesList: Page[]): Page[] => {
+  return pagesList.map(p => ({
+    ...p,
+    sections: p.sections.map(sec => ({
+      ...sec,
+      elements: sec.elements.map(el => {
+        if (el.fontPresetId) return el;
+        let fontPresetId: string | undefined = undefined;
+        if (el.type === 'title') {
+          fontPresetId = 'title-1';
+        } else if (el.type === 'text') {
+          if (el.id === 'el-footer-text' || sec.sharedType === 'footer') {
+            fontPresetId = 'footer';
+          } else {
+            fontPresetId = 'body-1';
+          }
+        } else if (el.type === 'button') {
+          fontPresetId = 'button';
+        }
+        return { ...el, fontPresetId };
+      })
+    }))
+  }));
+};
+
 function App() {
   const [guideline, setGuideline] = useState<GuidelineWidth>('80%');
-  const [sections, setSections] = useState<Section[]>(INITIAL_SECTIONS);
+  const [activeTemplate, setActiveTemplate] = useState<'business' | 'modern'>('business');
+  const [themeSettings, setThemeSettings] = useState<ThemeSettings>(BUSINESS_THEME);
+  const [pages, setPages] = useState<Page[]>(() => ensurePresets(BUSINESS_TEMPLATE));
+  const [activePageId, setActivePageId] = useState<string>('main');
+
   const [activeElement, setActiveElement] = useState<{ sectionId: string; elementId: string } | null>(null);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
   const [activeFile, setActiveFile] = useState<ExportFileName>('index.html');
   const [isCodeViewerOpen, setIsCodeViewerOpen] = useState(false);
+  const [isStyleViewerOpen, setIsStyleViewerOpen] = useState(false);
+  
   const [generatedFiles, setGeneratedFiles] = useState<GeneratedFiles>({
     'index.html': '',
     'style.css': '',
     'variables.css': '',
   });
 
-  // Re-generate HTML/CSS on sections or guideline width change
+  const activePage = pages.find(p => p.id === activePageId) || pages[0];
+  const sections = activePage?.sections || [];
+
+  // Intercept setSections to synchronize header/footer shared sections across all pages
+  const setSections = (updateAction: React.SetStateAction<Section[]>) => {
+    setPages(prevPages => {
+      const pageIndex = prevPages.findIndex(p => p.id === activePageId);
+      if (pageIndex === -1) return prevPages;
+
+      const oldSections = prevPages[pageIndex].sections;
+      const newSections = typeof updateAction === 'function' ? updateAction(oldSections) : updateAction;
+
+      let finalPages = prevPages.map(p => {
+        if (p.id === activePageId) {
+          return { ...p, sections: newSections };
+        }
+        return p;
+      });
+
+      // Synchronize any shared section (e.g. header, footer) that changed
+      newSections.forEach(newSec => {
+        if (newSec.isShared && newSec.sharedType) {
+          finalPages = finalPages.map(p => {
+            if (p.id === activePageId) return p; // Skip current active page (already updated)
+            return {
+              ...p,
+              sections: p.sections.map(s => {
+                if (s.isShared && s.sharedType === newSec.sharedType) {
+                  return {
+                    ...s,
+                    height: newSec.height,
+                    backgroundColor: newSec.backgroundColor,
+                    backgroundImage: newSec.backgroundImage,
+                    backgroundImageName: newSec.backgroundImageName,
+                    backgroundPosition: newSec.backgroundPosition,
+                    backgroundSize: newSec.backgroundSize,
+                    backgroundRepeat: newSec.backgroundRepeat,
+                    elements: newSec.elements,
+                  };
+                }
+                return s;
+              })
+            };
+          });
+        }
+      });
+
+      return finalPages;
+    });
+  };
+
+  // Add Page Action
+  const addPage = (name: string, rawFileName: string) => {
+    let cleanFileName = rawFileName.trim().toLowerCase().replace(/[^a-z0-9.-]/g, '_');
+    if (!cleanFileName.endsWith('.html')) {
+      cleanFileName += '.html';
+    }
+
+    if (pages.some(p => p.fileName === cleanFileName)) {
+      alert('이미 존재하는 파일명입니다.');
+      return false;
+    }
+
+    // Capture current shared header and footer elements
+    const currentHeader = activePage.sections.find(s => s.isShared && s.sharedType === 'header');
+    const currentFooter = activePage.sections.find(s => s.isShared && s.sharedType === 'footer');
+
+    const defaultHeader = currentHeader ? { ...currentHeader } : {
+      id: 'sec-header',
+      height: 70,
+      backgroundColor: 'var(--theme-primary)',
+      isShared: true,
+      sharedType: 'header' as const,
+      elements: []
+    };
+
+    const defaultFooter = currentFooter ? { ...currentFooter } : {
+      id: 'sec-footer',
+      height: 100,
+      backgroundColor: '#111827',
+      isShared: true,
+      sharedType: 'footer' as const,
+      elements: []
+    };
+
+    const newPageId = `page_${Date.now()}`;
+    const newPage: Page = {
+      id: newPageId,
+      name: name.trim(),
+      fileName: cleanFileName,
+      sections: [
+        { ...defaultHeader, id: `header-${Date.now()}` },
+        {
+          id: `sec-${Date.now()}`,
+          height: 400,
+          backgroundColor: '#ffffff',
+          elements: []
+        },
+        { ...defaultFooter, id: `footer-${Date.now()}` }
+      ]
+    };
+
+    setPages(prev => [...prev, newPage]);
+    setActivePageId(newPageId);
+    return true;
+  };
+
+  // Handle Template Changes
+  const handleTemplateChange = (templateKey: 'business' | 'modern') => {
+    if (window.confirm('템플릿을 변경하시면 작성 중이던 기존 데이터가 모두 초기화됩니다. 변경하시겠습니까?')) {
+      setActiveTemplate(templateKey);
+      if (templateKey === 'business') {
+        setPages(ensurePresets(BUSINESS_TEMPLATE));
+        setThemeSettings(BUSINESS_THEME);
+      } else {
+        setPages(ensurePresets(MODERN_TEMPLATE));
+        setThemeSettings(MODERN_THEME);
+      }
+      setActivePageId('main');
+      setActiveElement(null);
+      setActiveSectionId(null);
+    }
+  };
+
+  // Re-generate HTML/CSS on sections, theme settings, or guideline width change
   useEffect(() => {
-    const code = generateCode(sections, guideline);
+    const code = generateCode(pages, themeSettings, guideline);
     setGeneratedFiles(code);
-  }, [sections, guideline]);
+    
+    // Auto switch active files in VSCode pane if active file is deleted
+    if (!code[activeFile]) {
+      setActiveFile('index.html');
+    }
+  }, [pages, themeSettings, guideline]);
 
   // Synchronize Google Fonts dynamic imports in document head
   useEffect(() => {
-    const activeFonts: string[] = [];
-    sections.forEach(sec => {
-      sec.elements.forEach(el => {
-        if (el.fontFamily) {
-          activeFonts.push(el.fontFamily);
-        }
+    const activeFonts: string[] = [themeSettings.fontFamily];
+    pages.forEach(p => {
+      p.sections.forEach(sec => {
+        sec.elements.forEach(el => {
+          if (el.fontFamily) {
+            activeFonts.push(el.fontFamily);
+          }
+        });
       });
     });
     updateGoogleFontsInDOM(activeFonts);
-  }, [sections]);
+  }, [pages, themeSettings]);
 
-  // Export single page layout as a zip bundle containing index.html, style.css, and variables.css
+  // Export ZIP bundle containing all generated pages, CSS files, and uploaded images
   const handleExport = async () => {
     try {
       const zip = new JSZip();
-      zip.file('index.html', generatedFiles['index.html']);
-      zip.file('style.css', generatedFiles['style.css']);
-      zip.file('variables.css', generatedFiles['variables.css']);
+      
+      // Pack all dynamic page HTML files
+      Object.keys(generatedFiles).forEach(fileName => {
+        zip.file(fileName, generatedFiles[fileName]);
+      });
 
       // Pack uploaded images if any into 'images/' folder
       const imagesFolder = zip.folder('images');
       if (imagesFolder) {
-        sections.forEach(sec => {
-          if (sec.backgroundImage && sec.backgroundImage.startsWith('data:image/') && sec.backgroundImageName) {
-            const base64Data = sec.backgroundImage.split(',')[1];
-            imagesFolder.file(sec.backgroundImageName, base64Data, { base64: true });
-          }
-          sec.elements.forEach(el => {
-            if (el.type === 'image' && el.src && el.src.startsWith('data:image/') && el.imageName) {
-              const base64Data = el.src.split(',')[1];
-              imagesFolder.file(el.imageName, base64Data, { base64: true });
+        pages.forEach(page => {
+          page.sections.forEach(sec => {
+            if (sec.backgroundImage && sec.backgroundImage.startsWith('data:image/') && sec.backgroundImageName) {
+              const base64Data = sec.backgroundImage.split(',')[1];
+              imagesFolder.file(sec.backgroundImageName, base64Data, { base64: true });
             }
+            sec.elements.forEach(el => {
+              if (el.type === 'image' && el.src && el.src.startsWith('data:image/') && el.imageName) {
+                const base64Data = el.src.split(',')[1];
+                imagesFolder.file(el.imageName, base64Data, { base64: true });
+              }
+            });
           });
         });
       }
@@ -79,14 +236,14 @@ function App() {
       const url = URL.createObjectURL(content);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'grid-export.zip';
+      link.download = 'website-export.zip';
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
     } catch (err) {
       console.error('ZIP generation failed:', err);
-      // Fallback: download active file only
+      // Fallback
       const blob = new Blob([generatedFiles[activeFile]], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -101,6 +258,43 @@ function App() {
 
   return (
     <div className="app-split-container">
+      {/* Dynamic Theme Styles Injection */}
+      <style>{`
+        :root {
+          --theme-primary: ${themeSettings.primaryColor};
+          --theme-secondary: ${themeSettings.secondaryColor};
+          --theme-bg: ${themeSettings.backgroundColor};
+          --theme-text: ${themeSettings.textColor};
+          --font-default: '${themeSettings.fontFamily}', sans-serif;
+          
+          /* Layout Global Settings */
+          --content-width: ${guideline === '100%' ? '100%' : guideline === '80%' ? '80%' : '60%'};
+          --grid-gap: ${themeSettings.gridGap ?? 20}px;
+          --grid-row-height: ${themeSettings.gridRowHeight ?? 40}px;
+
+          /* Font Presets */
+          ${(themeSettings.fontPresets || []).map(p => `
+          --theme-font-preset-${p.id}-size: ${p.fontSize};
+          --theme-font-preset-${p.id}-font: '${p.fontFamily}', sans-serif;
+          --theme-font-preset-${p.id}-weight: ${p.fontWeight};
+          --theme-font-preset-${p.id}-color: ${p.color};
+          `).join('\n')}
+        }
+        .canvas-grid-root {
+          font-family: '${themeSettings.fontFamily}', sans-serif;
+        }
+
+        /* Preset class rules */
+        ${(themeSettings.fontPresets || []).map(p => `
+        .font-preset-${p.id} {
+          font-size: var(--theme-font-preset-${p.id}-size) !important;
+          font-family: var(--theme-font-preset-${p.id}-font) !important;
+          font-weight: var(--theme-font-preset-${p.id}-weight) !important;
+          color: var(--theme-font-preset-${p.id}-color) !important;
+        }
+        `).join('\n')}
+      `}</style>
+
       {/* Left Pane: Web Page Editor */}
       <div className={`pane-editor ${isCodeViewerOpen ? 'code-open' : 'code-closed'}`}>
         <EditorContainer
@@ -115,15 +309,37 @@ function App() {
           onExport={handleExport}
           isCodeViewerOpen={isCodeViewerOpen}
           setIsCodeViewerOpen={setIsCodeViewerOpen}
+          isStyleViewerOpen={isStyleViewerOpen}
+          setIsStyleViewerOpen={setIsStyleViewerOpen}
+          
+          pages={pages}
+          setPages={setPages}
+          activePageId={activePageId}
+          setActivePageId={setActivePageId}
+          activeTemplate={activeTemplate}
+          onTemplateChange={handleTemplateChange}
+          themeSettings={themeSettings}
+          setThemeSettings={setThemeSettings}
+          onAddPage={addPage}
         />
       </div>
 
-      {/* Right Pane: VSCode Code Viewer */}
+      {/* Right Pane: VSCode Code Viewer (Overlay Drawer) */}
       <div className={`pane-viewer ${isCodeViewerOpen ? 'code-open' : 'code-closed'}`}>
         <CodeViewerContainer
           generatedFiles={generatedFiles}
           activeFile={activeFile}
           setActiveFile={setActiveFile}
+          onClose={() => setIsCodeViewerOpen(false)}
+        />
+      </div>
+
+      {/* Right Pane: Global Style Preset Editor Drawer (Overlay Drawer) */}
+      <div className={`pane-viewer ${isStyleViewerOpen ? 'code-open' : 'code-closed'}`} style={{ zIndex: isStyleViewerOpen ? 1001 : 1000 }}>
+        <StyleViewerContainer
+          themeSettings={themeSettings}
+          setThemeSettings={setThemeSettings}
+          onClose={() => setIsStyleViewerOpen(false)}
         />
       </div>
 
@@ -133,38 +349,36 @@ function App() {
           width: 100vw;
           height: 100vh;
           overflow: hidden;
+          position: relative;
         }
 
         .pane-editor {
+          width: 100% !important;
           height: 100%;
           overflow: hidden;
           position: relative;
-          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .pane-editor.code-open {
-          width: 60%;
-        }
-
-        .pane-editor.code-closed {
-          width: 100%;
         }
 
         .pane-viewer {
+          position: absolute;
+          top: 0;
+          right: 0;
           height: 100%;
-          overflow: hidden;
-          position: relative;
-          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-left-color 0.3s;
+          z-index: 1000;
+          box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);
           background-color: var(--vscode-bg);
+          transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .pane-viewer.code-open {
-          width: 40%;
+          width: 680px;
+          transform: translateX(0);
           border-left: 1px solid var(--figma-border);
         }
 
         .pane-viewer.code-closed {
-          width: 0;
+          width: 680px;
+          transform: translateX(100%);
           border-left: 0 solid transparent;
         }
       `}</style>

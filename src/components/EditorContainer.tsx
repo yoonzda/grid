@@ -1,6 +1,6 @@
-import React from 'react';
-import { Section, EditorElement, GuidelineWidth, ElementType } from '../types';
-import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal } from 'lucide-react';
+import React, { useState } from 'react';
+import { Section, EditorElement, GuidelineWidth, ElementType, Page, ThemeSettings } from '../types';
+import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 
@@ -16,6 +16,19 @@ interface EditorContainerProps {
   onExport: () => void;
   isCodeViewerOpen: boolean;
   setIsCodeViewerOpen: (val: boolean) => void;
+  isStyleViewerOpen: boolean;
+  setIsStyleViewerOpen: (val: boolean) => void;
+
+  // Multi-page & Theme features
+  pages: Page[];
+  setPages: React.Dispatch<React.SetStateAction<Page[]>>;
+  activePageId: string;
+  setActivePageId: (id: string) => void;
+  activeTemplate: 'business' | 'modern';
+  onTemplateChange: (templateKey: 'business' | 'modern') => void;
+  themeSettings: ThemeSettings;
+  setThemeSettings: React.Dispatch<React.SetStateAction<ThemeSettings>>;
+  onAddPage: (name: string, rawFileName: string) => boolean;
 }
 
 export const EditorContainer: React.FC<EditorContainerProps> = ({
@@ -30,8 +43,23 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   onExport,
   isCodeViewerOpen,
   setIsCodeViewerOpen,
+  isStyleViewerOpen,
+  setIsStyleViewerOpen,
+
+  pages,
+  setPages,
+  activePageId,
+  setActivePageId,
+  activeTemplate,
+  onTemplateChange,
+  themeSettings,
+  setThemeSettings,
+  onAddPage,
 }) => {
-  
+  const [isAddPageModalOpen, setIsAddPageModalOpen] = useState(false);
+  const [newPageName, setNewPageName] = useState('');
+  const [newPageFileName, setNewPageFileName] = useState('');
+
   // Adds a new element below the existing elements in the active/first section
   const addElement = (type: ElementType) => {
     if (sections.length === 0) return;
@@ -54,10 +82,11 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
       gridY: maxGridY,
       gridH: type === 'image' ? 4 : (type === 'text' ? 2 : 1),
       content: type === 'title' ? '새 타이틀 텍스트' : (type === 'button' ? '버튼 텍스트' : '여기에 본문 글상자 텍스트를 입력하세요.'),
-      color: type === 'title' ? '#1f2937' : '#4b5563',
+      color: type === 'title' ? 'var(--theme-primary)' : 'var(--theme-text)',
       fontSize: type === 'title' ? '24px' : (type === 'button' ? '14px' : '14px'),
-      fontFamily: '본고딕 (Noto Sans KR)',
+      fontFamily: themeSettings.fontFamily,
       align: 'center',
+      fontPresetId: type === 'title' ? 'title-1' : (type === 'text' ? 'body-1' : (type === 'button' ? 'button' : undefined))
     };
 
     if (type === 'image') {
@@ -67,7 +96,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
     }
 
     if (type === 'button') {
-      newElement.btnBgColor = '#18a0fb';
+      newElement.btnBgColor = 'var(--theme-primary)';
       newElement.btnTextColor = '#ffffff';
       newElement.iconType = 'none';
       newElement.iconPosition = 'after';
@@ -88,18 +117,92 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
     setActiveElement({ sectionId: targetSection.id, elementId: newElement.id });
   };
 
+  // Delete Page Action
+  const handleDeletePage = (pageId: string, e: React.MouseEvent) => {
+    e.stopPropagation(); // Avoid switching page when clicking delete icon
+    if (pageId === 'main') {
+      alert('메인 페이지는 삭제할 수 없습니다.');
+      return;
+    }
+    if (window.confirm('이 페이지를 정말 삭제하시겠습니까? 관련 데이터가 모두 삭제됩니다.')) {
+      if (activePageId === pageId) {
+        setActivePageId('main');
+      }
+      setPages(prev => prev.filter(p => p.id !== pageId));
+    }
+  };
+
+  // Submit new page form
+  const handleCreatePage = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newPageName.trim() || !newPageFileName.trim()) {
+      alert('모든 입력 값을 채워주세요.');
+      return;
+    }
+
+    const success = onAddPage(newPageName, newPageFileName);
+    if (success) {
+      setIsAddPageModalOpen(false);
+      setNewPageName('');
+      setNewPageFileName('');
+    }
+  };
+
   return (
     <div className="editor-shell flex flex-col h-full">
-      {/* Top Figma-like Toolbar */}
+      {/* DOUBLE-ROW TOOLBAR */}
+      
+      {/* Row 1: Logo, Presets, Styles, Guidelines & Actions */}
       <div className="editor-toolbar flex items-center justify-between">
-        <div className="toolbar-left flex items-center">
+        <div className="toolbar-left flex items-center gap-3">
           <div className="app-logo flex items-center">
             <LayoutGrid size={18} className="logo-icon" />
             <span className="app-title">GRID.design</span>
           </div>
           <div className="divider"></div>
-          {/* Guideline Width controls */}
+
+          {/* Template presets */}
           <div className="tool-group flex items-center">
+            <span className="group-label">템플릿 프리셋:</span>
+            <select
+              className="template-select"
+              value={activeTemplate}
+              onChange={(e) => onTemplateChange(e.target.value as 'business' | 'modern')}
+            >
+              <option value="business">비즈니스형 (Corporate)</option>
+              <option value="modern">모던 브랜딩형 (Branding Agency)</option>
+            </select>
+          </div>
+
+          <div className="divider"></div>
+
+          {/* Style Guide Color Palette adjustments */}
+          <div className="tool-group flex items-center gap-2">
+            <span className="group-label">스타일 가이드:</span>
+            <div className="theme-color-input flex items-center gap-1.5" title="주조색 (Primary Color)">
+              <span className="color-label-tag">주조색</span>
+              <input
+                type="color"
+                value={themeSettings.primaryColor}
+                onChange={(e) => setThemeSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
+              />
+              <span className="color-code-tag">{themeSettings.primaryColor.toUpperCase()}</span>
+            </div>
+            <div className="theme-color-input flex items-center gap-1.5" title="보조색 (Secondary Color)">
+              <span className="color-label-tag">보조색</span>
+              <input
+                type="color"
+                value={themeSettings.secondaryColor}
+                onChange={(e) => setThemeSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
+              />
+              <span className="color-code-tag">{themeSettings.secondaryColor.toUpperCase()}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="toolbar-right flex items-center gap-2">
+          {/* Guideline Width controls */}
+          <div className="tool-group flex items-center mr-2">
             <span className="group-label">가이드라인폭:</span>
             {(['100%', '80%', '60%'] as GuidelineWidth[]).map((width) => (
               <button
@@ -111,36 +214,61 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
               </button>
             ))}
           </div>
-        </div>
 
-        <div className="toolbar-center flex items-center">
-          <div className="tool-group flex items-center">
-            <span className="group-label">섹션:</span>
-            <button className="icon-tool-btn" onClick={() => {
-              const newSection: Section = {
-                id: `s_${Date.now()}`,
-                height: 350,
-                backgroundColor: '#ffffff',
-                elements: [],
-              };
-              setSections(prev => [...prev, newSection]);
-            }} title="새 섹션 추가">
-              <Plus size={16} />
-              <span>추가</span>
-            </button>
-          </div>
-        </div>
+          <div className="divider m-0"></div>
 
-        <div className="toolbar-right flex items-center gap-2">
           <button className={`toggle-code-action-btn flex items-center gap-1 ${isCodeViewerOpen ? 'active' : ''}`} onClick={() => setIsCodeViewerOpen(!isCodeViewerOpen)} title={isCodeViewerOpen ? '코드 접기' : '코드 보기'}>
             <Terminal size={14} />
             <span>{isCodeViewerOpen ? '코드 접기' : '코드 보기'}</span>
           </button>
+          
+          <button className={`toggle-code-action-btn flex items-center gap-1 ${isStyleViewerOpen ? 'active' : ''}`} onClick={() => setIsStyleViewerOpen(!isStyleViewerOpen)} title="기본 디자인 프리셋 가이드 스타일 편집">
+            <Sliders size={14} />
+            <span>기본 스타일</span>
+          </button>
+
           <button className="export-action-btn flex items-center gap-1" onClick={onExport}>
             <FileOutput size={15} />
             <span>내보내기</span>
           </button>
         </div>
+      </div>
+
+      {/* Row 2: Page Manager Tabs */}
+      <div className="page-toolbar flex items-center justify-between">
+        <div className="page-tabs flex items-center overflow-x-auto">
+          {pages.map((p) => (
+            <div
+              key={p.id}
+              className={`page-tab flex items-center gap-1.5 ${p.id === activePageId ? 'active' : ''}`}
+              onClick={() => {
+                setActivePageId(p.id);
+                setActiveElement(null);
+                setActiveSectionId(null);
+              }}
+            >
+              <span className="tab-name">{p.name}</span>
+              {p.id !== 'main' && (
+                <button
+                  className="tab-close-btn"
+                  onClick={(e) => handleDeletePage(p.id, e)}
+                  title="페이지 삭제"
+                >
+                  <X size={10} />
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        <button
+          className="add-page-btn flex items-center gap-1"
+          onClick={() => setIsAddPageModalOpen(true)}
+          title="새로운 페이지 추가"
+        >
+          <Plus size={14} />
+          <span>페이지 추가</span>
+        </button>
       </div>
 
       {/* Main Workspace split */}
@@ -166,9 +294,28 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
               <span>버튼</span>
             </button>
           </div>
+          
+          <div className="divider" style={{ margin: '14px 0', width: 'auto' }}></div>
+
+          {/* Section controller inside left palette */}
+          <div className="px-3 flex flex-col gap-2">
+            <span className="group-label">섹션 관리</span>
+            <button className="icon-tool-btn w-full justify-center" onClick={() => {
+              const newSection: Section = {
+                id: `s_${Date.now()}`,
+                height: 350,
+                backgroundColor: '#ffffff',
+                elements: [],
+              };
+              setSections(prev => [...prev, newSection]);
+            }} title="새 섹션 추가">
+              <Plus size={16} />
+              <span>새 섹션 추가</span>
+            </button>
+          </div>
         </div>
 
-        {/* Center Canvas Area with guideline shading */}
+        {/* Center Canvas Area */}
         <div className="canvas-wrapper flex-1 overflow-auto">
           <CanvasGrid
             guideline={guideline}
@@ -189,20 +336,82 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           setSections={setSections}
           setActiveElement={setActiveElement}
           setActiveSectionId={setActiveSectionId}
+          themeSettings={themeSettings}
         />
       </div>
 
-      {/* Bottom Figma-like Help/Status Bar */}
+      {/* Bottom Figma-like Status Bar */}
       <div className="editor-statusbar flex items-center justify-between">
         <div className="status-item flex items-center gap-1">
           <span className="dot online"></span>
-          <span>에디터 활성화됨</span>
+          <span>에디터 활성화됨 (템플릿: {activeTemplate === 'business' ? '비즈니스' : '모던 브랜딩'})</span>
         </div>
         <div className="status-item flex items-center gap-1 text-muted">
           <HelpCircle size={12} />
-          <span>도움말: 드래그하여 요소 이동 / 더블클릭하여 텍스트 수정</span>
+          <span>도움말: 빈 배경 클릭 시 섹션 선택 / 요소 클릭 시 스타일 제어</span>
         </div>
       </div>
+
+      {/* PAGE CREATION MODAL */}
+      {isAddPageModalOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h3>새로운 페이지 추가</h3>
+              <button className="close-modal-btn" onClick={() => setIsAddPageModalOpen(false)}>
+                <X size={16} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleCreatePage} className="modal-form">
+              <div className="input-block">
+                <label className="input-label">페이지 제목 (메뉴 표시용 한글명)</label>
+                <input
+                  type="text"
+                  value={newPageName}
+                  onChange={(e) => setNewPageName(e.target.value)}
+                  placeholder="예: 회사 소개, 제품 안내"
+                  required
+                />
+              </div>
+
+              <div className="input-block">
+                <label className="input-label">영문 파일명 (웹 브라우저 HTML 주소)</label>
+                <input
+                  type="text"
+                  value={newPageFileName}
+                  onChange={(e) => setNewPageFileName(e.target.value)}
+                  placeholder="예: introduce, products"
+                  pattern="^[a-zA-Z0-9.-]+$"
+                  title="영문 소문자, 숫자, 하이픈(-)만 가능합니다."
+                  required
+                />
+                <span className="text-[10px]" style={{ opacity: 0.7, color: 'var(--figma-text-muted)', marginTop: '2px', display: 'block' }}>
+                  * 입력하신 파일명 뒤에 자동으로 .html 확장자가 붙습니다.
+                </span>
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="modal-cancel-btn"
+                  onClick={() => setIsAddPageModalOpen(false)}
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  className="modal-submit-btn"
+                >
+                  페이지 생성
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+
 
       <style>{`
         .editor-shell {
@@ -212,10 +421,130 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         .editor-toolbar {
-          height: 45px;
+          height: 48px;
           background-color: var(--figma-bg);
           border-bottom: 1px solid var(--figma-border);
           padding: 0 16px;
+        }
+
+        /* Row 2 toolbar styles */
+        .page-toolbar {
+          height: 38px;
+          background-color: #1e2025; /* dark VSCode/Figma background */
+          border-bottom: 1px solid var(--figma-border);
+          padding: 0 16px;
+          display: flex;
+          align-items: center;
+        }
+
+        .page-tabs {
+          display: flex;
+          height: 100%;
+          gap: 1px;
+        }
+
+        .page-tab {
+          height: 100%;
+          padding: 0 16px;
+          background-color: #16171a; /* darker inactive tabs */
+          border-right: 1px solid rgba(255, 255, 255, 0.05);
+          color: rgba(255, 255, 255, 0.55);
+          font-size: 11.5px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .page-tab:hover {
+          background-color: #1a1b1f;
+          color: #ffffff;
+        }
+
+        .page-tab.active {
+          background-color: #1e2025; /* matches bar background */
+          color: #ffffff; /* pure white text - fully visible! */
+          border-bottom: 2px solid var(--figma-accent);
+          font-weight: 600;
+        }
+
+        .tab-close-btn {
+          background: transparent;
+          border: none;
+          color: rgba(255, 255, 255, 0.4);
+          cursor: pointer;
+          padding: 2px;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .tab-close-btn:hover {
+          background-color: rgba(255, 0, 0, 0.2);
+          color: #ffffff;
+        }
+
+        .add-page-btn {
+          background-color: var(--figma-accent);
+          border: none;
+          color: white;
+          padding: 4px 10px;
+          border-radius: 4px;
+          font-size: 11px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .add-page-btn:hover {
+          background-color: var(--figma-accent-hover);
+        }
+
+        /* Preset select and Styles */
+        .template-select {
+          background: var(--figma-bg);
+          border: 1px solid var(--figma-border);
+          color: var(--figma-text);
+          padding: 4px 8px;
+          border-radius: 4px;
+          font-size: 11px;
+          outline: none;
+          cursor: pointer;
+        }
+
+        .theme-color-input {
+          background-color: rgba(255, 255, 255, 0.03);
+          border: 1px solid var(--figma-border);
+          padding: 2px 6px;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+        }
+
+        .color-label-tag {
+          font-size: 9.5px;
+          color: var(--figma-text-muted);
+          font-weight: 600;
+        }
+
+        .color-code-tag {
+          font-size: 9.5px;
+          font-family: monospace;
+          color: var(--figma-text);
+          width: 50px;
+          text-align: right;
+        }
+
+        .theme-color-input input[type="color"] {
+          border: none;
+          background: transparent;
+          width: 14px;
+          height: 14px;
+          padding: 0;
+          cursor: pointer;
         }
 
         .app-logo {
@@ -256,48 +585,42 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         .tool-btn {
           background: transparent;
           border: 1px solid var(--figma-border);
-          color: var(--figma-text);
+          color: var(--figma-text-muted);
           padding: 4px 10px;
-          border-radius: 4px;
           font-size: 11px;
-          font-weight: 500;
+          font-weight: 600;
           cursor: pointer;
-          transition: all 0.15s;
+          transition: all 0.2s;
+        }
+
+        .tool-btn:first-of-type {
+          border-radius: 4px 0 0 4px;
+        }
+
+        .tool-btn:last-of-type {
+          border-radius: 0 4px 4px 0;
+        }
+
+        .tool-btn + .tool-btn {
+          border-left: none;
         }
 
         .tool-btn:hover {
           background-color: rgba(255, 255, 255, 0.05);
+          color: var(--figma-text);
         }
 
         .tool-btn.active {
-          background-color: var(--figma-accent);
+          background-color: rgba(24, 160, 251, 0.1);
+          color: var(--figma-accent);
           border-color: var(--figma-accent);
-          color: white;
         }
 
         .icon-tool-btn {
-          background: rgba(255, 255, 255, 0.05);
+          background: transparent;
           border: 1px solid var(--figma-border);
           color: var(--figma-text);
-          display: inline-flex;
-          align-items: center;
-          gap: 6px;
-          padding: 4px 10px;
-          border-radius: 4px;
-          font-size: 11px;
-          cursor: pointer;
-          transition: background 0.2s;
-        }
-
-        .icon-tool-btn:hover {
-          background: rgba(255, 255, 255, 0.1);
-        }
-
-        .toggle-code-action-btn {
-          background: var(--figma-bg);
-          border: 1px solid var(--figma-border);
-          color: var(--figma-text);
-          padding: 6px 12px;
+          padding: 5px 10px;
           border-radius: 4px;
           font-size: 11px;
           font-weight: 600;
@@ -305,6 +628,23 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           display: flex;
           align-items: center;
           gap: 4px;
+          transition: all 0.2s;
+        }
+
+        .icon-tool-btn:hover {
+          background-color: rgba(255, 255, 255, 0.05);
+          border-color: var(--figma-accent);
+        }
+
+        .toggle-code-action-btn {
+          background: transparent;
+          border: 1px solid var(--figma-border);
+          color: var(--figma-text-muted);
+          padding: 6px 12px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
           transition: all 0.2s;
         }
 
@@ -337,7 +677,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
 
         .workspace-main {
           display: flex;
-          height: calc(100% - 45px - 25px);
+          height: calc(100% - 48px - 38px - 25px); /* adjusted for double row */
         }
 
         .elements-palette {
@@ -388,66 +728,146 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           overflow-y: auto;
         }
 
-        /* Margin shading mechanism */
-        .canvas-guide-overlay {
-          display: flex;
-          width: 100%;
-          min-height: 100%;
-          position: absolute;
+        /* MODAL OVERLAY & CONTENT */
+        .modal-overlay {
+          position: fixed;
           top: 0;
           left: 0;
+          right: 0;
+          bottom: 0;
+          background-color: rgba(0, 0, 0, 0.65);
+          backdrop-filter: blur(3px);
+          z-index: 10000;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
-        .canvas-content-area {
-          flex: 1;
-          height: 100%;
-          border-left: 1px dashed rgba(24, 160, 251, 0.4);
-          border-right: 1px dashed rgba(24, 160, 251, 0.4);
-          position: relative;
-          background-color: transparent;
-          transition: flex 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .side-margin {
-          background-color: var(--figma-margin-dim);
-          transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          pointer-events: none;
-        }
-
-        /* Shading dimensions mapping */
-        .canvas-guide-overlay.g-100 .side-margin {
-          width: 0%;
-        }
-        .canvas-guide-overlay.g-100 .canvas-content-area {
-          flex: 0 0 100%;
-        }
-
-        .canvas-guide-overlay.g-80 .side-margin {
-          width: 10%;
-        }
-        .canvas-guide-overlay.g-80 .canvas-content-area {
-          flex: 0 0 80%;
-        }
-
-        .canvas-guide-overlay.g-60 .side-margin {
-          width: 20%;
-        }
-        .canvas-guide-overlay.g-60 .canvas-content-area {
-          flex: 0 0 60%;
-        }
-
-        .properties-panel {
-          width: 280px;
+        .modal-content {
           background-color: var(--figma-panel);
-          border-left: 1px solid var(--figma-border);
+          border: 1px solid var(--figma-border);
+          border-radius: 8px;
+          padding: 24px;
+          width: 380px;
+          box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+          display: flex;
+          flex-direction: column;
+          gap: 16px;
         }
 
+        .modal-header {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          width: 100%;
+        }
+
+        .modal-form {
+          display: flex;
+          flex-direction: column;
+          gap: 14px;
+          width: 100%;
+        }
+
+        .modal-actions {
+          display: flex;
+          justify-content: flex-end;
+          gap: 8px;
+          margin-top: 8px;
+        }
+
+        .modal-header h3 {
+          font-size: 16px;
+          font-weight: 700;
+          color: #ffffff;
+        }
+
+        .close-modal-btn {
+          background: transparent;
+          border: none;
+          color: var(--figma-text-muted);
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 4px;
+          border-radius: 4px;
+        }
+
+        .close-modal-btn:hover {
+          background-color: rgba(255, 255, 255, 0.05);
+          color: #ffffff;
+        }
+
+        .input-block {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .input-block input[type="text"] {
+          width: 100%;
+          background: var(--figma-bg);
+          border: 1px solid var(--figma-border);
+          color: var(--figma-text);
+          padding: 8px 10px;
+          border-radius: 4px;
+          font-size: 12px;
+          outline: none;
+        }
+
+        .input-block input[type="text"]:focus {
+          border-color: var(--figma-accent);
+        }
+
+        .modal-cancel-btn {
+          background-color: transparent;
+          border: 1px solid var(--figma-border);
+          color: var(--figma-text);
+          padding: 6px 14px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .modal-cancel-btn:hover {
+          background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .modal-submit-btn {
+          background-color: var(--figma-accent);
+          border: none;
+          color: white;
+          padding: 6px 14px;
+          border-radius: 4px;
+          font-size: 12px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background-color 0.2s;
+        }
+
+        .modal-submit-btn:hover {
+          background-color: var(--figma-accent-hover);
+        }
+
+        /* Bottom figma-like bar */
         .editor-statusbar {
           height: 25px;
           background-color: var(--figma-bg);
           border-top: 1px solid var(--figma-border);
           padding: 0 12px;
-          font-size: 11px;
+          font-size: 10px;
+        }
+
+        .status-item {
+          display: flex;
+          align-items: center;
+          color: var(--figma-text);
+        }
+
+        .status-item.text-muted {
           color: var(--figma-text-muted);
         }
 
@@ -459,12 +879,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         .dot.online {
-          background-color: #10b981;
-          box-shadow: 0 0 8px #10b981;
-        }
-
-        .text-muted {
-          opacity: 0.7;
+          background-color: #0ad375;
+          box-shadow: 0 0 6px #0ad375;
         }
       `}</style>
     </div>

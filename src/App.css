@@ -5,3 +5,242 @@
   margin: 0;
   padding: 0;
 }
+
+/* Sidebar properties panel style definitions */
+.properties-panel {
+  width: 300px;
+  min-width: 300px;
+  max-width: 300px;
+  flex-shrink: 0;
+  background-color: var(--figma-panel);
+  border-left: 1px solid var(--figma-border);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.del-el-btn {
+  background: transparent;
+  border: none;
+  color: var(--figma-text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.del-el-btn:hover {
+  background: rgba(242, 78, 30, 0.1);
+  color: var(--figma-danger);
+}
+
+.properties-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.empty-text {
+  font-size: 11.5px;
+  color: var(--figma-text-muted);
+  line-height: 1.6;
+  word-break: keep-all;
+  max-width: 230px;
+  display: block;
+}
+
+.help-icon {
+  color: var(--figma-text-muted);
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.properties-body {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  box-sizing: border-box;
+}
+
+.property-group {
+  border-bottom: 1px solid var(--figma-border);
+  padding-bottom: 16px;
+}
+
+.group-title {
+  display: block;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--figma-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 10px;
+}
+
+/* Layout shortcuts grid */
+.shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 6px;
+}
+
+.shortcut-btn {
+  background: var(--figma-bg);
+  border: 1px solid var(--figma-border);
+  color: var(--figma-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.shortcut-btn:hover {
+  background: rgba(0,0,0,0.03);
+  border-color: var(--figma-accent);
+}
+
+.shortcut-btn.center-btn {
+  grid-column: span 2;
+  justify-content: center;
+}
+
+/* Basic inputs */
+.input-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.input-label {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--figma-text-muted);
+}
+
+input[type="text"],
+input[type="number"],
+select,
+textarea {
+  width: 100%;
+  background: var(--figma-bg);
+  border: 1px solid var(--figma-border);
+  color: var(--figma-text);
+  padding: 6px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  outline: none;
+  font-family: inherit;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--figma-accent);
+}
+
+.grid-inputs-row {
+  display: flex;
+  gap: 8px;
+}
+
+.grid-input-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.color-picker-wrapper {
+  display: flex;
+  gap: 4px;
+}
+
+.color-picker-wrapper input[type="color"] {
+  border: 1px solid var(--figma-border);
+  padding: 0;
+  width: 25px;
+  height: 25px;
+  border-radius: 4px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.color-picker-wrapper input[type="text"] {
+  flex: 1;
+}
+
+/* Align buttons row */
+.align-buttons-row {
+  display: flex;
+  border: 1px solid var(--figma-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.align-btn {
+  flex: 1;
+  background: var(--figma-bg);
+  border: none;
+  border-right: 1px solid var(--figma-border);
+  color: var(--figma-text-muted);
+  padding: 6px 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.align-btn:last-child {
+  border-right: none;
+}
+
+.align-btn:hover {
+  background: rgba(0,0,0,0.02);
+}
+
+.align-btn.active {
+  background: rgba(24, 160, 251, 0.08);
+  color: var(--figma-accent);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--figma-border);
+  outline: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--figma-accent);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}

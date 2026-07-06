@@ -6,16 +6,18 @@ import { getFontFamilyByFamilyName } from '../utils/fontManager';
 interface ElementWrapperProps {
   element: EditorElement;
   sectionId: string;
+  parentLayoutMode?: 'grid' | 'flex';
   isActive: boolean;
   onClick: (e: React.MouseEvent) => void;
-  onDragStart: (e: React.MouseEvent, sectionId: string, element: EditorElement, containerWidth: number) => void;
-  onResizeStart: (e: React.MouseEvent, sectionId: string, element: EditorElement, handle: 'r' | 'b' | 'br', containerWidth: number) => void;
+  onDragStart?: (e: React.MouseEvent, sectionId: string, element: EditorElement, containerWidth: number) => void;
+  onResizeStart?: (e: React.MouseEvent, sectionId: string, element: EditorElement, handle: 'r' | 'b' | 'br', containerWidth: number) => void;
   onTextChange?: (sectionId: string, elementId: string, newText: string) => void;
 }
 
 export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   element,
   sectionId,
+  parentLayoutMode = 'grid',
   isActive,
   onClick,
   onDragStart,
@@ -27,8 +29,8 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
 
   // Trigger drag start
   const handleMouseDown = (e: React.MouseEvent) => {
-    // Prevent dragging if double clicked to edit text
-    if (isEditingRef.current) return;
+    // Prevent dragging if double clicked to edit text or dragging is disabled
+    if (isEditingRef.current || !onDragStart) return;
     
     const gridContainer = (e.currentTarget as HTMLElement).closest('.section-grid-container');
     if (gridContainer) {
@@ -40,6 +42,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   // Trigger resize start
   const handleResizeMouseDown = (e: React.MouseEvent, handle: 'r' | 'b' | 'br') => {
     e.stopPropagation();
+    if (!onResizeStart) return;
     const gridContainer = (e.currentTarget as HTMLElement).closest('.section-grid-container');
     if (gridContainer) {
       const containerWidth = gridContainer.getBoundingClientRect().width;
@@ -71,10 +74,12 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
 
   const renderContent = () => {
     const fontStyle = getFontFamilyByFamilyName(element.fontFamily);
+    const hasPreset = !!element.fontPresetId;
+    
     const textStyle: React.CSSProperties = {
-      fontFamily: fontStyle,
-      color: element.color,
-      fontSize: element.fontSize,
+      fontFamily: hasPreset ? undefined : fontStyle,
+      color: hasPreset ? undefined : element.color,
+      fontSize: hasPreset ? undefined : element.fontSize,
       textAlign: element.align,
       width: '100%',
       outline: 'none',
@@ -85,7 +90,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       return (
         <h2
           ref={textInputRef}
-          className="canvas-title-inner"
+          className={`canvas-title-inner ${hasPreset ? `font-preset-${element.fontPresetId}` : ''}`}
           style={{ ...textStyle, fontWeight: 700, margin: 0 }}
           onBlur={handleBlur}
           onDoubleClick={handleDoubleClick}
@@ -100,7 +105,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       return (
         <div
           ref={textInputRef}
-          className="canvas-text-inner"
+          className={`canvas-text-inner ${hasPreset ? `font-preset-${element.fontPresetId}` : ''}`}
           style={textStyle}
           onBlur={handleBlur}
           onDoubleClick={handleDoubleClick}
@@ -112,18 +117,20 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
     }
 
     if (element.type === 'image') {
+      const imgSrc = element.imageName ? element.src : (element.src || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800');
       return (
-        <div className="canvas-image-inner w-full h-full relative overflow-hidden">
+        <div className="canvas-image-inner w-full h-full">
           <img
-            src={element.src || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800'}
+            src={imgSrc}
+            alt="본문 이미지"
             style={{
               width: '100%',
               height: '100%',
               objectFit: 'cover',
-              borderRadius: element.borderRadius,
+              borderRadius: `${element.borderRadius ?? 0}px`,
+              boxShadow: element.boxShadow || 'none',
+              display: 'block',
             }}
-            alt="editable"
-            draggable="false"
           />
         </div>
       );
@@ -131,32 +138,76 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
 
     if (element.type === 'button') {
       const iconSvg = getIconSvg(element.iconType);
+      const variant = element.btnVariant || 'filled';
+      const size = element.btnSize || 'medium';
+      
+      let bgColor = element.btnBgColor || 'var(--theme-primary)';
+      let textColor = element.btnTextColor || '#ffffff';
+      let borderStyle = 'none';
+      
+      if (variant === 'outlined') {
+        bgColor = 'transparent';
+        textColor = element.btnBgColor || 'var(--theme-primary)';
+        borderStyle = `2px solid ${element.btnBgColor || 'var(--theme-primary)'}`;
+      } else if (variant === 'ghost') {
+        bgColor = 'transparent';
+        textColor = element.btnBgColor || 'var(--theme-primary)';
+        borderStyle = 'none';
+      }
+      
+      let pad = '10px 20px';
+      let fSize: string | undefined = element.fontSize || '14px';
+      let fFamily: string | undefined = fontStyle;
+      
+      if (hasPreset) {
+        fSize = undefined;
+        fFamily = undefined;
+      } else {
+        if (size === 'small') {
+          pad = '6px 12px';
+          fSize = element.fontSize || '12px';
+        } else if (size === 'large') {
+          pad = '14px 28px';
+          fSize = element.fontSize || '16px';
+        }
+      }
+
       return (
         <div
-          className="canvas-btn-inner w-full h-full flex items-center justify-center gap-2"
+          className={`canvas-btn-inner btn-${variant} btn-${size} ${hasPreset ? `font-preset-${element.fontPresetId}` : ''}`}
           style={{
-            backgroundColor: element.btnBgColor || '#18a0fb',
-            color: element.btnTextColor || '#ffffff',
-            borderRadius: element.borderRadius ?? 6,
-            fontSize: element.fontSize,
-            fontFamily: fontStyle,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: element.align === 'center' ? 'center' : element.align === 'right' ? 'flex-end' : 'flex-start',
+            gap: '8px',
+            width: '100%',
+            height: '100%',
+            padding: pad,
+            backgroundColor: bgColor,
+            color: hasPreset ? undefined : textColor,
+            border: borderStyle,
+            borderRadius: `${element.borderRadius ?? 6}px`,
+            fontSize: fSize,
+            fontFamily: fFamily,
             fontWeight: 600,
+            boxSizing: 'border-box',
+            transition: 'background-color 0.2s, opacity 0.2s',
           }}
         >
           {iconSvg && element.iconPosition === 'before' && (
-            <span className="btn-icon-wrapper" dangerouslySetInnerHTML={{ __html: iconSvg }} />
+            <span className="btn-icon-wrapper" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: iconSvg }} />
           )}
           <span
             ref={textInputRef}
             onBlur={handleBlur}
             onDoubleClick={handleDoubleClick}
             suppressContentEditableWarning
-            style={{ outline: 'none' }}
+            style={{ outline: 'none', textAlign: element.align }}
           >
             {element.content}
           </span>
           {iconSvg && element.iconPosition === 'after' && (
-            <span className="btn-icon-wrapper" dangerouslySetInnerHTML={{ __html: iconSvg }} />
+            <span className="btn-icon-wrapper" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: iconSvg }} />
           )}
         </div>
       );
@@ -168,7 +219,20 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   return (
     <div
       className={`editor-element-wrapper relative flex ${isActive ? 'active' : ''}`}
-      style={{
+      style={parentLayoutMode === 'flex' ? {
+        zIndex: isActive ? 10 : 2,
+        cursor: 'default',
+        pointerEvents: 'auto',
+        borderRadius: element.type === 'button' || element.type === 'image' ? element.borderRadius : 0,
+        boxShadow: element.boxShadow || 'none',
+        width: element.widthMode === 'fit-content' ? 'fit-content' : '100%',
+        alignSelf: element.widthMode === 'fit-content'
+          ? (element.align === 'center' ? 'center' : element.align === 'right' ? 'flex-end' : 'flex-start')
+          : 'stretch',
+        marginBottom: element.marginBottom ? `${element.marginBottom}px` : undefined,
+        marginRight: element.marginRight ? `${element.marginRight}px` : undefined,
+        height: 'auto',
+      } : {
         gridColumn: `${element.gridX + 1} / span ${element.gridW}`,
         gridRow: `${element.gridY + 1} / span ${element.gridH}`,
         zIndex: isActive ? 10 : 2,
@@ -180,6 +244,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
         justifySelf: element.widthMode === 'fit-content'
           ? (element.align === 'center' ? 'center' : element.align === 'right' ? 'end' : 'start')
           : 'stretch',
+        height: element.type === 'image' ? '100%' : 'fit-content',
       }}
       onClick={(e) => {
         e.stopPropagation();
@@ -193,7 +258,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       </div>
 
       {/* Resize Handles (Only shown when active) */}
-      {isActive && (
+      {isActive && parentLayoutMode !== 'flex' && (
         <>
           {/* Right side handle */}
           <div

@@ -178,6 +178,180 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     return '100%';
   };
 
+  const renderHeaderComponent = (sec: Section) => {
+    const layout = sec.headerLayout || 'spread-center';
+    
+    const logoStyle: React.CSSProperties = {
+      color: sec.headerLogoColor || '#ffffff',
+      fontSize: sec.headerLogoSize || '20px',
+      fontWeight: 800,
+      fontFamily: sec.headerLogoFont || 'inherit',
+      cursor: 'pointer',
+      margin: 0,
+      whiteSpace: 'nowrap',
+    };
+
+    const menuStyle: React.CSSProperties = {
+      color: sec.headerMenuColor || '#cbd5e1',
+      fontSize: sec.headerMenuSize || '13px',
+      fontWeight: 500,
+      fontFamily: sec.headerMenuFont || 'inherit',
+      textDecoration: 'none',
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+    };
+
+    const btnVariant = sec.headerBtnVariant || 'filled';
+    const btnSize = sec.headerBtnSize || 'medium';
+    
+    let btnBgColor = sec.headerBtnBgColor || '#10b981';
+    let btnTextColor = sec.headerBtnTextColor || '#ffffff';
+    let btnBorder = 'none';
+    
+    if (btnVariant === 'outlined') {
+      btnBgColor = 'transparent';
+      btnTextColor = sec.headerBtnBgColor || '#10b981';
+      btnBorder = `2px solid ${sec.headerBtnBgColor || '#10b981'}`;
+    } else if (btnVariant === 'ghost') {
+      btnBgColor = 'transparent';
+      btnTextColor = sec.headerBtnBgColor || '#10b981';
+      btnBorder = 'none';
+    }
+    
+    let btnPad = '8px 16px';
+    let btnFSize = '12px';
+    if (btnSize === 'small') {
+      btnPad = '5px 10px';
+      btnFSize = '11px';
+    } else if (btnSize === 'large') {
+      btnPad = '12px 24px';
+      btnFSize = '14px';
+    }
+
+    const btnStyle: React.CSSProperties = {
+      backgroundColor: btnBgColor,
+      color: btnTextColor,
+      border: btnBorder,
+      borderRadius: `${sec.headerBtnRadius ?? 4}px`,
+      padding: btnPad,
+      fontSize: btnFSize,
+      fontFamily: sec.headerBtnFont || 'inherit',
+      fontWeight: 600,
+      cursor: 'pointer',
+      whiteSpace: 'nowrap',
+      transition: 'background-color 0.2s, opacity 0.2s',
+    };
+
+    const logoNode = sec.headerShowLogo !== false && (
+      <div className="header-logo-container" style={{ display: 'flex', alignItems: 'center' }}>
+        {sec.headerLogoType === 'image' && sec.headerLogoImg ? (
+          <img 
+            src={sec.headerLogoImg} 
+            alt={sec.headerLogoText || 'LOGO'} 
+            style={{ width: `${sec.headerLogoWidth || 120}px`, height: 'auto', display: 'block' }}
+          />
+        ) : (
+          <h1 style={logoStyle}>{sec.headerLogoText || 'CORPORATE'}</h1>
+        )}
+      </div>
+    );
+
+    const menuNode = sec.headerShowMenu !== false && (
+      <nav 
+        className="header-menu-container" 
+        style={{ 
+          display: 'flex', 
+          gap: `${sec.headerMenuGap ?? 24}px`, 
+          alignItems: 'center' 
+        }}
+      >
+        {(sec.headerMenuItems || []).map((item) => (
+          <a 
+            key={item.id} 
+            href="#" 
+            onClick={(e) => e.preventDefault()} 
+            style={menuStyle}
+            className="header-menu-link-preview"
+          >
+            {item.name}
+          </a>
+        ))}
+      </nav>
+    );
+
+    const btnNode = sec.headerShowBtn !== false && (
+      <div className="header-btn-container" style={{ display: 'flex', alignItems: 'center' }}>
+        <button style={btnStyle}>{sec.headerBtnText || '시작하기'}</button>
+      </div>
+    );
+
+    // 1. 'spread-center' Layout: Perfectly center navigation menu horizontally, logo left, button right.
+    if (layout === 'spread-center') {
+      return (
+        <div 
+          className="header-flex-wrapper spread-center"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            position: 'relative',
+            width: '100%',
+            height: '100%',
+            pointerEvents: 'auto',
+          }}
+        >
+          <div className="header-left-col" style={{ display: 'flex', flex: 1, justifyContent: 'flex-start', alignItems: 'center' }}>
+            {logoNode}
+          </div>
+          <div 
+            className="header-center-col" 
+            style={{ 
+              position: 'absolute', 
+              left: '50%', 
+              transform: 'translateX(-50%)', 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'center',
+              pointerEvents: 'auto',
+            }}
+          >
+            {menuNode}
+          </div>
+          <div className="header-right-col" style={{ display: 'flex', flex: 1, justifyContent: 'flex-end', alignItems: 'center' }}>
+            {btnNode}
+          </div>
+        </div>
+      );
+    }
+
+    // 2. 'spread-between' and other standard flow alignment layouts
+    let justifyStyle = 'flex-start';
+    if (layout === 'spread-between') justifyStyle = 'space-between';
+    if (layout === 'right') justifyStyle = 'flex-end';
+    if (layout === 'center') justifyStyle = 'center';
+    if (layout === 'even-space') justifyStyle = 'space-around';
+
+    return (
+      <div 
+        className="header-flex-wrapper standard-flow"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: justifyStyle,
+          gap: (layout === 'even-space' || layout === 'spread-between') ? '0' : `${sec.headerGap ?? 40}px`,
+          width: '100%',
+          height: '100%',
+          padding: '0',
+          boxSizing: 'border-box',
+          pointerEvents: 'auto',
+        }}
+      >
+        {logoNode}
+        {menuNode}
+        {btnNode}
+      </div>
+    );
+  };
+
   return (
     <div className="canvas-grid-root" ref={containerRef}>
       {/* Top section divider button */}
@@ -196,7 +370,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             key={sec.id}
             className={`canvas-section-node relative w-full ${activeSectionId === sec.id ? 'active-section' : ''}`}
             style={{
-              minHeight: sec.height,
+              minHeight: sec.sharedType === 'header' ? 'auto' : sec.height,
               height: 'auto', // dynamic height flow
               backgroundColor: sec.backgroundColor,
               backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
@@ -220,7 +394,17 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             {/* 2. Centered Content Grid Container */}
             <div
               className="section-grid-container"
-              style={{ width: getContentPercent() }}
+              style={sec.sharedType === 'header' ? { 
+                width: getContentPercent(), 
+                height: 'auto',
+                minHeight: 'auto',
+                paddingTop: `${sec.headerPaddingY ?? 16}px`,
+                paddingBottom: `${sec.headerPaddingY ?? 16}px`,
+              } : {
+                width: getContentPercent(), 
+                height: 'auto',
+                minHeight: '100%'
+              }}
             >
               {/* Grid column guidelines */}
               <div className="grid-guides-overlay">
@@ -228,19 +412,44 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               </div>
 
               {/* Elements container utilizing real CSS Grid for placement layout */}
-              <div className="elements-box">
-                {sec.elements.map(el => (
-                  <ElementWrapper
-                    key={el.id}
-                    element={el}
-                    sectionId={sec.id}
-                    isActive={activeElement?.elementId === el.id}
-                    onClick={() => setActiveElement({ sectionId: sec.id, elementId: el.id })}
-                    onDragStart={onElementDragStart}
-                    onResizeStart={onElementResizeStart}
-                    onTextChange={handleTextChange}
-                  />
-                ))}
+              <div 
+                className="elements-box" 
+                style={sec.sharedType === 'header' ? { 
+                  display: 'block',
+                  width: '100%', 
+                  height: '100%', 
+                  padding: 0,
+                  gap: 0,
+                  minHeight: '100%'
+                } : sec.layoutMode === 'flex' ? {
+                  display: 'flex',
+                  flexDirection: sec.flexDirection === 'horizontal' ? 'row' : 'column',
+                  gap: `${sec.flexGap ?? 16}px`,
+                  alignItems: sec.flexDirection === 'horizontal' ? 'center' : 'stretch',
+                  justifyContent: sec.flexAlign === 'start' ? 'flex-start' : sec.flexAlign === 'end' ? 'flex-end' : sec.flexAlign === 'space-between' ? 'space-between' : 'center',
+                  padding: '40px 0',
+                  height: 'auto',
+                  minHeight: '100%',
+                  boxSizing: 'border-box'
+                } : { height: 'auto' }}
+              >
+                {sec.sharedType === 'header' ? (
+                  renderHeaderComponent(sec)
+                ) : (
+                  sec.elements.map(el => (
+                    <ElementWrapper
+                      key={el.id}
+                      element={el}
+                      sectionId={sec.id}
+                      parentLayoutMode={sec.layoutMode || 'grid'}
+                      isActive={activeElement?.elementId === el.id}
+                      onClick={() => setActiveElement({ sectionId: sec.id, elementId: el.id })}
+                      onDragStart={sec.layoutMode === 'flex' ? undefined : onElementDragStart}
+                      onResizeStart={sec.layoutMode === 'flex' ? undefined : onElementResizeStart}
+                      onTextChange={handleTextChange}
+                    />
+                  ))
+                )}
               </div>
 
               {/* Smart Guide lines drawing during drag */}
@@ -314,6 +523,51 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       })}
 
       <style>{`
+        /* Structured Header Component Styles */
+        .header-flex-wrapper {
+          display: flex;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          min-height: auto;
+          padding: 0;
+          box-sizing: border-box;
+          pointer-events: auto;
+        }
+        
+        .header-flex-wrapper.spread-center {
+          justify-content: space-between;
+        }
+
+        .header-left-col {
+          flex: 1;
+          display: flex;
+          justify-content: flex-start;
+          align-items: center;
+        }
+
+        .header-center-col {
+          flex: 2;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .header-right-col {
+          flex: 1;
+          display: flex;
+          justify-content: flex-end;
+          align-items: center;
+        }
+
+        .header-menu-link-preview {
+          transition: opacity 0.2s;
+        }
+
+        .header-menu-link-preview:hover {
+          opacity: 0.8;
+        }
+
         .canvas-grid-root {
           width: 100%;
           min-height: 100%;
@@ -389,7 +643,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           height: 100%;
           display: grid;
           grid-template-columns: repeat(12, 1fr);
-          padding: 40px 8px;
+          padding: 40px 0;
           gap: 16px;
           pointer-events: none;
           z-index: 1;
@@ -558,7 +812,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           display: grid;
           grid-template-columns: repeat(12, 1fr);
           grid-auto-rows: minmax(40px, auto); /* auto expanding rows! */
-          padding: 40px 8px;
+          padding: 40px 0;
           gap: 16px;
           pointer-events: none;
           z-index: 2;
