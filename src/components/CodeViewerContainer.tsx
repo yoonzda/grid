@@ -142,10 +142,6 @@ export const CodeViewerContainer: React.FC<CodeViewerContainerProps> = ({
             </div>
           ))}
           <div className="tab-filler"></div>
-          <button className="copy-btn" onClick={handleCopy} title="코드 복사">
-            {copied ? <Check size={14} style={{ color: '#4caf50' }} /> : <Copy size={14} />}
-            <span>{copied ? '복사됨!' : '코드 복사'}</span>
-          </button>
         </div>
 
         {/* Code Content */}

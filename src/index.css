@@ -6,20 +6,20 @@
   line-height: 1.5;
   font-weight: 400;
 
-  /* Figma Dark Theme Colors */
-  --figma-bg: #1e1e1e;
-  --figma-canvas: #2c2c2c;
-  --figma-panel: #222222;
-  --figma-border: #333333;
-  --figma-text: #e0e0e0;
-  --figma-text-muted: #b3b3b3;
+  /* Figma Light Theme Colors (Left Panel) */
+  --figma-bg: #ffffff;
+  --figma-canvas: #f3f4f6; /* light gray board */
+  --figma-panel: #ffffff;
+  --figma-border: #e5e7eb;
+  --figma-text: #1f2937;
+  --figma-text-muted: #6b7280;
   --figma-accent: #18a0fb;
   --figma-accent-hover: #0c8ce9;
   --figma-danger: #f24e1e;
-  --figma-grid-line: rgba(255, 255, 255, 0.05);
-  --figma-margin-dim: rgba(0, 0, 0, 0.45);
+  --figma-grid-line: rgba(0, 0, 0, 0.04);
+  --figma-margin-dim: rgba(31, 41, 55, 0.08); /* light gray dimmed margin overlay */
   
-  /* VSCode Theme Colors */
+  /* VSCode Dark Theme Colors (Right Panel) */
   --vscode-bg: #1e1e1e;
   --vscode-sidebar: #252526;
   --vscode-tabs: #2d2d2d;
@@ -70,11 +70,19 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.1);
   border-radius: 4px;
 }
 
+.vscode-container ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+}
+
 ::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+
+.vscode-container ::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.25);
 }
 
