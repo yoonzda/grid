@@ -108,6 +108,7 @@ const INITIAL_SECTIONS: Section[] = [
   }
 ];
 
+import JSZip from 'jszip';
 import { updateGoogleFontsInDOM } from './utils/fontManager';
 
 function App() {
@@ -140,20 +141,36 @@ function App() {
     updateGoogleFontsInDOM(activeFonts);
   }, [sections]);
 
-  // Export single page layout as a download
-  const handleExport = () => {
-    // We can bundle these into a single zip or download the currently selected file.
-    // For convenience of exporting, let's offer a downloader that downloads the current file.
-    // Or we can let them copy the code using the copy button.
-    const blob = new Blob([generatedFiles[activeFile]], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = activeFile;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  // Export single page layout as a zip bundle containing index.html, style.css, and variables.css
+  const handleExport = async () => {
+    try {
+      const zip = new JSZip();
+      zip.file('index.html', generatedFiles['index.html']);
+      zip.file('style.css', generatedFiles['style.css']);
+      zip.file('variables.css', generatedFiles['variables.css']);
+
+      const content = await zip.generateAsync({ type: 'blob' });
+      const url = URL.createObjectURL(content);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'grid-export.zip';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('ZIP generation failed:', err);
+      // Fallback: download active file only
+      const blob = new Blob([generatedFiles[activeFile]], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = activeFile;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }
   };
 
   return (
