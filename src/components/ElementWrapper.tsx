@@ -238,18 +238,15 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
         /* Resizing handles styling */
         .resize-handle {
           position: absolute;
-          background: #ffffff;
-          border: 1.5px solid var(--figma-accent);
           z-index: 50;
         }
 
         .handle-r {
           top: 0;
           right: -4px;
-          width: 6px;
+          width: 8px;
           height: 100%;
           cursor: col-resize;
-          border-width: 0 1.5px 0 1.5px;
           background: transparent;
         }
 
@@ -257,9 +254,8 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
           bottom: -4px;
           left: 0;
           width: 100%;
-          height: 6px;
+          height: 8px;
           cursor: row-resize;
-          border-width: 1.5px 0 1.5px 0;
           background: transparent;
         }
 
@@ -269,7 +265,9 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
           width: 8px;
           height: 8px;
           cursor: nwse-resize;
-          border-radius: 50%;
+          background: #ffffff;
+          border: 1.5px solid var(--figma-accent);
+          border-radius: 2px;
         }
 
         .btn-icon-wrapper svg {
