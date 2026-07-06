@@ -1,0 +1,90 @@
+/* Google Fonts - Inter and Outfit */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Fira+Code:wght@400;500&display=swap');
+
+:root {
+  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Figma Dark Theme Colors */
+  --figma-bg: #1e1e1e;
+  --figma-canvas: #2c2c2c;
+  --figma-panel: #222222;
+  --figma-border: #333333;
+  --figma-text: #e0e0e0;
+  --figma-text-muted: #b3b3b3;
+  --figma-accent: #18a0fb;
+  --figma-accent-hover: #0c8ce9;
+  --figma-danger: #f24e1e;
+  --figma-grid-line: rgba(255, 255, 255, 0.05);
+  --figma-margin-dim: rgba(0, 0, 0, 0.45);
+  
+  /* VSCode Theme Colors */
+  --vscode-bg: #1e1e1e;
+  --vscode-sidebar: #252526;
+  --vscode-tabs: #2d2d2d;
+  --vscode-tab-active: #1e1e1e;
+  --vscode-tab-inactive: #2d2d2d;
+  --vscode-border: #3c3c3c;
+  --vscode-text: #cccccc;
+  --vscode-text-muted: #858585;
+  --vscode-keyword: #569cd6;
+  --vscode-string: #ce9178;
+  --vscode-comment: #6a9955;
+  --vscode-tag: #569cd6;
+  --vscode-attr: #9cdcfe;
+  --vscode-value: #ce9178;
+  --vscode-number: #b5cea8;
+  --vscode-variable: #9cdcfe;
+  --vscode-css-prop: #9cdcfe;
+  --vscode-css-val: #ce9178;
+  
+  box-sizing: border-box;
+}
+
+*, *::before, *::after {
+  box-sizing: inherit;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  min-width: 100vw;
+  min-height: 100vh;
+  background-color: var(--figma-canvas);
+  color: var(--figma-text);
+  overflow: hidden;
+  font-size: 14px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Scrollbar styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Custom CSS helper utilities */
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.flex-1 { flex: 1; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.relative { position: relative; }
+.absolute { position: absolute; }
+.w-full { width: 100%; }
+.h-full { height: 100%; }
