@@ -2,7 +2,7 @@ import React from 'react';
 import { Section, EditorElement } from '../types';
 import { SUPPORTED_FONTS } from '../utils/fontManager';
 import { ICON_TEMPLATES } from '../utils/iconTemplates';
-import { AlignLeft, AlignCenter, AlignRight, Maximize2, MoveLeft, MoveRight, HelpCircle, Trash2 } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Trash2 } from 'lucide-react';
 
 interface SidebarPropertyProps {
   activeElement: { sectionId: string; elementId: string } | null;
@@ -86,11 +86,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
     const centerCol = Math.round((12 - element.gridW) / 2);
     updateElement({ gridX: Math.max(0, centerCol) });
   };
-
-  const fillGuidelineWidth = () => {
-    updateElement({ gridX: 0, gridW: 12 });
-  };
-
   return (
     <div className="properties-panel flex flex-col h-full">
       <div className="panel-header flex items-center justify-between">
@@ -114,13 +109,9 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               <MoveRight size={14} />
               <span>우측 밀착</span>
             </button>
-            <button className="shortcut-btn" onClick={alignToCenter} title="가이드 중앙 정렬">
+            <button className="shortcut-btn center-btn" onClick={alignToCenter} title="가이드 중앙 정렬">
               <AlignCenter size={14} />
               <span>가로 중앙</span>
-            </button>
-            <button className="shortcut-btn fill" onClick={fillGuidelineWidth} title="가이드라인 폭에 맞게 12컬럼 전체 채우기">
-              <Maximize2 size={14} />
-              <span>그리드 꽉 채우기</span>
             </button>
           </div>
         </div>
@@ -178,8 +169,8 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           <div className="align-buttons-row">
             <button
               className={`align-btn ${element.widthMode !== 'fit-content' ? 'active' : ''}`}
-              onClick={() => updateElement({ widthMode: 'stretch' })}
-              title="지정한 컬럼 폭(W)만큼 가로를 꽉 채웁니다 (Stretch)"
+              onClick={() => updateElement({ gridX: 0, gridW: 12, widthMode: 'stretch' })}
+              title="12컬럼 폭 전체를 가득 채우고 반응형 영역으로 설정합니다 (Stretch)"
             >
               <span>컨테이너 채우기</span>
             </button>
@@ -480,17 +471,9 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           border-color: var(--figma-accent);
         }
 
-        .shortcut-btn.fill {
+        .shortcut-btn.center-btn {
           grid-column: span 2;
-          background: rgba(24, 160, 251, 0.05);
-          border-color: rgba(24, 160, 251, 0.3);
-          color: var(--figma-accent);
           justify-content: center;
-        }
-
-        .shortcut-btn.fill:hover {
-          background: var(--figma-accent);
-          color: white;
         }
 
         /* Basic inputs */
