@@ -1,7 +1,7 @@
 import { Section, EditorElement, ThemeSettings } from '../types';
 import { SUPPORTED_FONTS } from '../utils/fontManager';
 import { ICON_TEMPLATES } from '../utils/iconTemplates';
-import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Trash2 } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Trash2, X, Grid } from 'lucide-react';
 import { resolveCollisions } from '../utils/collision';
 
 interface SidebarPropertyProps {
@@ -1431,6 +1431,354 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             </div>
           </div>
         )}
+
+        {/* 6. Three-column box specific styling */}
+        {element.type === 'three-column' && (() => {
+          const titlePreset = (themeSettings?.fontPresets || []).find(p => p.id === element.colTitlePresetId);
+          const titlePresetName = titlePreset ? titlePreset.name : '';
+
+          const textPreset = (themeSettings?.fontPresets || []).find(p => p.id === element.colTextPresetId);
+          const textPresetName = textPreset ? textPreset.name : '';
+
+          return (
+            <div className="property-group flex flex-col gap-3">
+              <label className="group-title">3열 글상자 설정</label>
+
+              {/* Align controls for columns */}
+              <div className="input-block">
+                <span className="input-label">정렬</span>
+                <div className="align-buttons-row">
+                  {(['left', 'center', 'right'] as const).map((align) => (
+                    <button
+                      key={align}
+                      className={`align-btn ${element.align === align ? 'active' : ''}`}
+                      onClick={() => updateElement({ align })}
+                    >
+                      {align === 'left' ? <AlignLeft size={14} /> : align === 'center' ? <AlignCenter size={14} /> : <AlignRight size={14} />}
+                      <span style={{ textTransform: 'capitalize' }}>{align === 'left' ? '좌측' : align === 'center' ? '중앙' : '우측'}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Gaps */}
+              <div className="input-block">
+                <span className="input-label">열 간격 (Column Gap: {element.colGap ?? 24}px)</span>
+                <input
+                  type="range"
+                  min="12"
+                  max="64"
+                  step="4"
+                  value={element.colGap ?? 24}
+                  onChange={(e) => updateElement({ colGap: parseInt(e.target.value) })}
+                />
+              </div>
+
+              <div className="input-block">
+                <span className="input-label">열 내부 간격 (Content Gap: {element.colContentGap ?? 8}px)</span>
+                <input
+                  type="range"
+                  min="4"
+                  max="24"
+                  step="2"
+                  value={element.colContentGap ?? 8}
+                  onChange={(e) => updateElement({ colContentGap: parseInt(e.target.value) })}
+                />
+              </div>
+
+              <div className="divider" style={{ margin: '8px 0', borderBottom: '1px solid var(--figma-border)' }}></div>
+
+              {/* Global column styling */}
+              <div className="flex flex-col gap-3 p-2 rounded" style={{ background: 'var(--figma-bg)', border: '1px solid var(--figma-border)' }}>
+                <span className="font-semibold text-xs text-blue-400">전체 스타일 설정</span>
+                
+                {/* Title Font Preset (Figma style) */}
+                <div className="input-block">
+                  <span className="input-label">타이틀 텍스트 스타일</span>
+                  {element.colTitlePresetId ? (
+                    <div className="preset-linked-pill flex items-center justify-between p-1.5 px-2.5 rounded border" style={{ background: 'rgba(24, 160, 251, 0.05)', borderColor: 'rgba(24, 160, 251, 0.3)' }}>
+                      <div className="flex items-center gap-2">
+                        <Grid size={11} style={{ color: 'var(--figma-accent)' }} />
+                        <span className="text-xs font-semibold" style={{ color: 'var(--figma-accent)' }}>{titlePresetName || element.colTitlePresetId}</span>
+                      </div>
+                      <button 
+                        className="del-el-btn p-0.5 hover:bg-gray-700 rounded transition-all"
+                        onClick={() => updateElement({ colTitlePresetId: undefined })}
+                        title="스타일 연결 해제 (Detach style)"
+                      >
+                        <X size={11} style={{ color: 'var(--figma-text-muted)' }} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="preset-unlinked-wrapper flex flex-col gap-2">
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            updateElement({ colTitlePresetId: e.target.value });
+                          }
+                        }}
+                        style={{ fontSize: '11.5px', background: 'var(--figma-bg)', border: '1px solid var(--figma-border)', color: 'var(--figma-text)', padding: '6px', borderRadius: '4px' }}
+                      >
+                        <option value="">스타일 프리셋 연결... (Link Style)</option>
+                        {(themeSettings?.fontPresets || []).map(p => (
+                          <option key={p.id} value={p.id}>{p.name} ({p.fontSize})</option>
+                        ))}
+                      </select>
+                      
+                      {/* Title custom styling */}
+                      <div className="grid-inputs-row">
+                        <div className="grid-input-item">
+                          <span className="input-label">글자 크기</span>
+                          <input
+                            type="text"
+                            value={element.colTitleSize || '18px'}
+                            onChange={(e) => updateElement({ colTitleSize: e.target.value })}
+                          />
+                        </div>
+                        <div className="grid-input-item">
+                          <span className="input-label">글자 색상</span>
+                          <div className="color-picker-wrapper">
+                            <input
+                              type="color"
+                              value={element.colTitleColor?.startsWith('#') && element.colTitleColor.length === 7 ? element.colTitleColor : '#000000'}
+                              onChange={(e) => updateElement({ colTitleColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={element.colTitleColor || ''}
+                              onChange={(e) => updateElement({ colTitleColor: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Text Font Preset (Figma style) */}
+                <div className="input-block mt-1">
+                  <span className="input-label">본문 텍스트 스타일</span>
+                  {element.colTextPresetId ? (
+                    <div className="preset-linked-pill flex items-center justify-between p-1.5 px-2.5 rounded border" style={{ background: 'rgba(24, 160, 251, 0.05)', borderColor: 'rgba(24, 160, 251, 0.3)' }}>
+                      <div className="flex items-center gap-2">
+                        <Grid size={11} style={{ color: 'var(--figma-accent)' }} />
+                        <span className="text-xs font-semibold" style={{ color: 'var(--figma-accent)' }}>{textPresetName || element.colTextPresetId}</span>
+                      </div>
+                      <button 
+                        className="del-el-btn p-0.5 hover:bg-gray-700 rounded transition-all"
+                        onClick={() => updateElement({ colTextPresetId: undefined })}
+                        title="스타일 연결 해제 (Detach style)"
+                      >
+                        <X size={11} style={{ color: 'var(--figma-text-muted)' }} />
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="preset-unlinked-wrapper flex flex-col gap-2">
+                      <select
+                        value=""
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            updateElement({ colTextPresetId: e.target.value });
+                          }
+                        }}
+                        style={{ fontSize: '11.5px', background: 'var(--figma-bg)', border: '1px solid var(--figma-border)', color: 'var(--figma-text)', padding: '6px', borderRadius: '4px' }}
+                      >
+                        <option value="">스타일 프리셋 연결... (Link Style)</option>
+                        {(themeSettings?.fontPresets || []).map(p => (
+                          <option key={p.id} value={p.id}>{p.name} ({p.fontSize})</option>
+                        ))}
+                      </select>
+                      
+                      {/* Text custom styling */}
+                      <div className="grid-inputs-row">
+                        <div className="grid-input-item">
+                          <span className="input-label">글자 크기</span>
+                          <input
+                            type="text"
+                            value={element.colTextSize || '14px'}
+                            onChange={(e) => updateElement({ colTextSize: e.target.value })}
+                          />
+                        </div>
+                        <div className="grid-input-item">
+                          <span className="input-label">글자 색상</span>
+                          <div className="color-picker-wrapper">
+                            <input
+                              type="color"
+                              value={element.colTextColor?.startsWith('#') && element.colTextColor.length === 7 ? element.colTextColor : '#000000'}
+                              onChange={(e) => updateElement({ colTextColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={element.colTextColor || ''}
+                              onChange={(e) => updateElement({ colTextColor: e.target.value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Icon Style */}
+                <div className="grid-inputs-row">
+                  <div className="grid-input-item">
+                    <span className="input-label">아이콘 색상</span>
+                    <div className="color-picker-wrapper">
+                      <input
+                        type="color"
+                        value={element.colIconColor?.startsWith('#') && element.colIconColor.length === 7 ? element.colIconColor : '#000000'}
+                        onChange={(e) => updateElement({ colIconColor: e.target.value })}
+                      />
+                      <input
+                        type="text"
+                        value={element.colIconColor || ''}
+                        onChange={(e) => updateElement({ colIconColor: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid-input-item flex flex-col justify-end">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-[10.5px]">
+                      <input
+                        type="checkbox"
+                        checked={!!element.colShowIconBg}
+                        onChange={(e) => updateElement({ colShowIconBg: e.target.checked })}
+                      />
+                      <span>원배경 사용</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Icon Bg Color */}
+                {element.colShowIconBg && (
+                  <div className="input-block">
+                    <span className="input-label">원배경 색상</span>
+                    <div className="color-picker-wrapper">
+                      <input
+                        type="color"
+                        value={element.colIconBgColor?.startsWith('#') && element.colIconBgColor.length === 7 ? element.colIconBgColor : '#e0e7ff'}
+                        onChange={(e) => updateElement({ colIconBgColor: e.target.value })}
+                      />
+                      <input
+                        type="text"
+                        value={element.colIconBgColor || ''}
+                        onChange={(e) => updateElement({ colIconBgColor: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="divider" style={{ margin: '8px 0', borderBottom: '1px solid var(--figma-border)' }}></div>
+
+              {/* Column 1 Controls */}
+              <div className="flex flex-col gap-2 p-2 rounded" style={{ background: 'var(--figma-bg)', border: '1px solid var(--figma-border)' }}>
+                <span className="font-semibold text-xs text-blue-400">1열 설정</span>
+                <div className="input-block">
+                  <span className="input-label">아이콘</span>
+                  <select
+                    value={element.col1Icon || 'none'}
+                    onChange={(e) => updateElement({ col1Icon: e.target.value as any })}
+                  >
+                    <option value="none">아이콘 없음</option>
+                    {ICON_TEMPLATES.map(t => (
+                      <option key={t.type} value={t.type}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="input-block">
+                  <span className="input-label">타이틀</span>
+                  <input
+                    type="text"
+                    value={element.col1Title || ''}
+                    onChange={(e) => updateElement({ col1Title: e.target.value })}
+                    placeholder="1열 타이틀"
+                  />
+                </div>
+                <div className="input-block">
+                  <span className="input-label">본문 내용</span>
+                  <textarea
+                    rows={3}
+                    value={element.col1Text || ''}
+                    onChange={(e) => updateElement({ col1Text: e.target.value })}
+                    placeholder="1열 본문"
+                  />
+                </div>
+              </div>
+
+              {/* Column 2 Controls */}
+              <div className="flex flex-col gap-2 p-2 rounded mt-2" style={{ background: 'var(--figma-bg)', border: '1px solid var(--figma-border)' }}>
+                <span className="font-semibold text-xs text-blue-400">2열 설정</span>
+                <div className="input-block">
+                  <span className="input-label">아이콘</span>
+                  <select
+                    value={element.col2Icon || 'none'}
+                    onChange={(e) => updateElement({ col2Icon: e.target.value as any })}
+                  >
+                    <option value="none">아이콘 없음</option>
+                    {ICON_TEMPLATES.map(t => (
+                      <option key={t.type} value={t.type}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="input-block">
+                  <span className="input-label">타이틀</span>
+                  <input
+                    type="text"
+                    value={element.col2Title || ''}
+                    onChange={(e) => updateElement({ col2Title: e.target.value })}
+                    placeholder="2열 타이틀"
+                  />
+                </div>
+                <div className="input-block">
+                  <span className="input-label">본문 내용</span>
+                  <textarea
+                    rows={3}
+                    value={element.col2Text || ''}
+                    onChange={(e) => updateElement({ col2Text: e.target.value })}
+                    placeholder="2열 본문"
+                  />
+                </div>
+              </div>
+
+              {/* Column 3 Controls */}
+              <div className="flex flex-col gap-2 p-2 rounded mt-2" style={{ background: 'var(--figma-bg)', border: '1px solid var(--figma-border)' }}>
+                <span className="font-semibold text-xs text-blue-400">3열 설정</span>
+                <div className="input-block">
+                  <span className="input-label">아이콘</span>
+                  <select
+                    value={element.col3Icon || 'none'}
+                    onChange={(e) => updateElement({ col3Icon: e.target.value as any })}
+                  >
+                    <option value="none">아이콘 없음</option>
+                    {ICON_TEMPLATES.map(t => (
+                      <option key={t.type} value={t.type}>{t.name}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="input-block">
+                  <span className="input-label">타이틀</span>
+                  <input
+                    type="text"
+                    value={element.col3Title || ''}
+                    onChange={(e) => updateElement({ col3Title: e.target.value })}
+                    placeholder="3열 타이틀"
+                  />
+                </div>
+                <div className="input-block">
+                  <span className="input-label">본문 내용</span>
+                  <textarea
+                    rows={3}
+                    value={element.col3Text || ''}
+                    onChange={(e) => updateElement({ col3Text: e.target.value })}
+                    placeholder="3열 본문"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })()}
 
       </div>
 

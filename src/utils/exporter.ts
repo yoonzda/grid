@@ -517,6 +517,79 @@ body {
           styleCss += `  border-radius: var(--el-${el.id}-img-radius);\n`;
           styleCss += `  box-shadow: var(--el-${el.id}-img-shadow);\n`;
           styleCss += `}\n`;
+        } else if (el.type === 'three-column') {
+          const hasTitlePreset = !!el.colTitlePresetId;
+          const hasTextPreset = !!el.colTextPresetId;
+
+          const titleColor = el.colTitleColor || 'var(--theme-primary)';
+          const titleSize = el.colTitleSize || '18px';
+          const textColor = el.colTextColor || 'var(--theme-text)';
+          const textSize = el.colTextSize || '14px';
+          const iconColor = el.colIconColor || 'var(--theme-primary)';
+          const showIconBg = !!el.colShowIconBg;
+          const iconBgColor = el.colIconBgColor || 'rgba(24, 160, 251, 0.1)';
+
+          styleCss += `.three-column-${el.id} {\n`;
+          styleCss += `  display: flex;\n`;
+          styleCss += `  gap: ${el.colGap ?? 24}px;\n`;
+          styleCss += `  width: 100%;\n`;
+          styleCss += `  padding: 12px 0;\n`;
+          styleCss += `}\n`;
+          styleCss += `.three-column-${el.id} .col-item {\n`;
+          styleCss += `  flex: 1;\n`;
+          styleCss += `  min-width: 0;\n`;
+          styleCss += `  display: flex;\n`;
+          styleCss += `  flex-direction: column;\n`;
+          styleCss += `  align-items: ${el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center'};\n`;
+          styleCss += `  text-align: ${el.align};\n`;
+          styleCss += `  gap: ${el.colContentGap ?? 8}px;\n`;
+          styleCss += `}\n`;
+          
+          if (showIconBg) {
+            styleCss += `.three-column-${el.id} .col-icon-circle {\n`;
+            styleCss += `  display: flex;\n`;
+            styleCss += `  align-items: center;\n`;
+            styleCss += `  justify-content: center;\n`;
+            styleCss += `  width: 48px;\n`;
+            styleCss += `  height: 48px;\n`;
+            styleCss += `  border-radius: 50%;\n`;
+            styleCss += `  background-color: ${iconBgColor};\n`;
+            styleCss += `  color: ${iconColor};\n`;
+            styleCss += `}\n`;
+            styleCss += `.three-column-${el.id} .col-icon-circle svg {\n`;
+            styleCss += `  width: 24px;\n`;
+            styleCss += `  height: 24px;\n`;
+            styleCss += `}\n`;
+          } else {
+            styleCss += `.three-column-${el.id} .col-icon-wrapper {\n`;
+            styleCss += `  display: flex;\n`;
+            styleCss += `  color: ${iconColor};\n`;
+            styleCss += `}\n`;
+            styleCss += `.three-column-${el.id} .col-icon-wrapper svg {\n`;
+            styleCss += `  width: 28px;\n`;
+            styleCss += `  height: 28px;\n`;
+            styleCss += `}\n`;
+          }
+          
+          styleCss += `.three-column-${el.id} h3 {\n`;
+          styleCss += `  margin: 0;\n`;
+          if (!hasTitlePreset) {
+            styleCss += `  font-size: ${titleSize};\n`;
+            styleCss += `  color: ${titleColor};\n`;
+            styleCss += `  font-family: var(--el-${el.id}-font-family);\n`;
+          }
+          styleCss += `  font-weight: 700;\n`;
+          styleCss += `}\n`;
+
+          styleCss += `.three-column-${el.id} p {\n`;
+          styleCss += `  margin: 0;\n`;
+          if (!hasTextPreset) {
+            styleCss += `  font-size: ${textSize};\n`;
+            styleCss += `  color: ${textColor};\n`;
+            styleCss += `  font-family: var(--el-${el.id}-font-family);\n`;
+          }
+          styleCss += `  line-height: 1.5;\n`;
+          styleCss += `}\n`;
         } else if (el.type === 'button') {
           const btnVar = el.btnVariant || 'filled';
           const btnSize = el.btnSize || 'medium';
@@ -790,6 +863,39 @@ ${fontLinksHtml}
             indexHtml += `            ${iconSvg}\n`;
           }
           indexHtml += `          </button>\n`;
+        } else if (el.type === 'three-column') {
+          const col1IconSvg = getIconSvg(el.col1Icon);
+          const col2IconSvg = getIconSvg(el.col2Icon);
+          const col3IconSvg = getIconSvg(el.col3Icon);
+          const showIconBg = !!el.colShowIconBg;
+
+          const titlePresetClass = el.colTitlePresetId ? ` class="font-preset-${el.colTitlePresetId}"` : '';
+          const textPresetClass = el.colTextPresetId ? ` class="font-preset-${el.colTextPresetId}"` : '';
+
+          indexHtml += `          <div class="three-column-element three-column-${el.id}">\n`;
+          
+          const writeColumn = (title: string, text: string, iconSvg: string) => {
+            let colHtml = `            <div class="col-item">\n`;
+            if (iconSvg) {
+              if (showIconBg) {
+                const sizedSvg = iconSvg.replace(/width="16"/g, 'width="24"').replace(/height="16"/g, 'height="24"');
+                colHtml += `              <div class="col-icon-circle">${sizedSvg}</div>\n`;
+              } else {
+                const sizedSvg = iconSvg.replace(/width="16"/g, 'width="28"').replace(/height="16"/g, 'height="28"');
+                colHtml += `              <div class="col-icon-wrapper">${sizedSvg}</div>\n`;
+              }
+            }
+            colHtml += `              <h3${titlePresetClass}>${title}</h3>\n`;
+            colHtml += `              <p${textPresetClass}>${text}</p>\n`;
+            colHtml += `            </div>\n`;
+            return colHtml;
+          };
+
+          indexHtml += writeColumn(el.col1Title || '타이틀', el.col1Text || '본문 내용을 입력하세요.', col1IconSvg);
+          indexHtml += writeColumn(el.col2Title || '타이틀', el.col2Text || '본문 내용을 입력하세요.', col2IconSvg);
+          indexHtml += writeColumn(el.col3Title || '타이틀', el.col3Text || '본문 내용을 입력하세요.', col3IconSvg);
+
+          indexHtml += `          </div>\n`;
         }
         
         indexHtml += `        </div>\n`;

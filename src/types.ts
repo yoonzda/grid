@@ -3,7 +3,7 @@ export type GuidelineWidth = '100%' | '80%' | '60%';
 export type ButtonSize = 'small' | 'medium' | 'large';
 export type ButtonVariant = 'filled' | 'outlined' | 'ghost';
 
-export type ElementType = 'title' | 'text' | 'image' | 'button';
+export type ElementType = 'title' | 'text' | 'image' | 'button' | 'three-column';
 
 export interface EditorElement {
   id: string;
@@ -36,6 +36,30 @@ export interface EditorElement {
   fontPresetId?: string;
   marginBottom?: number;
   marginRight?: number;
+
+  // 3-column properties
+  col1Title?: string;
+  col1Text?: string;
+  col1Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
+  col2Title?: string;
+  col2Text?: string;
+  col2Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
+  col3Title?: string;
+  col3Text?: string;
+  col3Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
+
+  // 3-column styling properties
+  colTitleColor?: string;
+  colTitleSize?: string;
+  colTextColor?: string;
+  colTextSize?: string;
+  colIconColor?: string;
+  colShowIconBg?: boolean;
+  colIconBgColor?: string;
+  colTitlePresetId?: string;
+  colTextPresetId?: string;
+  colGap?: number;
+  colContentGap?: number;
 }
 
 export type HeaderLayoutType = 'spread-center' | 'spread-between' | 'left' | 'center' | 'right' | 'even-space';

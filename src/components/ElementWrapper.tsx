@@ -212,6 +212,72 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
         </div>
       );
     }
+    if (element.type === 'three-column') {
+      const col1IconSvg = getIconSvg(element.col1Icon);
+      const col2IconSvg = getIconSvg(element.col2Icon);
+      const col3IconSvg = getIconSvg(element.col3Icon);
+
+      const hasTitlePreset = !!element.colTitlePresetId;
+      const hasTextPreset = !!element.colTextPresetId;
+
+      const titleColor = hasTitlePreset ? undefined : (element.colTitleColor || 'var(--theme-primary)');
+      const titleSize = hasTitlePreset ? undefined : (element.colTitleSize || '18px');
+      const titleFont = hasTitlePreset ? undefined : fontStyle;
+
+      const textColor = hasTextPreset ? undefined : (element.colTextColor || 'var(--theme-text)');
+      const textSize = hasTextPreset ? undefined : (element.colTextSize || '14px');
+      const textFont = hasTextPreset ? undefined : fontStyle;
+
+      const iconColor = element.colIconColor || 'var(--theme-primary)';
+      const showIconBg = !!element.colShowIconBg;
+      const iconBgColor = element.colIconBgColor || 'rgba(24, 160, 251, 0.1)';
+
+      const renderColumn = (title?: string, text?: string, iconSvg?: string) => {
+        return (
+          <div className="three-column-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: element.align === 'left' ? 'flex-start' : element.align === 'right' ? 'flex-end' : 'center', textAlign: element.align, minWidth: 0, gap: `${element.colContentGap ?? 8}px` }}>
+            {iconSvg && (
+              showIconBg ? (
+                <div className="three-col-icon-circle" style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  backgroundColor: iconBgColor,
+                  color: iconColor,
+                }} dangerouslySetInnerHTML={{ __html: iconSvg.replace(/width="16"/g, 'width="24"').replace(/height="16"/g, 'height="24"') }} />
+              ) : (
+                <div className="three-col-icon-wrapper" style={{
+                  display: 'flex',
+                  color: iconColor,
+                }} dangerouslySetInnerHTML={{ __html: iconSvg.replace(/width="16"/g, 'width="28"').replace(/height="16"/g, 'height="28"') }} />
+              )
+            )}
+            <h3 
+              className={hasTitlePreset ? `font-preset-${element.colTitlePresetId}` : ''}
+              style={{ margin: 0, fontSize: titleSize, fontWeight: 700, color: titleColor, fontFamily: titleFont, width: '100%' }}
+            >
+              {title || '타이틀'}
+            </h3>
+            <p 
+              className={hasTextPreset ? `font-preset-${element.colTextPresetId}` : ''}
+              style={{ margin: 0, fontSize: textSize, color: textColor, fontFamily: textFont, lineHeight: 1.5, width: '100%', wordBreak: 'break-word' }}
+            >
+              {text || '본문 내용을 입력하세요.'}
+            </p>
+          </div>
+        );
+      };
+
+      return (
+        <div className="canvas-three-column-inner" style={{ display: 'flex', gap: `${element.colGap ?? 24}px`, width: '100%', padding: '12px 0' }}>
+          {renderColumn(element.col1Title, element.col1Text, col1IconSvg)}
+          {renderColumn(element.col2Title, element.col2Text, col2IconSvg)}
+          {renderColumn(element.col3Title, element.col3Text, col3IconSvg)}
+        </div>
+      );
+    }
 
     return null;
   };

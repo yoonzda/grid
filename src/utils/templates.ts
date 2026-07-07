@@ -13,7 +13,9 @@ export const BUSINESS_THEME: ThemeSettings = {
   fontPresets: [
     { id: 'title-1', name: '타이틀 1 (대형)', fontSize: '32px', fontFamily: 'Inter', fontWeight: '700', color: '#1e3a8a' },
     { id: 'title-2', name: '타이틀 2 (중형)', fontSize: '24px', fontFamily: 'Inter', fontWeight: '700', color: '#1e3a8a' },
+    { id: 'title-3', name: '타이틀 3 (소형)', fontSize: '18px', fontFamily: 'Inter', fontWeight: '700', color: '#1e3a8a' },
     { id: 'body-1', name: '본문 1 (기본)', fontSize: '14px', fontFamily: 'Inter', fontWeight: '400', color: '#1f2937' },
+    { id: 'body-2', name: '본문 2 (상세)', fontSize: '13px', fontFamily: 'Inter', fontWeight: '400', color: '#4b5563' },
     { id: 'menu', name: '네비게이션 메뉴', fontSize: '13px', fontFamily: 'Inter', fontWeight: '500', color: '#cbd5e1' },
     { id: 'button', name: '버튼 텍스트', fontSize: '14px', fontFamily: 'Inter', fontWeight: '600', color: '#ffffff' },
     { id: 'footer', name: '푸터 텍스트', fontSize: '12px', fontFamily: 'Inter', fontWeight: '400', color: '#9ca3af' }
@@ -715,7 +717,9 @@ export const MODERN_THEME: ThemeSettings = {
   fontPresets: [
     { id: 'title-1', name: '타이틀 1 (대형)', fontSize: '36px', fontFamily: 'Outfit', fontWeight: '700', color: '#ff6b6b' },
     { id: 'title-2', name: '타이틀 2 (중형)', fontSize: '26px', fontFamily: 'Outfit', fontWeight: '700', color: '#ff6b6b' },
+    { id: 'title-3', name: '타이틀 3 (소형)', fontSize: '19px', fontFamily: 'Outfit', fontWeight: '700', color: '#ff6b6b' },
     { id: 'body-1', name: '본문 1 (기본)', fontSize: '15px', fontFamily: 'Outfit', fontWeight: '400', color: '#1f2937' },
+    { id: 'body-2', name: '본문 2 (상세)', fontSize: '13px', fontFamily: 'Outfit', fontWeight: '400', color: '#4b5563' },
     { id: 'menu', name: '네비게이션 메뉴', fontSize: '13px', fontFamily: 'Outfit', fontWeight: '500', color: '#cbd5e1' },
     { id: 'button', name: '버튼 텍스트', fontSize: '14px', fontFamily: 'Outfit', fontWeight: '600', color: '#ffffff' },
     { id: 'footer', name: '푸터 텍스트', fontSize: '11px', fontFamily: 'Outfit', fontWeight: '400', color: '#9ca3af' }

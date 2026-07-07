@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType, Page, ThemeSettings } from '../types';
-import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders } from 'lucide-react';
+import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 
@@ -114,6 +114,72 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
     );
 
     // Set new element as active
+    setActiveElement({ sectionId: targetSection.id, elementId: newElement.id });
+  };
+
+  // Adds a 3-column text box layout (3 titles + 3 body text boxes side by side)
+  const addThreeColumnTextBox = () => {
+    if (sections.length === 0) return;
+    
+    const targetSectionId = activeElement?.sectionId || activeSectionId || sections[0].id;
+    const targetSection = sections.find(s => s.id === targetSectionId) || sections[0];
+    
+    let maxGridY = 0;
+    targetSection.elements.forEach(el => {
+      maxGridY = Math.max(maxGridY, el.gridY + el.gridH);
+    });
+
+    const timestamp = Date.now();
+    
+    const newElement: EditorElement = {
+      id: `el_${timestamp}`,
+      type: 'three-column',
+      gridX: 0,
+      gridW: 12,
+      gridY: maxGridY,
+      gridH: 4,
+      content: '',
+      color: 'var(--theme-text)',
+      fontSize: '14px',
+      fontFamily: themeSettings.fontFamily,
+      align: 'center',
+      
+      col1Title: '첫 번째 타이틀',
+      col1Text: '첫 번째 열의 본문 내용을 입력하세요. 여기에 상세한 설명을 적을 수 있습니다.',
+      col1Icon: 'home',
+      
+      col2Title: '두 번째 타이틀',
+      col2Text: '두 번째 열의 본문 내용을 입력하세요. 여기에 상세한 설명을 적을 수 있습니다.',
+      col2Icon: 'mail',
+      
+      col3Title: '세 번째 타이틀',
+      col3Text: '세 번째 열의 본문 내용을 입력하세요. 여기에 상세한 설명을 적을 수 있습니다.',
+      col3Icon: 'phone',
+
+      colTitleColor: 'var(--theme-primary)',
+      colTitleSize: '18px',
+      colTextColor: 'var(--theme-text)',
+      colTextSize: '14px',
+      colIconColor: 'var(--theme-primary)',
+      colShowIconBg: true,
+      colIconBgColor: 'rgba(24, 160, 251, 0.1)',
+      colTitlePresetId: 'title-3',
+      colTextPresetId: 'body-2',
+      colGap: 24,
+      colContentGap: 8,
+    };
+
+    setSections(prev =>
+      prev.map(s => {
+        if (s.id !== targetSection.id) return s;
+        return {
+          ...s,
+          elements: [...s.elements, newElement],
+        };
+      })
+    );
+
+    // Set the new three-column element as active
     setActiveElement({ sectionId: targetSection.id, elementId: newElement.id });
   };
 
@@ -292,6 +358,10 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             <button className="add-el-btn flex flex-col items-center" onClick={() => addElement('button')}>
               <Link size={20} />
               <span>버튼</span>
+            </button>
+            <button className="add-el-btn flex flex-col items-center" onClick={addThreeColumnTextBox}>
+              <Columns size={20} />
+              <span>3열 글상자</span>
             </button>
           </div>
           
