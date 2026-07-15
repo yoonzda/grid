@@ -236,40 +236,40 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           {/* TAB 2: Gaps & Grid sizes */}
           {activeTab === 'layout' && (
             <div className="form-group-section">
-              <h3 className="section-title">글로벌 그리드 레이아웃 설정</h3>
+              <h3 className="section-title">글로벌 기본 레이아웃 설정</h3>
               <p className="section-description">
-                웹페이지 격자(Grid) 내의 간격(Gap)과 행의 높이를 정의합니다.
+                새 섹션을 생성하거나 개별 커스텀 설정을 해제(상속)했을 때 적용되는 공통 레이아웃 기본값입니다.
               </p>
 
               <div className="form-row flex flex-col gap-4">
                 <div className="form-col w-full">
                   <label className="form-label flex justify-between">
-                    <span>격자 간격 (Grid Column/Row Gap)</span>
-                    <span className="value-badge">{themeSettings.gridGap ?? 20}px</span>
+                    <span>기본 요소 간격 (Default Flex Gap)</span>
+                    <span className="value-badge">{themeSettings.defaultFlexGap ?? 16}px</span>
                   </label>
                   <input
                     type="range"
                     min="0"
-                    max="50"
+                    max="60"
                     step="2"
-                    value={themeSettings.gridGap ?? 20}
-                    onChange={(e) => setThemeSettings(prev => ({ ...prev, gridGap: parseInt(e.target.value) }))}
+                    value={themeSettings.defaultFlexGap ?? 16}
+                    onChange={(e) => setThemeSettings(prev => ({ ...prev, defaultFlexGap: parseInt(e.target.value) }))}
                     className="form-range"
                   />
                 </div>
 
                 <div className="form-col w-full mt-2">
                   <label className="form-label flex justify-between">
-                    <span>행 기본 높이 (Grid Row Height)</span>
-                    <span className="value-badge">{themeSettings.gridRowHeight ?? 40}px</span>
+                    <span>기본 섹션 여백 (Default Section Padding)</span>
+                    <span className="value-badge">{themeSettings.defaultSectionPadding ?? 40}px</span>
                   </label>
                   <input
                     type="range"
-                    min="20"
-                    max="100"
-                    step="5"
-                    value={themeSettings.gridRowHeight ?? 40}
-                    onChange={(e) => setThemeSettings(prev => ({ ...prev, gridRowHeight: parseInt(e.target.value) }))}
+                    min="0"
+                    max="120"
+                    step="4"
+                    value={themeSettings.defaultSectionPadding ?? 40}
+                    onChange={(e) => setThemeSettings(prev => ({ ...prev, defaultSectionPadding: parseInt(e.target.value) }))}
                     className="form-range"
                   />
                 </div>

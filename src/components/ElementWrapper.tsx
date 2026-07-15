@@ -155,22 +155,28 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
         borderStyle = 'none';
       }
       
-      let pad = '10px 20px';
+      let padY = '10px';
+      let defaultPadX = 20;
       let fSize: string | undefined = element.fontSize || '14px';
       let fFamily: string | undefined = fontStyle;
       
+      if (size === 'small') {
+        padY = '6px';
+        defaultPadX = 12;
+        if (!hasPreset) fSize = element.fontSize || '12px';
+      } else if (size === 'large') {
+        padY = '14px';
+        defaultPadX = 28;
+        if (!hasPreset) fSize = element.fontSize || '16px';
+      }
+
       if (hasPreset) {
         fSize = undefined;
         fFamily = undefined;
-      } else {
-        if (size === 'small') {
-          pad = '6px 12px';
-          fSize = element.fontSize || '12px';
-        } else if (size === 'large') {
-          pad = '14px 28px';
-          fSize = element.fontSize || '16px';
-        }
       }
+      
+      const padX = `${element.paddingX ?? defaultPadX}px`;
+      const pad = `${padY} ${padX}`;
 
       return (
         <div
@@ -189,7 +195,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
             borderRadius: `${element.borderRadius ?? 6}px`,
             fontSize: fSize,
             fontFamily: fFamily,
-            fontWeight: 600,
+            fontWeight: hasPreset ? undefined : 600,
             boxSizing: 'border-box',
             transition: 'background-color 0.2s, opacity 0.2s',
           }}
@@ -232,9 +238,11 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       const showIconBg = !!element.colShowIconBg;
       const iconBgColor = element.colIconBgColor || 'rgba(24, 160, 251, 0.1)';
 
+      const elAlign = element.align || 'left';
+
       const renderColumn = (title?: string, text?: string, iconSvg?: string) => {
         return (
-          <div className="three-column-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: element.align === 'left' ? 'flex-start' : element.align === 'right' ? 'flex-end' : 'center', textAlign: element.align, minWidth: 0, gap: `${element.colContentGap ?? 8}px` }}>
+          <div className="three-column-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: elAlign === 'left' ? 'flex-start' : elAlign === 'right' ? 'flex-end' : 'center', textAlign: elAlign, minWidth: 0, gap: `${element.colContentGap ?? 8}px` }}>
             {iconSvg && (
               showIconBg ? (
                 <div className="three-col-icon-circle" style={{
@@ -291,8 +299,8 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
         pointerEvents: 'auto',
         borderRadius: element.type === 'button' || element.type === 'image' ? element.borderRadius : 0,
         boxShadow: element.boxShadow || 'none',
-        width: element.widthMode === 'fit-content' ? 'fit-content' : '100%',
-        alignSelf: element.widthMode === 'fit-content'
+        width: element.widthMode === 'fixed' ? `${element.fixedWidth ?? 150}px` : element.widthMode === 'fit-content' ? 'fit-content' : '100%',
+        alignSelf: (element.widthMode === 'fit-content' || element.widthMode === 'fixed')
           ? (element.align === 'center' ? 'center' : element.align === 'right' ? 'flex-end' : 'flex-start')
           : 'stretch',
         marginBottom: element.marginBottom ? `${element.marginBottom}px` : undefined,
@@ -306,8 +314,8 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
         pointerEvents: 'auto',
         borderRadius: element.type === 'button' || element.type === 'image' ? element.borderRadius : 0,
         boxShadow: element.boxShadow || 'none',
-        width: element.widthMode === 'fit-content' ? 'fit-content' : '100%',
-        justifySelf: element.widthMode === 'fit-content'
+        width: element.widthMode === 'fixed' ? `${element.fixedWidth ?? 150}px` : element.widthMode === 'fit-content' ? 'fit-content' : '100%',
+        justifySelf: (element.widthMode === 'fit-content' || element.widthMode === 'fixed')
           ? (element.align === 'center' ? 'center' : element.align === 'right' ? 'end' : 'start')
           : 'stretch',
         height: element.type === 'image' ? '100%' : 'fit-content',

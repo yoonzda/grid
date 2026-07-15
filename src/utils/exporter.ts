@@ -15,7 +15,7 @@ function hexToRgb(hex: string): string {
   return `${r}, ${g}, ${b}`;
 }
 
-export const generateCode = (pages: Page[], theme: ThemeSettings, guideline: GuidelineWidth): GeneratedFiles => {
+export const generateCode = (pages: Page[], theme: ThemeSettings): GeneratedFiles => {
   // Collect all unique google fonts used in elements across all pages, plus the theme font
   const usedFonts = new Set<string>();
   if (theme.fontFamily) {
@@ -65,9 +65,8 @@ ${fontImports.join('\n')}
   --font-default: '${theme.fontFamily}', system-ui, -apple-system, sans-serif;
 
   /* Layout Global Settings */
-  --content-width: ${guideline === '100%' ? '100%' : guideline === '80%' ? '80%' : '60%'};
-  --grid-gap: ${theme.gridGap ?? 20}px;
-  --grid-row-height: ${theme.gridRowHeight ?? 40}px;
+  --theme-default-flex-gap: ${theme.defaultFlexGap ?? 16}px;
+  --theme-default-section-padding: ${theme.defaultSectionPadding ?? 40}px;
 
   /* Font Presets */
   ${(theme.fontPresets || []).map(p => `
@@ -103,9 +102,10 @@ ${fontImports.join('\n')}
         variablesCss += `  --header-${sec.id}-menu-size: ${sec.headerMenuSize || '13px'};\n`;
         variablesCss += `  --header-${sec.id}-menu-font: ${getFontFamilyByFamilyName(sec.headerMenuFont || 'Inter')};\n`;
         
-        const headerBtnBg = sec.headerBtnBgColor || '#10b981';
+        const headerBtnBg = sec.headerBtnBgColor || 'var(--theme-secondary)';
+        const isHex = headerBtnBg.startsWith('#');
         variablesCss += `  --header-${sec.id}-btn-bg: ${headerBtnBg};\n`;
-        variablesCss += `  --header-${sec.id}-btn-hover-bg: ${headerBtnBg ? adjustColorBrightness(headerBtnBg, -15) : '#0ea5e9'};\n`;
+        variablesCss += `  --header-${sec.id}-btn-hover-bg: ${isHex ? adjustColorBrightness(headerBtnBg, -15) : 'var(--theme-secondary)'};\n`;
         variablesCss += `  --header-${sec.id}-btn-text-color: ${sec.headerBtnTextColor || '#ffffff'};\n`;
         variablesCss += `  --header-${sec.id}-btn-radius: ${sec.headerBtnRadius ?? 4}px;\n`;
         variablesCss += `  --header-${sec.id}-btn-font: ${getFontFamilyByFamilyName(sec.headerBtnFont || 'Inter')};\n`;
@@ -123,7 +123,7 @@ ${fontImports.join('\n')}
       } else {
         variablesCss += `  --sec-${sec.id}-bg-image: none;\n`;
       }
-      variablesCss += `  --sec-${sec.id}-height: ${sec.height}px;\n`;
+      variablesCss += `  --sec-${sec.id}-height: ${sec.height}${sec.heightUnit || 'px'};\n`;
 
       sec.elements.forEach((el) => {
         if (writtenElements.has(el.id)) return;
@@ -173,8 +173,11 @@ ${(theme.fontPresets || []).map(p => `
   padding: 0;
 }
 
-body {
+body, button, select, input, textarea {
   font-family: var(--font-default);
+}
+
+body {
   background-color: var(--theme-bg);
   color: var(--theme-text);
   line-height: 1.5;
@@ -205,7 +208,7 @@ body {
   column-gap: var(--grid-gap);
   row-gap: var(--grid-gap);
   position: relative;
-  padding: 40px 0;
+  padding: 0;
 }
 
 /* Base elements */
@@ -293,6 +296,7 @@ body {
       if (sec.sharedType === 'header') {
         styleCss += `\n/* Header Component: ${sec.id} */\n`;
         styleCss += `.section-${sec.id} {\n`;
+        styleCss += `  --content-width: ${sec.guidelineWidth || '80%'};\n`;
         styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
         styleCss += `  padding-top: var(--header-${sec.id}-padding-y);\n`;
         styleCss += `  padding-bottom: var(--header-${sec.id}-padding-y);\n`;
@@ -425,11 +429,11 @@ body {
           styleCss += `}\n`;
         } else if (headerBtnVar === 'outlined') {
           styleCss += `.section-${sec.id} .header-btn:hover {\n`;
-          styleCss += `  background-color: rgba(var(--theme-primary-rgb), 0.08);\n`;
+          styleCss += `  opacity: 0.85;\n`;
           styleCss += `}\n`;
         } else if (headerBtnVar === 'ghost') {
           styleCss += `.section-${sec.id} .header-btn:hover {\n`;
-          styleCss += `  background-color: rgba(var(--theme-primary-rgb), 0.06);\n`;
+          styleCss += `  background-color: rgba(120, 120, 120, 0.08);\n`;
           styleCss += `}\n`;
         }
         return;
@@ -437,6 +441,7 @@ body {
 
       styleCss += `\n/* Section: ${sec.id} */\n`;
       styleCss += `.section-${sec.id} {\n`;
+      styleCss += `  --content-width: ${sec.guidelineWidth || '80%'};\n`;
       styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
       styleCss += `  background-image: var(--sec-${sec.id}-bg-image);\n`;
       if (sec.backgroundImage) {
@@ -444,7 +449,13 @@ body {
         styleCss += `  background-size: var(--sec-${sec.id}-bg-size);\n`;
         styleCss += `  background-repeat: var(--sec-${sec.id}-bg-repeat);\n`;
       }
-      styleCss += `  min-height: var(--sec-${sec.id}-height);\n`;
+      
+      const isAuto = sec.heightMode === 'auto';
+      styleCss += `  min-height: ${isAuto ? 'auto' : `var(--sec-${sec.id}-height)`};\n`;
+      styleCss += `  display: flex;\n`;
+      styleCss += `  flex-direction: column;\n`;
+      const vertAlign = isAuto ? 'flex-start' : (sec.verticalAlign === 'start' ? 'flex-start' : sec.verticalAlign === 'end' ? 'flex-end' : 'center');
+      styleCss += `  justify-content: ${vertAlign};\n`;
       styleCss += `}\n`;
 
       if (sec.layoutMode === 'flex') {
@@ -452,9 +463,18 @@ body {
         styleCss += `.section-${sec.id} .section-content {\n`;
         styleCss += `  display: flex;\n`;
         styleCss += `  flex-direction: ${sec.flexDirection === 'horizontal' ? 'row' : 'column'};\n`;
-        styleCss += `  gap: ${sec.flexGap ?? 16}px;\n`;
+        styleCss += `  gap: ${sec.flexGap !== undefined ? `${sec.flexGap}px` : 'var(--theme-default-flex-gap)'};\n`;
         styleCss += `  align-items: ${sec.flexDirection === 'horizontal' ? 'center' : 'stretch'};\n`;
         styleCss += `  justify-content: ${align};\n`;
+        styleCss += `  padding-top: ${sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)'};\n`;
+        styleCss += `  padding-bottom: ${sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)'};\n`;
+        styleCss += `  min-height: auto;\n`;
+        styleCss += `}\n`;
+      } else {
+        styleCss += `.section-${sec.id} .section-content {\n`;
+        styleCss += `  padding-top: ${sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)'};\n`;
+        styleCss += `  padding-bottom: ${sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)'};\n`;
+        styleCss += `  min-height: auto;\n`;
         styleCss += `}\n`;
       }
 
@@ -464,7 +484,11 @@ body {
 
         styleCss += `\n#el-id-${el.id} {\n`;
         if (sec.layoutMode === 'flex') {
-          if (el.widthMode === 'fit-content') {
+          if (el.widthMode === 'fixed') {
+            styleCss += `  width: ${el.fixedWidth ?? 150}px;\n`;
+            const alignSelf = el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start';
+            styleCss += `  align-self: ${alignSelf};\n`;
+          } else if (el.widthMode === 'fit-content') {
             styleCss += `  width: fit-content;\n`;
             const alignSelf = el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start';
             styleCss += `  align-self: ${alignSelf};\n`;
@@ -482,7 +506,11 @@ body {
         } else {
           styleCss += `  grid-column: calc(var(--el-${el.id}-grid-x) + 1) / span var(--el-${el.id}-grid-w);\n`;
           styleCss += `  grid-row: calc(var(--el-${el.id}-grid-y) + 1) / span var(--el-${el.id}-grid-h);\n`;
-          if (el.widthMode === 'fit-content') {
+          if (el.widthMode === 'fixed') {
+            styleCss += `  width: ${el.fixedWidth ?? 150}px;\n`;
+            const justify = el.align === 'center' ? 'center' : el.align === 'right' ? 'end' : 'start';
+            styleCss += `  justify-self: ${justify};\n`;
+          } else if (el.widthMode === 'fit-content') {
             styleCss += `  width: fit-content;\n`;
             const justify = el.align === 'center' ? 'center' : el.align === 'right' ? 'end' : 'start';
             styleCss += `  justify-self: ${justify};\n`;
@@ -535,13 +563,14 @@ body {
           styleCss += `  width: 100%;\n`;
           styleCss += `  padding: 12px 0;\n`;
           styleCss += `}\n`;
+          const elAlign = el.align || 'left';
           styleCss += `.three-column-${el.id} .col-item {\n`;
           styleCss += `  flex: 1;\n`;
           styleCss += `  min-width: 0;\n`;
           styleCss += `  display: flex;\n`;
           styleCss += `  flex-direction: column;\n`;
-          styleCss += `  align-items: ${el.align === 'left' ? 'flex-start' : el.align === 'right' ? 'flex-end' : 'center'};\n`;
-          styleCss += `  text-align: ${el.align};\n`;
+          styleCss += `  align-items: ${elAlign === 'left' ? 'flex-start' : elAlign === 'right' ? 'flex-end' : 'center'};\n`;
+          styleCss += `  text-align: ${elAlign};\n`;
           styleCss += `  gap: ${el.colContentGap ?? 8}px;\n`;
           styleCss += `}\n`;
           
@@ -593,38 +622,57 @@ body {
         } else if (el.type === 'button') {
           const btnVar = el.btnVariant || 'filled';
           const btnSize = el.btnSize || 'medium';
+          const hasPreset = !!el.fontPresetId;
           
           styleCss += `.btn-${el.id} {\n`;
-          styleCss += `  font-family: var(--el-${el.id}-font-family);\n`;
+          if (!hasPreset) {
+            styleCss += `  font-family: var(--el-${el.id}-font-family);\n`;
+            styleCss += `  font-weight: 600;\n`;
+          }
           styleCss += `  border-radius: var(--el-${el.id}-btn-radius);\n`;
-          styleCss += `  font-weight: 600;\n`;
           styleCss += `  cursor: pointer;\n`;
           styleCss += `  transition: background-color 0.25s, border-color 0.25s, opacity 0.2s;\n`;
           styleCss += `  white-space: nowrap;\n`;
+          styleCss += `  display: inline-flex;\n`;
+          styleCss += `  align-items: center;\n`;
+          styleCss += `  justify-content: ${el.align === 'center' ? 'center' : el.align === 'right' ? 'flex-end' : 'flex-start'};\n`;
+          styleCss += `  gap: 8px;\n`;
+          styleCss += `  box-sizing: border-box;\n`;
+          styleCss += `  width: 100%;\n`;
+          styleCss += `  height: 100%;\n`;
 
           if (btnVar === 'filled') {
             styleCss += `  background-color: var(--el-${el.id}-btn-bg);\n`;
-            styleCss += `  color: var(--el-${el.id}-btn-text-color);\n`;
+            styleCss += `  color: ${hasPreset ? 'inherit' : `var(--el-${el.id}-btn-text-color)`};\n`;
             styleCss += `  border: none;\n`;
           } else if (btnVar === 'outlined') {
             styleCss += `  background-color: transparent;\n`;
-            styleCss += `  color: var(--el-${el.id}-btn-bg);\n`;
+            styleCss += `  color: ${hasPreset ? 'inherit' : `var(--el-${el.id}-btn-bg)`};\n`;
             styleCss += `  border: 2px solid var(--el-${el.id}-btn-bg);\n`;
           } else if (btnVar === 'ghost') {
             styleCss += `  background-color: transparent;\n`;
-            styleCss += `  color: var(--el-${el.id}-btn-bg);\n`;
+            styleCss += `  color: ${hasPreset ? 'inherit' : `var(--el-${el.id}-btn-bg)`};\n`;
             styleCss += `  border: none;\n`;
           }
 
+          let padY = '10px';
+          let defaultPadX = 20;
+          let fSize = '14px';
+          
           if (btnSize === 'small') {
-            styleCss += `  padding: 6px 12px;\n`;
-            styleCss += `  font-size: 12px;\n`;
+            padY = '6px';
+            defaultPadX = 12;
+            fSize = '12px';
           } else if (btnSize === 'large') {
-            styleCss += `  padding: 14px 28px;\n`;
-            styleCss += `  font-size: 16px;\n`;
-          } else {
-            styleCss += `  padding: 10px 20px;\n`;
-            styleCss += `  font-size: 14px;\n`;
+            padY = '14px';
+            defaultPadX = 28;
+            fSize = '16px';
+          }
+          
+          const padXVal = el.paddingX !== undefined ? el.paddingX : defaultPadX;
+          styleCss += `  padding: ${padY} ${padXVal}px;\n`;
+          if (!hasPreset) {
+            styleCss += `  font-size: ${fSize};\n`;
           }
           styleCss += `}\n`;
 
@@ -684,6 +732,7 @@ body {
 
   /* Header Component Mobile responsiveness */
   .header-flex-wrapper {
+    width: 90% !important;
     flex-direction: column !important;
     gap: 16px !important;
     padding: 16px 0 !important;

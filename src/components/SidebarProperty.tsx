@@ -12,6 +12,7 @@ interface SidebarPropertyProps {
   setActiveElement: (val: { sectionId: string; elementId: string } | null) => void;
   setActiveSectionId: (val: string | null) => void;
   themeSettings?: ThemeSettings;
+  setActivePaddingGuide: (val: { sectionId: string; type: 'top' | 'bottom' | 'both' } | null) => void;
 }
 
 export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
@@ -22,6 +23,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   setActiveElement,
   setActiveSectionId,
   themeSettings,
+  setActivePaddingGuide,
 }) => {
   if (!activeElement && activeSectionId) {
     const section = sections.find(s => s.id === activeSectionId);
@@ -73,6 +75,27 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             
+            {/* 0. Section Width (Guideline) settings */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">헤더 가로폭 (Guideline)</label>
+              <div className="flex gap-2">
+                {(['100%', '80%', '60%'] as const).map((width) => (
+                  <button
+                    key={width}
+                    type="button"
+                    className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
+                      (section.guidelineWidth || '80%') === width
+                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                    onClick={() => updateSection({ guidelineWidth: width })}
+                  >
+                    {width}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             {/* 1. Alignment Layout presets */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">정렬 레이아웃 스타일</label>
@@ -374,16 +397,25 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   <div className="grid-input-item">
                     <span className="input-label">배경색</span>
                     <div className="color-picker-wrapper">
-                      <input
-                        type="color"
-                        value={section.headerBtnBgColor?.startsWith('#') ? section.headerBtnBgColor : '#10b981'}
-                        onChange={(e) => updateSection({ headerBtnBgColor: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        value={section.headerBtnBgColor || '#10b981'}
-                        onChange={(e) => updateSection({ headerBtnBgColor: e.target.value })}
-                      />
+                      {(() => {
+                        const defaultBg = section.headerBtnBgColor === 'var(--theme-secondary)' || !section.headerBtnBgColor
+                          ? (themeSettings?.secondaryColor || '#3b82f6')
+                          : section.headerBtnBgColor;
+                        return (
+                          <>
+                            <input
+                              type="color"
+                              value={defaultBg.startsWith('#') && defaultBg.length === 7 ? defaultBg : '#3b82f6'}
+                              onChange={(e) => updateSection({ headerBtnBgColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={section.headerBtnBgColor || 'var(--theme-secondary)'}
+                              onChange={(e) => updateSection({ headerBtnBgColor: e.target.value })}
+                            />
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                   <div className="grid-input-item">
@@ -537,113 +569,348 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
         </div>
 
         <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
-          {/* Section Height */}
+          {/* Section Width (Guideline Width) */}
           <div className="property-group flex flex-col gap-2">
-            <label className="group-title">섹션 높이 (Height)</label>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="150"
-                max="1000"
-                value={section.height}
-                onChange={(e) => updateSection({ height: parseInt(e.target.value) || 300 })}
-              />
-              <span className="text-xs font-semibold w-12 text-right">{section.height}px</span>
+            <label className="group-title">섹션 가로폭 (Guideline)</label>
+            <div className="flex gap-2">
+              {(['100%', '80%', '60%'] as const).map((width) => (
+                <button
+                  key={width}
+                  type="button"
+                  className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
+                    (section.guidelineWidth || '80%') === width
+                      ? ''
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                  style={(section.guidelineWidth || '80%') === width ? {
+                    backgroundColor: 'var(--theme-primary, #10b981)',
+                    color: '#ffffff',
+                    borderColor: 'var(--theme-primary, #10b981)',
+                    boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                    fontWeight: '700'
+                  } : {}}
+                  onClick={() => updateSection({ guidelineWidth: width })}
+                >
+                  {width}
+                </button>
+              ))}
             </div>
           </div>
 
-          {/* Layout Mode (Grid vs Flex) */}
+          {/* Section Height Mode */}
           <div className="property-group flex flex-col gap-2">
-            <label className="group-title">레이아웃 배치 방식</label>
+            <label className="group-title">섹션 높이 방식 (Height Mode)</label>
             <div className="flex gap-2">
               <button
                 type="button"
                 className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                  section.layoutMode !== 'flex'
-                    ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
+                  (section.heightMode || 'fixed') === 'fixed'
+                    ? ''
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 }`}
-                onClick={() => updateSection({ layoutMode: 'grid' })}
+                style={(section.heightMode || 'fixed') === 'fixed' ? {
+                  backgroundColor: 'var(--theme-primary, #10b981)',
+                  color: '#ffffff',
+                  borderColor: 'var(--theme-primary, #10b981)',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  fontWeight: '700'
+                } : {}}
+                onClick={() => updateSection({ heightMode: 'fixed' })}
               >
-                자유 배치 (Grid)
+                고정 높이 (Fixed)
               </button>
               <button
                 type="button"
                 className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                  section.layoutMode === 'flex'
-                    ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
+                  section.heightMode === 'auto'
+                    ? ''
                     : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                 }`}
-                onClick={() => updateSection({ layoutMode: 'flex' })}
+                style={section.heightMode === 'auto' ? {
+                  backgroundColor: 'var(--theme-primary, #10b981)',
+                  color: '#ffffff',
+                  borderColor: 'var(--theme-primary, #10b981)',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  fontWeight: '700'
+                } : {}}
+                onClick={() => updateSection({ heightMode: 'auto' })}
               >
-                흐름 배치 (Flex Flow)
+                자동 높이 (Auto)
               </button>
             </div>
           </div>
 
+          {/* Section Height & Vertical Align */}
+          {(section.heightMode || 'fixed') === 'fixed' && (() => {
+            // Calculate minimum height limit in pixels to prevent elements overflow (Flex flow based)
+            const pTop = section.paddingTop ?? 40;
+            const pBottom = section.paddingBottom ?? 40;
+            const isHorizontal = section.flexDirection === 'horizontal';
+            const gap = section.flexGap !== undefined ? section.flexGap : 16;
+            
+            const getElementHeight = (el: EditorElement): number => {
+              let baseHeight = 24;
+              if (el.type === 'title') {
+                baseHeight = 36;
+              } else if (el.type === 'button') {
+                const size = el.btnSize || 'medium';
+                baseHeight = size === 'small' ? 32 : size === 'large' ? 48 : 40;
+              } else if (el.type === 'image') {
+                baseHeight = 180;
+              } else if (el.type === 'three-column') {
+                baseHeight = 160;
+              }
+              const mBottom = el.marginBottom ?? 0;
+              return baseHeight + mBottom;
+            };
+
+            let minHeightLimit = 150;
+            if (section.elements.length > 0) {
+              if (isHorizontal) {
+                const maxElHeight = section.elements.reduce((max, el) => Math.max(max, getElementHeight(el)), 0);
+                minHeightLimit = maxElHeight + pTop + pBottom;
+              } else {
+                const totalElementsHeight = section.elements.reduce((sum, el) => sum + getElementHeight(el), 0);
+                const totalGaps = (section.elements.length - 1) * gap;
+                minHeightLimit = totalElementsHeight + totalGaps + pTop + pBottom;
+              }
+            } else {
+              minHeightLimit = pTop + pBottom + 100;
+            }
+            
+            const hUnit = section.heightUnit || 'px';
+            const isPx = hUnit === 'px';
+
+            const minSliderVal = isPx ? Math.max(150, minHeightLimit) : 10;
+            const maxSliderVal = isPx ? 1000 : 100;
+            const sliderStep = isPx ? 10 : 1;
+            
+            const currentVal = section.height;
+            const boundedVal = isPx ? Math.max(minSliderVal, currentVal) : currentVal;
+
+            return (
+              <>
+                {/* Height Unit selection tabs */}
+                <div className="property-group flex flex-col gap-2">
+                  <label className="group-title">높이 단위</label>
+                  <div className="flex gap-2">
+                    {(['px', 'dvh'] as const).map((unit) => (
+                      <button
+                        key={unit}
+                        type="button"
+                        className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
+                          hUnit === unit
+                            ? ''
+                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                        }`}
+                        style={hUnit === unit ? {
+                          backgroundColor: 'var(--theme-primary, #10b981)',
+                          color: '#ffffff',
+                          borderColor: 'var(--theme-primary, #10b981)',
+                          boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                          fontWeight: '700'
+                        } : {}}
+                        onClick={() => {
+                          const defaultVal = unit === 'px' ? 400 : 80;
+                          updateSection({ heightUnit: unit, height: defaultVal });
+                        }}
+                      >
+                        {unit}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="property-group flex flex-col gap-2">
+                  <label className="group-title">섹션 높이</label>
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="range"
+                      min={minSliderVal}
+                      max={maxSliderVal}
+                      step={sliderStep}
+                      value={boundedVal}
+                      onChange={(e) => {
+                        const val = parseInt(e.target.value) || minSliderVal;
+                        updateSection({ height: val });
+                      }}
+                    />
+                    <span className="text-xs font-semibold w-12 text-right">{boundedVal}{hUnit}</span>
+                  </div>
+                  {isPx && minHeightLimit > 150 && (
+                    <p className="text-[9px] text-[#0369a1] bg-[#f0f9ff] p-1.5 rounded" style={{ margin: 0 }}>
+                      ℹ️ 내부 요소 보호를 위해 최소 높이가 {minHeightLimit}px로 제한되어 있습니다.
+                    </p>
+                  )}
+                </div>
+
+                <div className="property-group flex flex-col gap-2">
+                  <label className="group-title">내부 요소 수직 정렬</label>
+                  <select
+                    value={section.verticalAlign || 'center'}
+                    onChange={(e) => updateSection({ verticalAlign: e.target.value as any })}
+                  >
+                    <option value="start">위쪽 정렬 (Start)</option>
+                    <option value="center">가운데 정렬 (Center)</option>
+                    <option value="end">아래쪽 정렬 (End)</option>
+                  </select>
+                </div>
+              </>
+            );
+          })()}
+
+          {/* Section Padding Controls */}
+          <div 
+            className="property-group flex flex-col gap-2"
+            onMouseEnter={() => setActivePaddingGuide({ sectionId: section.id, type: 'top' })}
+            onMouseLeave={() => setActivePaddingGuide(null)}
+          >
+            <div className="flex justify-between items-center">
+              <label className="group-title">상단 여백</label>
+              <label className="flex items-center gap-1 text-[11px] text-gray-500 cursor-pointer font-normal" style={{ margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={section.paddingTop === undefined}
+                  onChange={(e) => updateSection({ paddingTop: e.target.checked ? undefined : (themeSettings?.defaultSectionPadding ?? 40) })}
+                  style={{ width: '13px', height: '13px', margin: 0, marginRight: '4px' }}
+                />
+                기본값 상속
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="120"
+                step="4"
+                disabled={section.paddingTop === undefined}
+                value={section.paddingTop ?? (themeSettings?.defaultSectionPadding ?? 40)}
+                onChange={(e) => updateSection({ paddingTop: parseInt(e.target.value) })}
+                onFocus={() => setActivePaddingGuide({ sectionId: section.id, type: 'top' })}
+                onBlur={() => setActivePaddingGuide(null)}
+              />
+              <span className="text-xs font-semibold w-12 text-right">{section.paddingTop ?? (themeSettings?.defaultSectionPadding ?? 40)}px</span>
+            </div>
+          </div>
+
+          <div 
+            className="property-group flex flex-col gap-2"
+            onMouseEnter={() => setActivePaddingGuide({ sectionId: section.id, type: 'bottom' })}
+            onMouseLeave={() => setActivePaddingGuide(null)}
+          >
+            <div className="flex justify-between items-center">
+              <label className="group-title">하단 여백</label>
+              <label className="flex items-center gap-1 text-[11px] text-gray-500 cursor-pointer font-normal" style={{ margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={section.paddingBottom === undefined}
+                  onChange={(e) => updateSection({ paddingBottom: e.target.checked ? undefined : (themeSettings?.defaultSectionPadding ?? 40) })}
+                  style={{ width: '13px', height: '13px', margin: 0, marginRight: '4px' }}
+                />
+                기본값 상속
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="120"
+                step="4"
+                disabled={section.paddingBottom === undefined}
+                value={section.paddingBottom ?? (themeSettings?.defaultSectionPadding ?? 40)}
+                onChange={(e) => updateSection({ paddingBottom: parseInt(e.target.value) })}
+                onFocus={() => setActivePaddingGuide({ sectionId: section.id, type: 'bottom' })}
+                onBlur={() => setActivePaddingGuide(null)}
+              />
+              <span className="text-xs font-semibold w-12 text-right">{section.paddingBottom ?? (themeSettings?.defaultSectionPadding ?? 40)}px</span>
+            </div>
+          </div>
+
           {/* Flex Layout Options */}
-          {section.layoutMode === 'flex' && (
-            <>
-              <div className="property-group flex flex-col gap-2">
-                <label className="group-title">흐름 정렬 방향</label>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                      section.flexDirection !== 'horizontal'
-                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
-                    onClick={() => updateSection({ flexDirection: 'vertical' })}
-                  >
-                    세로 흐름 (Column)
-                  </button>
-                  <button
-                    type="button"
-                    className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                      section.flexDirection === 'horizontal'
-                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
-                    onClick={() => updateSection({ flexDirection: 'horizontal' })}
-                  >
-                    가로 흐름 (Row)
-                  </button>
-                </div>
-              </div>
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">흐름 정렬 방향</label>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
+                  section.flexDirection !== 'horizontal'
+                    ? ''
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+                style={section.flexDirection !== 'horizontal' ? {
+                  backgroundColor: 'var(--theme-primary, #10b981)',
+                  color: '#ffffff',
+                  borderColor: 'var(--theme-primary, #10b981)',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  fontWeight: '700'
+                } : {}}
+                onClick={() => updateSection({ flexDirection: 'vertical' })}
+              >
+                세로 흐름 (Column)
+              </button>
+              <button
+                type="button"
+                className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
+                  section.flexDirection === 'horizontal'
+                    ? ''
+                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                }`}
+                style={section.flexDirection === 'horizontal' ? {
+                  backgroundColor: 'var(--theme-primary, #10b981)',
+                  color: '#ffffff',
+                  borderColor: 'var(--theme-primary, #10b981)',
+                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                  fontWeight: '700'
+                } : {}}
+                onClick={() => updateSection({ flexDirection: 'horizontal' })}
+              >
+                가로 흐름 (Row)
+              </button>
+            </div>
+          </div>
 
-              <div className="property-group flex flex-col gap-2">
-                <label className="group-title">흐름 정렬 방식</label>
-                <select
-                  value={section.flexAlign || 'center'}
-                  onChange={(e) => updateSection({ flexAlign: e.target.value as any })}
-                >
-                  <option value="start">시작 정렬 (Start)</option>
-                  <option value="center">중앙 정렬 (Center)</option>
-                  <option value="end">끝 정렬 (End)</option>
-                  <option value="space-between">양끝 정렬 (Space Between)</option>
-                </select>
-              </div>
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">흐름 정렬 방식</label>
+            <select
+              value={section.flexAlign || 'center'}
+              onChange={(e) => updateSection({ flexAlign: e.target.value as any })}
+            >
+              <option value="start">시작 정렬 (Start)</option>
+              <option value="center">중앙 정렬 (Center)</option>
+              <option value="end">끝 정렬 (End)</option>
+              <option value="space-between">양끝 정렬 (Space Between)</option>
+            </select>
+          </div>
 
-              <div className="property-group flex flex-col gap-2">
-                <label className="group-title">요소 간격 (등간격 Gap: {section.flexGap ?? 16}px)</label>
-                <div className="flex items-center gap-3">
-                  <input
-                    type="range"
-                    min="0"
-                    max="80"
-                    step="2"
-                    value={section.flexGap ?? 16}
-                    onChange={(e) => updateSection({ flexGap: parseInt(e.target.value) })}
-                  />
-                  <span className="text-xs font-semibold w-12 text-right">{section.flexGap ?? 16}px</span>
-                </div>
-                <p className="text-[10px] text-gray-500" style={{ margin: 0, marginTop: '2px' }}>
-                  * 흐름 배치 모드에서는 마지막 요소를 제외하고 균등하게 사이 간격이 조절됩니다.
-                </p>
-              </div>
-            </>
-          )}
+          <div className="property-group flex flex-col gap-2">
+            <div className="flex justify-between items-center">
+              <label className="group-title">요소 간격</label>
+              <label className="flex items-center gap-1 text-[11px] text-gray-500 cursor-pointer font-normal" style={{ margin: 0 }}>
+                <input
+                  type="checkbox"
+                  checked={section.flexGap === undefined}
+                  onChange={(e) => updateSection({ flexGap: e.target.checked ? undefined : (themeSettings?.defaultFlexGap ?? 16) })}
+                  style={{ width: '13px', height: '13px', margin: 0, marginRight: '4px' }}
+                />
+                기본값 상속
+              </label>
+            </div>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="0"
+                max="80"
+                step="2"
+                disabled={section.flexGap === undefined}
+                value={section.flexGap ?? (themeSettings?.defaultFlexGap ?? 16)}
+                onChange={(e) => updateSection({ flexGap: parseInt(e.target.value) })}
+              />
+              <span className="text-xs font-semibold w-12 text-right">{section.flexGap ?? (themeSettings?.defaultFlexGap ?? 16)}px</span>
+            </div>
+            <p className="text-[10px] text-gray-500" style={{ margin: 0, marginTop: '2px' }}>
+              * 흐름 배치 모드에서는 마지막 요소를 제외하고 균등하게 사이 간격이 조절됩니다.
+            </p>
+          </div>
 
           {/* Background Color */}
           <div className="property-group flex flex-col gap-2">
@@ -907,8 +1174,51 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
         const isLayoutChange = 'gridX' in fields || 'gridY' in fields || 'gridW' in fields || 'gridH' in fields;
         const finalElements = isLayoutChange ? resolveCollisions(updatedElements, elementId) : updatedElements;
         
+        let nextHeight = s.height;
+        
+        // 3. Auto-adjust section height if custom margins push the boundaries
+        if (s.heightMode !== 'auto' && ('marginBottom' in fields || 'marginRight' in fields)) {
+          const isHorizontal = s.flexDirection === 'horizontal';
+          const gap = s.flexGap !== undefined ? s.flexGap : 16;
+          const pTop = s.paddingTop ?? 40;
+          const pBottom = s.paddingBottom ?? 40;
+          
+          const getElementHeight = (el: EditorElement): number => {
+            let baseHeight = 24;
+            if (el.type === 'title') {
+              baseHeight = 36;
+            } else if (el.type === 'button') {
+              const size = el.btnSize || 'medium';
+              baseHeight = size === 'small' ? 32 : size === 'large' ? 48 : 40;
+            } else if (el.type === 'image') {
+              baseHeight = 180;
+            } else if (el.type === 'three-column') {
+              baseHeight = 160;
+            }
+            const mBottom = el.marginBottom ?? 0;
+            return baseHeight + mBottom;
+          };
+          
+          let minHeightLimit = 150;
+          if (finalElements.length > 0) {
+            if (isHorizontal) {
+              const maxElHeight = finalElements.reduce((max, el) => Math.max(max, getElementHeight(el)), 0);
+              minHeightLimit = maxElHeight + pTop + pBottom;
+            } else {
+              const totalElementsHeight = finalElements.reduce((sum, el) => sum + getElementHeight(el), 0);
+              const totalGaps = (finalElements.length - 1) * gap;
+              minHeightLimit = totalElementsHeight + totalGaps + pTop + pBottom;
+            }
+          }
+          
+          if (s.height < minHeightLimit) {
+            nextHeight = minHeightLimit;
+          }
+        }
+        
         return {
           ...s,
+          height: nextHeight,
           elements: finalElements,
         };
       })
@@ -1098,26 +1408,104 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           </>
         )}
 
-        {/* Width Mode Settings (Stretch vs Fit Content) */}
+        {/* Width Mode Settings (Stretch vs Fit Content vs Fixed) */}
         <div className="property-group flex flex-col gap-2">
-          <label className="group-title">가로 크기 설정 (Width Mode)</label>
-          <div className="align-buttons-row">
+          <label className="group-title">가로 크기 설정</label>
+          <div className="flex gap-2">
             <button
-              className={`align-btn ${element.widthMode !== 'fit-content' ? 'active' : ''}`}
+              type="button"
+              className={`flex-1 py-1.5 px-2 rounded text-xs border font-medium transition-all ${
+                element.widthMode !== 'fit-content' && element.widthMode !== 'fixed'
+                  ? ''
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+              style={element.widthMode !== 'fit-content' && element.widthMode !== 'fixed' ? {
+                backgroundColor: 'var(--theme-primary, #10b981)',
+                color: '#ffffff',
+                borderColor: 'var(--theme-primary, #10b981)',
+                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                fontWeight: '700'
+              } : {}}
               onClick={() => updateElement({ gridX: 0, gridW: 12, widthMode: 'stretch' })}
               title="12컬럼 폭 전체를 가득 채우고 반응형 영역으로 설정합니다 (Stretch)"
             >
-              <span>컨테이너 채우기</span>
+              채우기
             </button>
             <button
-              className={`align-btn ${element.widthMode === 'fit-content' ? 'active' : ''}`}
+              type="button"
+              className={`flex-1 py-1.5 px-2 rounded text-xs border font-medium transition-all ${
+                element.widthMode === 'fit-content'
+                  ? ''
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+              style={element.widthMode === 'fit-content' ? {
+                backgroundColor: 'var(--theme-primary, #10b981)',
+                color: '#ffffff',
+                borderColor: 'var(--theme-primary, #10b981)',
+                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                fontWeight: '700'
+              } : {}}
               onClick={() => updateElement({ widthMode: 'fit-content' })}
               title="글자 내용의 폭만큼 너비를 자동으로 맞춥니다 (Hug Contents)"
             >
-              <span>콘텐츠 맞춤</span>
+              콘텐츠 맞춤
+            </button>
+            <button
+              type="button"
+              className={`flex-1 py-1.5 px-2 rounded text-xs border font-medium transition-all ${
+                element.widthMode === 'fixed'
+                  ? ''
+                  : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+              }`}
+              style={element.widthMode === 'fixed' ? {
+                backgroundColor: 'var(--theme-primary, #10b981)',
+                color: '#ffffff',
+                borderColor: 'var(--theme-primary, #10b981)',
+                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                fontWeight: '700'
+              } : {}}
+              onClick={() => updateElement({ widthMode: 'fixed', fixedWidth: element.fixedWidth || 150 })}
+              title="지정한 고정 크기로 너비를 고정합니다"
+            >
+              고정 너비
             </button>
           </div>
         </div>
+
+        {/* Conditional Width Mode Customizations (Padding X / Fixed Width) */}
+        {element.widthMode === 'fit-content' && element.type === 'button' && (
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">버튼 좌우 여백 (Padding X)</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="8"
+                max="60"
+                step="2"
+                value={element.paddingX ?? 24}
+                onChange={(e) => updateElement({ paddingX: parseInt(e.target.value) })}
+              />
+              <span className="text-xs font-semibold w-12 text-right">{element.paddingX ?? 24}px</span>
+            </div>
+          </div>
+        )}
+
+        {element.widthMode === 'fixed' && (
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">고정 너비 설정</label>
+            <div className="flex items-center gap-3">
+              <input
+                type="range"
+                min="50"
+                max="400"
+                step="10"
+                value={element.fixedWidth ?? 150}
+                onChange={(e) => updateElement({ fixedWidth: parseInt(e.target.value) })}
+              />
+              <span className="text-xs font-semibold w-12 text-right">{element.fixedWidth ?? 150}px</span>
+            </div>
+          </div>
+        )}
 
         {/* 3. Text Controls (for Title, Text, Button) */}
         {(element.type === 'title' || element.type === 'text' || element.type === 'button') && (

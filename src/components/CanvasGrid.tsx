@@ -5,23 +5,23 @@ import { useGridSnap } from '../hooks/useGridSnap';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 
 interface CanvasGridProps {
-  guideline: GuidelineWidth;
   sections: Section[];
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
   activeElement: { sectionId: string; elementId: string } | null;
   setActiveElement: (val: { sectionId: string; elementId: string } | null) => void;
   activeSectionId: string | null;
   setActiveSectionId: (val: string | null) => void;
+  activePaddingGuide: { sectionId: string; type: 'top' | 'bottom' | 'both' } | null;
 }
 
 export const CanvasGrid: React.FC<CanvasGridProps> = ({
-  guideline,
   sections,
   setSections,
   activeElement,
   setActiveElement,
   activeSectionId,
   setActiveSectionId,
+  activePaddingGuide,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
@@ -166,15 +166,15 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     ));
   };
 
-  const getMarginPercent = () => {
-    if (guideline === '80%') return '10%';
-    if (guideline === '60%') return '20%';
+  const getMarginPercent = (gWidth: GuidelineWidth) => {
+    if (gWidth === '80%') return '10%';
+    if (gWidth === '60%') return '20%';
     return '0%';
   };
 
-  const getContentPercent = () => {
-    if (guideline === '80%') return '80%';
-    if (guideline === '60%') return '60%';
+  const getContentPercent = (gWidth: GuidelineWidth) => {
+    if (gWidth === '80%') return '80%';
+    if (gWidth === '60%') return '60%';
     return '100%';
   };
 
@@ -204,17 +204,17 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     const btnVariant = sec.headerBtnVariant || 'filled';
     const btnSize = sec.headerBtnSize || 'medium';
     
-    let btnBgColor = sec.headerBtnBgColor || '#10b981';
+    let btnBgColor = sec.headerBtnBgColor || 'var(--theme-secondary)';
     let btnTextColor = sec.headerBtnTextColor || '#ffffff';
     let btnBorder = 'none';
     
     if (btnVariant === 'outlined') {
       btnBgColor = 'transparent';
-      btnTextColor = sec.headerBtnBgColor || '#10b981';
-      btnBorder = `2px solid ${sec.headerBtnBgColor || '#10b981'}`;
+      btnTextColor = sec.headerBtnBgColor || 'var(--theme-secondary)';
+      btnBorder = `2px solid ${sec.headerBtnBgColor || 'var(--theme-secondary)'}`;
     } else if (btnVariant === 'ghost') {
       btnBgColor = 'transparent';
-      btnTextColor = sec.headerBtnBgColor || '#10b981';
+      btnTextColor = sec.headerBtnBgColor || 'var(--theme-secondary)';
       btnBorder = 'none';
     }
     
@@ -364,20 +364,31 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
 
       {sections.map((sec, secIdx) => {
         const isDraggingInThisSection = dragState?.sectionId === sec.id;
+        const gWidth = sec.guidelineWidth || '80%';
 
         return (
           <div
             key={sec.id}
             className={`canvas-section-node relative w-full ${activeSectionId === sec.id ? 'active-section' : ''}`}
             style={{
-              minHeight: sec.sharedType === 'header' ? 'auto' : sec.height,
+              minHeight: sec.sharedType === 'header' ? 'auto' : sec.heightMode === 'auto' ? 'auto' : `${sec.height}${sec.heightUnit || 'px'}`,
               height: 'auto', // dynamic height flow
               backgroundColor: sec.backgroundColor,
               backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
               backgroundPosition: sec.backgroundPosition || 'center',
               backgroundSize: sec.backgroundSize || 'cover',
               backgroundRepeat: sec.backgroundRepeat || 'no-repeat',
-            }}
+              '--content-width': gWidth,
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: sec.heightMode === 'auto'
+                ? 'flex-start'
+                : sec.verticalAlign === 'start'
+                  ? 'flex-start'
+                  : sec.verticalAlign === 'end'
+                    ? 'flex-end'
+                    : 'center',
+            } as React.CSSProperties}
             onClick={(e) => {
               e.stopPropagation();
               setActiveSectionId(sec.id);
@@ -385,9 +396,77 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             }}
           >
             {/* 1. Left Dimmed Margin Shading Layer */}
-            {guideline !== '100%' && (
-              <div className="side-margin-shading left" style={{ width: getMarginPercent() }}>
+            {gWidth !== '100%' && (
+              <div className="side-margin-shading left" style={{ width: getMarginPercent(gWidth) }}>
                 <div className="margin-border-line right-border"></div>
+              </div>
+            )}
+
+            {/* Visual Guide Overlay for Padding Top customization (Bound to section boundaries) */}
+            {activePaddingGuide?.sectionId === sec.id && (activePaddingGuide.type === 'top' || activePaddingGuide.type === 'both') && (
+              <div 
+                className="padding-guide-overlay top-guide"
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  left: getMarginPercent(gWidth),
+                  right: getMarginPercent(gWidth),
+                  height: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.18)',
+                  borderBottom: '1px dashed #10b981',
+                  zIndex: 30,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  fontFamily: 'sans-serif',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                }}>
+                  {sec.paddingTop !== undefined ? sec.paddingTop : (themeSettings?.defaultSectionPadding ?? 40)}px
+                </span>
+              </div>
+            )}
+
+            {/* Visual Guide Overlay for Padding Bottom customization (Bound to section boundaries) */}
+            {activePaddingGuide?.sectionId === sec.id && (activePaddingGuide.type === 'bottom' || activePaddingGuide.type === 'both') && (
+              <div 
+                className="padding-guide-overlay bottom-guide"
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: getMarginPercent(gWidth),
+                  right: getMarginPercent(gWidth),
+                  height: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)',
+                  backgroundColor: 'rgba(16, 185, 129, 0.18)',
+                  borderTop: '1px dashed #10b981',
+                  zIndex: 30,
+                  pointerEvents: 'none',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <span style={{
+                  backgroundColor: '#10b981',
+                  color: 'white',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  padding: '4px 10px',
+                  borderRadius: '4px',
+                  fontFamily: 'sans-serif',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                }}>
+                  {sec.paddingBottom !== undefined ? sec.paddingBottom : (themeSettings?.defaultSectionPadding ?? 40)}px
+                </span>
               </div>
             )}
 
@@ -395,15 +474,18 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             <div
               className="section-grid-container"
               style={sec.sharedType === 'header' ? { 
-                width: getContentPercent(), 
+                width: getContentPercent(gWidth), 
                 height: 'auto',
                 minHeight: 'auto',
                 paddingTop: `${sec.headerPaddingY ?? 16}px`,
                 paddingBottom: `${sec.headerPaddingY ?? 16}px`,
               } : {
-                width: getContentPercent(), 
+                width: getContentPercent(gWidth), 
                 height: 'auto',
-                minHeight: '100%'
+                minHeight: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
               }}
             >
               {/* Grid column guidelines */}
@@ -424,14 +506,21 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                 } : sec.layoutMode === 'flex' ? {
                   display: 'flex',
                   flexDirection: sec.flexDirection === 'horizontal' ? 'row' : 'column',
-                  gap: `${sec.flexGap ?? 16}px`,
+                  gap: sec.flexGap !== undefined ? `${sec.flexGap}px` : 'var(--theme-default-flex-gap)',
                   alignItems: sec.flexDirection === 'horizontal' ? 'center' : 'stretch',
                   justifyContent: sec.flexAlign === 'start' ? 'flex-start' : sec.flexAlign === 'end' ? 'flex-end' : sec.flexAlign === 'space-between' ? 'space-between' : 'center',
-                  padding: '40px 0',
+                  paddingTop: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)',
+                  paddingBottom: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)',
                   height: 'auto',
-                  minHeight: '100%',
+                  minHeight: 'auto',
                   boxSizing: 'border-box'
-                } : { height: 'auto' }}
+                } : { 
+                  height: 'auto',
+                  minHeight: 'auto',
+                  paddingTop: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)',
+                  paddingBottom: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)',
+                  boxSizing: 'border-box'
+                }}
               >
                 {sec.sharedType === 'header' ? (
                   renderHeaderComponent(sec)
@@ -468,8 +557,8 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             </div>
 
             {/* 3. Right Dimmed Margin Shading Layer */}
-            {guideline !== '100%' && (
-              <div className="side-margin-shading right" style={{ width: getMarginPercent() }}>
+            {gWidth !== '100%' && (
+              <div className="side-margin-shading right" style={{ width: getMarginPercent(gWidth) }}>
                 <div className="margin-border-line left-border"></div>
               </div>
             )}
@@ -812,7 +901,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           display: grid;
           grid-template-columns: repeat(12, 1fr);
           grid-auto-rows: minmax(40px, auto); /* auto expanding rows! */
-          padding: 40px 0;
+          padding: 0;
           gap: 16px;
           pointer-events: none;
           z-index: 2;

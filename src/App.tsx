@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Section, Page, ThemeSettings, GuidelineWidth, ExportFileName, GeneratedFiles } from './types';
+import { Section, Page, ThemeSettings, GuidelineWidth, ExportFileName, GeneratedFiles, EditorElement } from './types';
 import { EditorContainer } from './components/EditorContainer';
 import { CodeViewerContainer } from './components/CodeViewerContainer';
 import { StyleViewerContainer } from './components/StyleViewerContainer';
@@ -9,12 +9,23 @@ import './App.css';
 import JSZip from 'jszip';
 import { updateGoogleFontsInDOM } from './utils/fontManager';
 
+const compactSectionElements = (elements: EditorElement[]): EditorElement[] => {
+  if (elements.length === 0) return elements;
+  const minY = elements.reduce((min, el) => Math.min(min, el.gridY), Infinity);
+  if (minY > 0 && minY !== Infinity) {
+    return elements.map(el => ({ ...el, gridY: el.gridY - minY }));
+  }
+  return elements;
+};
+
 const ensurePresets = (pagesList: Page[]): Page[] => {
   return pagesList.map(p => ({
     ...p,
-    sections: p.sections.map(sec => ({
-      ...sec,
-      elements: sec.elements.map(el => {
+    sections: p.sections.map(sec => {
+      const isHeaderOrFooter = sec.sharedType === 'header' || sec.sharedType === 'footer';
+      const isShared = sec.isShared || isHeaderOrFooter;
+      
+      const mappedElements = sec.elements.map(el => {
         if (el.fontPresetId) return el;
         let fontPresetId: string | undefined = undefined;
         if (el.type === 'title') {
@@ -29,20 +40,83 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
           fontPresetId = 'button';
         }
         return { ...el, fontPresetId };
-      })
-    }))
+      });
+
+      return {
+        ...sec,
+        layoutMode: 'flex',
+        flexDirection: sec.flexDirection || 'vertical',
+        flexGap: sec.flexGap !== undefined ? sec.flexGap : 16,
+        flexAlign: sec.flexAlign || 'center',
+        heightMode: sec.heightMode || (isHeaderOrFooter ? 'auto' : 'fixed'),
+        paddingTop: sec.paddingTop !== undefined ? sec.paddingTop : (isHeaderOrFooter ? 0 : 40),
+        paddingBottom: sec.paddingBottom !== undefined ? sec.paddingBottom : (isHeaderOrFooter ? 0 : 40),
+        verticalAlign: sec.verticalAlign || 'center',
+        elements: isShared ? mappedElements : compactSectionElements(mappedElements)
+      };
+    })
   }));
 };
 
 function App() {
-  const [guideline, setGuideline] = useState<GuidelineWidth>('80%');
   const [activeTemplate, setActiveTemplate] = useState<'business' | 'modern'>('business');
-  const [themeSettings, setThemeSettings] = useState<ThemeSettings>(BUSINESS_THEME);
+  const [themeSettings, rawSetThemeSettings] = useState<ThemeSettings>(BUSINESS_THEME);
+
+  const setThemeSettings = (updateAction: React.SetStateAction<ThemeSettings>) => {
+    rawSetThemeSettings(prev => {
+      const next = typeof updateAction === 'function' ? updateAction(prev) : updateAction;
+      
+      const primaryChanged = next.primaryColor !== prev.primaryColor;
+      const secondaryChanged = next.secondaryColor !== prev.secondaryColor;
+      const textChanged = next.textColor !== prev.textColor;
+      const fontChanged = next.fontFamily !== prev.fontFamily;
+      
+      let updatedPresets = next.fontPresets;
+      
+      if (primaryChanged) {
+        updatedPresets = updatedPresets.map(p => 
+          p.color.toLowerCase() === prev.primaryColor.toLowerCase()
+            ? { ...p, color: next.primaryColor }
+            : p
+        );
+      }
+      
+      if (secondaryChanged) {
+        updatedPresets = updatedPresets.map(p => 
+          p.color.toLowerCase() === prev.secondaryColor.toLowerCase()
+            ? { ...p, color: next.secondaryColor }
+            : p
+        );
+      }
+
+      if (textChanged) {
+        updatedPresets = updatedPresets.map(p => 
+          p.color.toLowerCase() === prev.textColor.toLowerCase()
+            ? { ...p, color: next.textColor }
+            : p
+        );
+      }
+
+      if (fontChanged) {
+        updatedPresets = updatedPresets.map(p => 
+          p.fontFamily === prev.fontFamily
+            ? { ...p, fontFamily: next.fontFamily }
+            : p
+        );
+      }
+      
+      return {
+        ...next,
+        fontPresets: updatedPresets
+      };
+    });
+  };
   const [pages, setPages] = useState<Page[]>(() => ensurePresets(BUSINESS_TEMPLATE));
   const [activePageId, setActivePageId] = useState<string>('main');
 
   const [activeElement, setActiveElement] = useState<{ sectionId: string; elementId: string } | null>(null);
   const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [activePaddingGuide, setActivePaddingGuide] = useState<{ sectionId: string; type: 'top' | 'bottom' | 'both' } | null>(null);
   const [activeFile, setActiveFile] = useState<ExportFileName>('index.html');
   const [isCodeViewerOpen, setIsCodeViewerOpen] = useState(false);
   const [isStyleViewerOpen, setIsStyleViewerOpen] = useState(false);
@@ -65,9 +139,19 @@ function App() {
       const oldSections = prevPages[pageIndex].sections;
       const newSections = typeof updateAction === 'function' ? updateAction(oldSections) : updateAction;
 
+      const processedSections = newSections.map(sec => {
+        const isHeaderOrFooter = sec.sharedType === 'header' || sec.sharedType === 'footer';
+        if (sec.isShared || isHeaderOrFooter) return sec;
+        return {
+          ...sec,
+          layoutMode: 'flex',
+          elements: compactSectionElements(sec.elements)
+        };
+      });
+
       let finalPages = prevPages.map(p => {
         if (p.id === activePageId) {
-          return { ...p, sections: newSections };
+          return { ...p, sections: processedSections };
         }
         return p;
       });
@@ -91,6 +175,7 @@ function App() {
                     backgroundSize: newSec.backgroundSize,
                     backgroundRepeat: newSec.backgroundRepeat,
                     elements: newSec.elements,
+                    guidelineWidth: newSec.guidelineWidth,
                   };
                 }
                 return s;
@@ -177,16 +262,16 @@ function App() {
     }
   };
 
-  // Re-generate HTML/CSS on sections, theme settings, or guideline width change
+  // Re-generate HTML/CSS on sections, theme settings change
   useEffect(() => {
-    const code = generateCode(pages, themeSettings, guideline);
+    const code = generateCode(pages, themeSettings);
     setGeneratedFiles(code);
     
     // Auto switch active files in VSCode pane if active file is deleted
     if (!code[activeFile]) {
       setActiveFile('index.html');
     }
-  }, [pages, themeSettings, guideline]);
+  }, [pages, themeSettings]);
 
   // Synchronize Google Fonts dynamic imports in document head
   useEffect(() => {
@@ -268,9 +353,8 @@ function App() {
           --font-default: '${themeSettings.fontFamily}', sans-serif;
           
           /* Layout Global Settings */
-          --content-width: ${guideline === '100%' ? '100%' : guideline === '80%' ? '80%' : '60%'};
-          --grid-gap: ${themeSettings.gridGap ?? 20}px;
-          --grid-row-height: ${themeSettings.gridRowHeight ?? 40}px;
+          --theme-default-flex-gap: ${themeSettings.defaultFlexGap ?? 16}px;
+          --theme-default-section-padding: ${themeSettings.defaultSectionPadding ?? 40}px;
 
           /* Font Presets */
           ${(themeSettings.fontPresets || []).map(p => `
@@ -280,8 +364,12 @@ function App() {
           --theme-font-preset-${p.id}-color: ${p.color};
           `).join('\n')}
         }
-        .canvas-grid-root {
-          font-family: '${themeSettings.fontFamily}', sans-serif;
+        .canvas-grid-root,
+        .canvas-grid-root button,
+        .canvas-grid-root select,
+        .canvas-grid-root input,
+        .canvas-grid-root textarea {
+          font-family: '${themeSettings.fontFamily}', sans-serif !important;
         }
 
         /* Preset class rules */
@@ -298,8 +386,6 @@ function App() {
       {/* Left Pane: Web Page Editor */}
       <div className={`pane-editor ${isCodeViewerOpen ? 'code-open' : 'code-closed'}`}>
         <EditorContainer
-          guideline={guideline}
-          setGuideline={setGuideline}
           sections={sections}
           setSections={setSections}
           activeElement={activeElement}
@@ -321,6 +407,8 @@ function App() {
           themeSettings={themeSettings}
           setThemeSettings={setThemeSettings}
           onAddPage={addPage}
+          activePaddingGuide={activePaddingGuide}
+          setActivePaddingGuide={setActivePaddingGuide}
         />
       </div>
 

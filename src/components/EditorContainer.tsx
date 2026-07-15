@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType, Page, ThemeSettings } from '../types';
-import { LayoutGrid, Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns } from 'lucide-react';
+import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 
 interface EditorContainerProps {
-  guideline: GuidelineWidth;
-  setGuideline: (width: GuidelineWidth) => void;
   sections: Section[];
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
   activeElement: { sectionId: string; elementId: string } | null;
@@ -29,11 +27,13 @@ interface EditorContainerProps {
   themeSettings: ThemeSettings;
   setThemeSettings: React.Dispatch<React.SetStateAction<ThemeSettings>>;
   onAddPage: (name: string, rawFileName: string) => boolean;
+
+  // Padding guide helpers
+  activePaddingGuide: { sectionId: string; type: 'top' | 'bottom' | 'both' } | null;
+  setActivePaddingGuide: (val: { sectionId: string; type: 'top' | 'bottom' | 'both' } | null) => void;
 }
 
 export const EditorContainer: React.FC<EditorContainerProps> = ({
-  guideline,
-  setGuideline,
   sections,
   setSections,
   activeElement,
@@ -55,9 +55,23 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   themeSettings,
   setThemeSettings,
   onAddPage,
+  activePaddingGuide,
+  setActivePaddingGuide,
 }) => {
   const [isAddPageModalOpen, setIsAddPageModalOpen] = useState(false);
   const [newPageName, setNewPageName] = useState('');
+  const [copiedColor, setCopiedColor] = useState<string | null>(null);
+
+  const handleCopyColor = (colorHex: string) => {
+    navigator.clipboard.writeText(colorHex).then(() => {
+      setCopiedColor(colorHex);
+      setTimeout(() => {
+        setCopiedColor(null);
+      }, 1500);
+    }).catch(err => {
+      console.error('컬러 복사 실패:', err);
+    });
+  };
   const [newPageFileName, setNewPageFileName] = useState('');
 
   // Adds a new element below the existing elements in the active/first section
@@ -220,16 +234,15 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
       
       {/* Row 1: Logo, Presets, Styles, Guidelines & Actions */}
       <div className="editor-toolbar flex items-center justify-between">
-        <div className="toolbar-left flex items-center gap-3">
+        <div className="toolbar-left">
           <div className="app-logo flex items-center">
-            <LayoutGrid size={18} className="logo-icon" />
             <span className="app-title">GRID.design</span>
           </div>
           <div className="divider"></div>
 
           {/* Template presets */}
           <div className="tool-group flex items-center">
-            <span className="group-label">템플릿 프리셋:</span>
+            <span className="group-label">템플릿 프리셋 : </span>
             <select
               className="template-select"
               value={activeTemplate}
@@ -244,57 +257,59 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
 
           {/* Style Guide Color Palette adjustments */}
           <div className="tool-group flex items-center gap-2">
-            <span className="group-label">스타일 가이드:</span>
-            <div className="theme-color-input flex items-center gap-1.5" title="주조색 (Primary Color)">
+            <span className="group-label">스타일 가이드 : </span>
+            <div className="theme-color-input flex items-center gap-2" title="클릭하여 주조색 복사">
               <span className="color-label-tag">주조색</span>
-              <input
-                type="color"
-                value={themeSettings.primaryColor}
-                onChange={(e) => setThemeSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
-              />
-              <span className="color-code-tag">{themeSettings.primaryColor.toUpperCase()}</span>
+              <div className="color-picker-badge-wrapper">
+                <input
+                  type="color"
+                  value={themeSettings.primaryColor}
+                  onChange={(e) => setThemeSettings(prev => ({ ...prev, primaryColor: e.target.value }))}
+                />
+                <span className="color-picker-badge" style={{ backgroundColor: themeSettings.primaryColor }}></span>
+              </div>
+              <span 
+                className="color-code-tag copyable" 
+                onClick={() => handleCopyColor(themeSettings.primaryColor)}
+                title="클릭하여 주조색 복사"
+              >
+                {copiedColor === themeSettings.primaryColor ? '복사됨!' : themeSettings.primaryColor.toUpperCase()}
+              </span>
             </div>
-            <div className="theme-color-input flex items-center gap-1.5" title="보조색 (Secondary Color)">
+            <div className="theme-color-input flex items-center gap-2" title="클릭하여 보조색 복사">
               <span className="color-label-tag">보조색</span>
-              <input
-                type="color"
-                value={themeSettings.secondaryColor}
-                onChange={(e) => setThemeSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
-              />
-              <span className="color-code-tag">{themeSettings.secondaryColor.toUpperCase()}</span>
+              <div className="color-picker-badge-wrapper">
+                <input
+                  type="color"
+                  value={themeSettings.secondaryColor}
+                  onChange={(e) => setThemeSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
+                />
+                <span className="color-picker-badge" style={{ backgroundColor: themeSettings.secondaryColor }}></span>
+              </div>
+              <span 
+                className="color-code-tag copyable" 
+                onClick={() => handleCopyColor(themeSettings.secondaryColor)}
+                title="클릭하여 보조색 복사"
+              >
+                {copiedColor === themeSettings.secondaryColor ? '복사됨!' : themeSettings.secondaryColor.toUpperCase()}
+              </span>
             </div>
           </div>
         </div>
 
-        <div className="toolbar-right flex items-center gap-2">
-          {/* Guideline Width controls */}
-          <div className="tool-group flex items-center mr-2">
-            <span className="group-label">가이드라인폭:</span>
-            {(['100%', '80%', '60%'] as GuidelineWidth[]).map((width) => (
-              <button
-                key={width}
-                className={`tool-btn ${guideline === width ? 'active' : ''}`}
-                onClick={() => setGuideline(width)}
-              >
-                {width}
-              </button>
-            ))}
-          </div>
-
-          <div className="divider m-0"></div>
-
+        <div className="toolbar-right">
           <button className={`toggle-code-action-btn flex items-center gap-1 ${isCodeViewerOpen ? 'active' : ''}`} onClick={() => setIsCodeViewerOpen(!isCodeViewerOpen)} title={isCodeViewerOpen ? '코드 접기' : '코드 보기'}>
-            <Terminal size={14} />
+            <Terminal size={16} />
             <span>{isCodeViewerOpen ? '코드 접기' : '코드 보기'}</span>
           </button>
           
           <button className={`toggle-code-action-btn flex items-center gap-1 ${isStyleViewerOpen ? 'active' : ''}`} onClick={() => setIsStyleViewerOpen(!isStyleViewerOpen)} title="기본 디자인 프리셋 가이드 스타일 편집">
-            <Sliders size={14} />
+            <Sliders size={16} />
             <span>기본 스타일</span>
           </button>
 
           <button className="export-action-btn flex items-center gap-1" onClick={onExport}>
-            <FileOutput size={15} />
+            <FileOutput size={16} />
             <span>내보내기</span>
           </button>
         </div>
@@ -388,13 +403,13 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         {/* Center Canvas Area */}
         <div className="canvas-wrapper flex-1 overflow-auto">
           <CanvasGrid
-            guideline={guideline}
             sections={sections}
             setSections={setSections}
             activeElement={activeElement}
             setActiveElement={setActiveElement}
             activeSectionId={activeSectionId}
             setActiveSectionId={setActiveSectionId}
+            activePaddingGuide={activePaddingGuide}
           />
         </div>
 
@@ -407,6 +422,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           setActiveElement={setActiveElement}
           setActiveSectionId={setActiveSectionId}
           themeSettings={themeSettings}
+          setActivePaddingGuide={setActivePaddingGuide}
         />
       </div>
 
@@ -491,10 +507,17 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         .editor-toolbar {
-          height: 48px;
-          background-color: var(--figma-bg);
-          border-bottom: 1px solid var(--figma-border);
-          padding: 0 16px;
+          height: 58px;
+          background-color: #ffffff;
+          border-bottom: 1px solid #f1f5f9;
+          padding: 0 20px;
+          box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+          z-index: 10;
+          font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+        }
+
+        .editor-toolbar * {
+          font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
         }
 
         /* Row 2 toolbar styles */
@@ -574,69 +597,120 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         /* Preset select and Styles */
+        /* Preset select and Styles */
+        /* Preset select and Styles */
         .template-select {
-          background: var(--figma-bg);
-          border: 1px solid var(--figma-border);
-          color: var(--figma-text);
-          padding: 4px 8px;
-          border-radius: 4px;
-          font-size: 11px;
+          background-color: #f8fafc;
+          border: 1px solid #e2e8f0;
+          color: #1e293b;
+          height: 36px;
+          padding: 0 32px 0 12px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
           outline: none;
           cursor: pointer;
+          transition: all 0.2s ease;
+          box-sizing: border-box;
+        }
+
+        .template-select:hover {
+          border-color: #cbd5e1;
+          background-color: #f1f5f9;
+        }
+
+        .template-select:focus {
+          border-color: var(--figma-accent);
+          box-shadow: 0 0 0 2px rgba(24, 160, 251, 0.15);
         }
 
         .theme-color-input {
-          background-color: rgba(255, 255, 255, 0.03);
-          border: 1px solid var(--figma-border);
-          padding: 2px 6px;
-          border-radius: 4px;
+          background-color: #f8fafc;
+          border: 1px solid #e2e8f0;
+          height: 36px;
+          padding: 0 10px;
+          border-radius: 6px;
           display: flex;
           align-items: center;
+          transition: all 0.2s ease;
+          box-sizing: border-box;
+        }
+
+        .theme-color-input:hover {
+          border-color: #cbd5e1;
         }
 
         .color-label-tag {
-          font-size: 9.5px;
-          color: var(--figma-text-muted);
-          font-weight: 600;
+          font-size: 13px;
+          color: #64748b;
+          font-weight: 500;
+          margin-right: 4px;
+          letter-spacing: -0.1px;
+        }
+
+        .color-picker-badge-wrapper {
+          position: relative;
+          width: 18px;
+          height: 18px;
+          cursor: pointer;
+        }
+
+        .color-picker-badge-wrapper input[type="color"] {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          opacity: 0;
+          cursor: pointer;
+          z-index: 2;
+        }
+
+        .color-picker-badge {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          border: 1px solid rgba(0, 0, 0, 0.12);
+          z-index: 1;
+          box-shadow: inset 0 0 1px rgba(0,0,0,0.2);
+          transition: transform 0.15s ease;
+        }
+
+        .color-picker-badge-wrapper:hover .color-picker-badge {
+          transform: scale(1.1);
         }
 
         .color-code-tag {
-          font-size: 9.5px;
-          font-family: monospace;
-          color: var(--figma-text);
-          width: 50px;
+          font-size: 13px;
+          color: #1e293b;
+          font-weight: 500;
+          width: 58px;
           text-align: right;
-        }
-
-        .theme-color-input input[type="color"] {
-          border: none;
-          background: transparent;
-          width: 14px;
-          height: 14px;
-          padding: 0;
-          cursor: pointer;
+          letter-spacing: -0.1px;
         }
 
         .app-logo {
           font-weight: 800;
-          color: #ffffff;
-          font-family: 'Outfit', sans-serif;
-          letter-spacing: -0.5px;
-          gap: 6px;
-        }
-
-        .logo-icon {
-          color: var(--figma-accent);
+          color: #0f172a;
+          font-family: 'Outfit', sans-serif !important;
+          letter-spacing: -0.6px;
+          padding-left: 2px;
         }
 
         .app-title {
-          font-size: 15px;
+          font-size: 17px;
+          background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
         }
 
         .divider {
           width: 1px;
           height: 20px;
-          background-color: var(--figma-border);
+          background-color: #e2e8f0;
           margin: 0 16px;
         }
 
@@ -645,109 +719,94 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         .group-label {
-          font-size: 11px;
-          font-weight: 600;
-          color: var(--figma-text-muted);
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
-
-        .tool-btn {
-          background: transparent;
-          border: 1px solid var(--figma-border);
-          color: var(--figma-text-muted);
-          padding: 4px 10px;
-          font-size: 11px;
-          font-weight: 600;
-          cursor: pointer;
-          transition: all 0.2s;
-        }
-
-        .tool-btn:first-of-type {
-          border-radius: 4px 0 0 4px;
-        }
-
-        .tool-btn:last-of-type {
-          border-radius: 0 4px 4px 0;
-        }
-
-        .tool-btn + .tool-btn {
-          border-left: none;
-        }
-
-        .tool-btn:hover {
-          background-color: rgba(255, 255, 255, 0.05);
-          color: var(--figma-text);
-        }
-
-        .tool-btn.active {
-          background-color: rgba(24, 160, 251, 0.1);
-          color: var(--figma-accent);
-          border-color: var(--figma-accent);
-        }
-
-        .icon-tool-btn {
-          background: transparent;
-          border: 1px solid var(--figma-border);
-          color: var(--figma-text);
-          padding: 5px 10px;
-          border-radius: 4px;
-          font-size: 11px;
-          font-weight: 600;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          gap: 4px;
-          transition: all 0.2s;
-        }
-
-        .icon-tool-btn:hover {
-          background-color: rgba(255, 255, 255, 0.05);
-          border-color: var(--figma-accent);
+          font-size: 13px;
+          font-weight: 500;
+          color: #64748b;
+          letter-spacing: -0.1px;
+          white-space: nowrap;
+          flex-shrink: 0;
+          width: auto;
         }
 
         .toggle-code-action-btn {
-          background: transparent;
-          border: 1px solid var(--figma-border);
-          color: var(--figma-text-muted);
-          padding: 6px 12px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 600;
+          background: #ffffff;
+          border: 1px solid #e2e8f0;
+          color: #475569;
+          height: 36px;
+          padding: 0 16px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          white-space: nowrap;
         }
 
         .toggle-code-action-btn:hover {
-          background: rgba(0, 0, 0, 0.02);
-          border-color: var(--figma-accent);
+          background: #f8fafc;
+          border-color: #cbd5e1;
+          color: #0f172a;
         }
 
         .toggle-code-action-btn.active {
-          background: rgba(24, 160, 251, 0.05);
+          background: rgba(24, 160, 251, 0.06);
           border-color: var(--figma-accent);
           color: var(--figma-accent);
         }
 
         .export-action-btn {
-          background: var(--figma-accent);
+          background: linear-gradient(135deg, var(--figma-accent) 0%, #0c8ce9 100%);
           border: none;
           color: white;
-          padding: 6px 12px;
-          border-radius: 4px;
-          font-size: 12px;
+          height: 36px;
+          padding: 0 18px;
+          border-radius: 6px;
+          font-size: 13px;
           font-weight: 600;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: all 0.2s ease;
+          box-shadow: 0 1px 2px rgba(24, 160, 251, 0.15);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          white-space: nowrap;
         }
 
         .export-action-btn:hover {
-          background: var(--figma-accent-hover);
+          background: linear-gradient(135deg, #0c8ce9 0%, #057bd0 100%);
+          box-shadow: 0 2px 4px rgba(24, 160, 251, 0.25);
+          transform: translateY(-0.5px);
+        }
+
+        .color-code-tag.copyable {
+          cursor: pointer;
+          transition: color 0.15s ease;
+        }
+        
+        .color-code-tag.copyable:hover {
+          color: var(--figma-accent);
+        }
+
+        .toolbar-right {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+        }
+
+        .toolbar-left {
+          display: flex;
+          align-items: center;
+          gap: 16px;
         }
 
         .workspace-main {
           display: flex;
-          height: calc(100% - 48px - 38px - 25px); /* adjusted for double row */
+          height: calc(100% - 58px - 38px - 25px); /* adjusted for double row */
         }
 
         .elements-palette {

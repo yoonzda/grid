@@ -82,12 +82,19 @@ export interface Section {
   elements: EditorElement[];
   isShared?: boolean; // Common layout section (Header/Footer)
   sharedType?: 'header' | 'footer';
-  
   // Layout and alignment mode (Grid or Flex Flow)
   layoutMode?: 'grid' | 'flex';
+  guidelineWidth?: GuidelineWidth;
   flexDirection?: 'vertical' | 'horizontal';
   flexGap?: number;
   flexAlign?: 'start' | 'center' | 'end' | 'space-between';
+  
+  // Section Padding & Height alignment mode
+  heightMode?: 'fixed' | 'auto';
+  heightUnit?: 'px' | 'vh' | 'dvh';
+  paddingTop?: number;
+  paddingBottom?: number;
+  verticalAlign?: 'start' | 'center' | 'end';
   
   // Header Component fields
   headerLayout?: HeaderLayoutType;
@@ -146,8 +153,8 @@ export interface ThemeSettings {
   textColor: string;
   fontFamily: string;
   fontPresets: FontPreset[];
-  gridGap?: number;
-  gridRowHeight?: number;
+  defaultFlexGap?: number;
+  defaultSectionPadding?: number;
 }
 
 export type ExportFileName = string;
