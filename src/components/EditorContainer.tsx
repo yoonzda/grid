@@ -205,8 +205,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   // Delete Page Action
   const handleDeletePage = (pageId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid switching page when clicking delete icon
-    if (pageId === 'main') {
-      alert('메인 페이지는 삭제할 수 없습니다.');
+    if (pageId === 'main' || pageId === 'sitemap') {
+      alert('메인 페이지와 사이트맵 페이지는 필수 시스템 페이지이므로 삭제할 수 없습니다.');
       return;
     }
     if (window.confirm('이 페이지를 정말 삭제하시겠습니까? 관련 데이터가 모두 삭제됩니다.')) {
@@ -335,7 +335,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             >
               <span className={`tab-indicator ${p.id === activePageId ? 'active' : ''}`}></span>
               <span className="tab-name">{p.name}</span>
-              {p.id !== 'main' && (
+              {p.id !== 'main' && p.id !== 'sitemap' && !p.isSystem && (
                 <button
                   className="tab-close-btn"
                   onClick={(e) => handleDeletePage(p.id, e)}
@@ -398,12 +398,14 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             setActiveSectionId={setActiveSectionId}
             activePaddingGuide={activePaddingGuide}
             pages={pages}
+            activePageId={activePageId}
             onNavigatePage={(id) => {
               setActivePageId(id);
               setActiveElement(null);
               setActiveSectionId(null);
             }}
             hoveredSectionId={hoveredSectionId}
+            setHoveredSectionId={setHoveredSectionId}
             themeSettings={themeSettings}
             hoveredGuidelineWidth={hoveredGuidelineWidth}
             previewHeaderLayout={previewHeaderLayout}
@@ -523,13 +525,33 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         .editor-toolbar {
-          height: 58px;
+          min-height: 52px;
+          height: auto;
           background-color: #ffffff;
           border-bottom: 1px solid #f1f5f9;
-          padding: 0 20px;
+          padding: 8px 20px;
           box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
           z-index: 10;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 8px 16px;
           font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+        }
+
+        .toolbar-left {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 8px 12px;
+        }
+
+        .toolbar-right {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 8px;
         }
 
         .editor-toolbar * {

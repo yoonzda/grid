@@ -57,6 +57,18 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
       };
     })
   }));
+
+  if (!processed.some(p => p.id === 'sitemap')) {
+    processed.push({
+      id: 'sitemap',
+      name: '사이트맵',
+      fileName: 'siteMap.html',
+      isSystem: true,
+      sections: []
+    });
+  }
+
+  return processed;
 };
 
 function App() {
@@ -115,8 +127,22 @@ function App() {
   const [pages, setPages] = useState<Page[]>(() => ensurePresets(BUSINESS_TEMPLATE));
   const [activePageId, setActivePageId] = useState<string>('main');
 
-  const [activeElement, setActiveElement] = useState<{ sectionId: string; elementId: string } | null>(null);
-  const [activeSectionId, setActiveSectionId] = useState<string | null>(null);
+  const [activeElementState, setActiveElementState] = useState<{ sectionId: string; elementId: string } | null>(null);
+  const [activeSectionId, setActiveSectionIdState] = useState<string | null>(null);
+
+  const setActiveSectionId = (id: string | null) => {
+    setActiveSectionIdState(id);
+    setActiveElementState(null);
+  };
+
+  const setActiveElement = (el: { sectionId: string; elementId: string } | null) => {
+    setActiveElementState(el);
+    if (el) {
+      setActiveSectionIdState(el.sectionId);
+    }
+  };
+
+  const activeElement = activeElementState;
   const [activePaddingGuide, setActivePaddingGuide] = useState<{ sectionId: string; type: 'top' | 'bottom' | 'both' } | null>(null);
   const [activeFile, setActiveFile] = useState<ExportFileName>('index.html');
   const [isCodeViewerOpen, setIsCodeViewerOpen] = useState(false);
@@ -454,21 +480,23 @@ function App() {
           right: 0;
           height: 100%;
           z-index: 1000;
-          box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);
           background-color: var(--vscode-bg);
-          transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+          transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.35s ease;
+          box-shadow: none;
         }
 
         .pane-viewer.code-open {
           width: 680px;
           transform: translateX(0);
           border-left: 1px solid var(--figma-border);
+          box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);
         }
 
         .pane-viewer.code-closed {
           width: 680px;
           transform: translateX(100%);
           border-left: 0 solid transparent;
+          box-shadow: none;
         }
       `}</style>
     </div>

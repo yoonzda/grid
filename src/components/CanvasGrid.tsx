@@ -14,8 +14,10 @@ interface CanvasGridProps {
   setActiveSectionId: (val: string | null) => void;
   activePaddingGuide: { sectionId: string; type: 'top' | 'bottom' | 'both' } | null;
   pages?: Page[];
+  activePageId?: string;
   onNavigatePage?: (id: string) => void;
   hoveredSectionId?: string | null;
+  setHoveredSectionId?: (id: string | null) => void;
   themeSettings?: ThemeSettings;
   hoveredGuidelineWidth?: GuidelineWidth | null;
   previewHeaderLayout?: string | null;
@@ -32,8 +34,10 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   setActiveSectionId,
   activePaddingGuide,
   pages,
+  activePageId,
   onNavigatePage,
   hoveredSectionId,
+  setHoveredSectionId,
   themeSettings,
   hoveredGuidelineWidth,
   previewHeaderLayout,
@@ -42,6 +46,82 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'section' | 'element'; sectionId: string; elementId?: string } | null>(null);
+
+  // Close context menu on outside click or scroll or escape key
+  useEffect(() => {
+    const handleCloseContextMenu = () => setContextMenu(null);
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setContextMenu(null);
+    };
+    window.addEventListener('click', handleCloseContextMenu);
+    window.addEventListener('scroll', handleCloseContextMenu, true);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('click', handleCloseContextMenu);
+      window.removeEventListener('scroll', handleCloseContextMenu, true);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, []);
+
+  // Element ordering helper
+  const handleMoveElement = (secId: string, elId: string, direction: 'up' | 'down') => {
+    setSections(prev =>
+      prev.map(sec => {
+        if (sec.id !== secId) return sec;
+        const elements = [...sec.elements];
+        const idx = elements.findIndex(e => e.id === elId);
+        if (idx === -1) return sec;
+        const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+        if (targetIdx < 0 || targetIdx >= elements.length) return sec;
+        const temp = elements[idx];
+        elements[idx] = elements[targetIdx];
+        elements[targetIdx] = temp;
+        return { ...sec, elements };
+      })
+    );
+  };
+
+  // Element deletion helper
+  const handleDeleteElement = (secId: string, elId: string) => {
+    setSections(prev =>
+      prev.map(sec => {
+        if (sec.id !== secId) return sec;
+        return { ...sec, elements: sec.elements.filter(e => e.id !== elId) };
+      })
+    );
+    if (activeElement?.elementId === elId) {
+      setActiveElement(null);
+    }
+  };
+
+  // Section ordering helper
+  const handleMoveSection = (secId: string, direction: 'up' | 'down') => {
+    setSections(prev => {
+      const list = [...prev];
+      const idx = list.findIndex(s => s.id === secId);
+      if (idx === -1) return prev;
+      
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= list.length) return prev;
+      if (list[targetIdx].sharedType === 'header' || list[targetIdx].sharedType === 'footer') return prev;
+      if (list[idx].sharedType === 'header' || list[idx].sharedType === 'footer') return prev;
+
+      const temp = list[idx];
+      list[idx] = list[targetIdx];
+      list[targetIdx] = temp;
+      return list;
+    });
+  };
+
+  // Section deletion helper
+  const handleDeleteSection = (secId: string) => {
+    setSections(prev => prev.filter(s => s.id !== secId));
+    if (activeSectionId === secId) {
+      setActiveSectionId(null);
+      setActiveElement(null);
+    }
+  };
 
   // Retrieve drag & snap controls from custom hook
   const {
@@ -261,7 +341,15 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     };
 
     const logoNode = sec.headerShowLogo !== false && (
-      <div className="header-logo-container" style={{ display: 'flex', alignItems: 'center' }}>
+      <div 
+        className="header-logo-container" 
+        style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveSectionId(sec.id);
+          setActiveElement(null);
+        }}
+      >
         {sec.headerLogoType === 'image' && sec.headerLogoImg ? (
           <img 
             src={sec.headerLogoImg} 
@@ -281,6 +369,12 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           display: 'flex', 
           gap: `${sec.headerMenuGap ?? 24}px`, 
           alignItems: 'center',
+          cursor: 'pointer',
+        }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveSectionId(sec.id);
+          setActiveElement(null);
         }}
       >
         {(sec.headerMenuItems || []).map((item) => (
@@ -298,7 +392,15 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     );
 
     const btnNode = sec.headerShowBtn !== false && (
-      <div className="header-btn-container" style={{ display: 'flex', alignItems: 'center' }}>
+      <div 
+        className="header-btn-container" 
+        style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+        onClick={(e) => {
+          e.stopPropagation();
+          setActiveSectionId(sec.id);
+          setActiveElement(null);
+        }}
+      >
         <button style={btnStyle}>{sec.headerBtnText || '시작하기'}</button>
       </div>
     );
@@ -371,16 +473,121 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   };
 
   return (
-    <div className="canvas-grid-root" ref={containerRef}>
-      {sections.map((sec, secIdx) => {
+    <div 
+      className="canvas-grid-root" 
+      ref={containerRef}
+      onClick={() => {
+        setActiveSectionId(null);
+        setActiveElement(null);
+        setHoveredSectionId?.(null);
+      }}
+    >
+      <div 
+        className="canvas-paper-artboard"
+        style={{
+          width: '100%',
+          minWidth: '1024px',
+          height: 'fit-content',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+          borderRadius: '0px',
+          overflow: 'hidden',
+          backgroundColor: '#ffffff',
+          position: 'relative',
+        }}
+      >
+        {/* Render SiteMap Page View if active page is sitemap */}
+        {activePageId === 'sitemap' ? (
+          <div style={{ display: 'flex', flexDirection: 'column', width: '100%', minHeight: '650px', backgroundColor: '#ffffff' }}>
+            {/* Header section if header exists */}
+            {sections.find(s => s.sharedType === 'header') && (
+              <div style={{ backgroundColor: sections.find(s => s.sharedType === 'header')?.backgroundColor || 'var(--theme-primary)' }}>
+                {renderHeaderComponent(sections.find(s => s.sharedType === 'header')!)}
+              </div>
+            )}
+
+            {/* SiteMap Body Container */}
+            <div style={{ padding: '60px 48px', flex: 1, maxWidth: '960px', margin: '0 auto', width: '100%', boxSizing: 'border-box' }}>
+              <div style={{ borderBottom: '2px solid var(--theme-primary, #1e3a8a)', paddingBottom: '18px', marginBottom: '32px' }}>
+                <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+                  사이트맵 (Site Map)
+                </h1>
+                <p style={{ fontSize: '14px', color: '#64748b', marginTop: '8px', margin: 0 }}>
+                  현재 프로젝트에 등록되어 있는 전체 페이지 목록입니다. 이동하고 싶은 페이지를 클릭하세요.
+                </p>
+              </div>
+
+              {/* Dynamic Pages Grid */}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(270px, 1fr))', gap: '20px' }}>
+                {(pages || []).filter(p => p.id !== 'sitemap').map((p, pIdx) => (
+                  <div
+                    key={p.id}
+                    onClick={() => onNavigatePage?.(p.id)}
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'space-between',
+                      padding: '24px',
+                      backgroundColor: '#f8fafc',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '8px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.02)',
+                    }}
+                    className="sitemap-page-card"
+                  >
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, padding: '4px 10px', borderRadius: '4px', backgroundColor: '#e0f2fe', color: '#0284c7' }}>
+                          PAGE {String(pIdx + 1).padStart(2, '0')}
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#94a3b8', fontFamily: 'monospace' }}>
+                          {p.fileName}
+                        </span>
+                      </div>
+                      <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '0 0 6px 0' }}>
+                        {p.name}
+                      </h3>
+                      <p style={{ fontSize: '12.5px', color: '#64748b', margin: 0 }}>
+                        {p.id === 'main' ? '기본 메인 랜딩 페이지' : `${p.name} 페이지`}
+                      </p>
+                    </div>
+
+                    <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'space-between', color: '#0284c7', fontSize: '13px', fontWeight: 600 }}>
+                      <span>해당 페이지로 이동</span>
+                      <span style={{ fontSize: '16px' }}>→</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer section if footer exists */}
+            {sections.find(s => s.sharedType === 'footer') && (
+              <div style={{ backgroundColor: sections.find(s => s.sharedType === 'footer')?.backgroundColor || '#111827' }}>
+                <div style={{ padding: '24px 0', color: '#9ca3af', fontSize: '12px', textAlign: 'center' }}>
+                  © 2026 Site Map | {pages?.find(p => p.id === 'main')?.name || 'Web Builder'}
+                </div>
+              </div>
+            )}
+
+            <style>{`
+              .sitemap-page-card:hover {
+                background-color: #ffffff !important;
+                border-color: #0284c7 !important;
+                box-shadow: 0 8px 20px rgba(2, 132, 199, 0.12) !important;
+                transform: translateY(-2px);
+              }
+            `}</style>
+          </div>
+        ) : (
+          sections.map((sec, secIdx) => {
         const isDraggingInThisSection = dragState?.sectionId === sec.id;
-        const isSelected = activeSectionId === sec.id || activeElement?.sectionId === sec.id;
+        const isSelected = activeSectionId === sec.id;
         const isHoveringGuideline = isSelected && hoveredGuidelineWidth !== null && hoveredGuidelineWidth !== undefined;
         const gWidth = isHoveringGuideline ? hoveredGuidelineWidth : (sec.guidelineWidth || '80%');
 
         const isHoveredFromList = hoveredSectionId === sec.id;
-        
-        // Prioritize list hover preview: when hovering list item, focus ONLY the hovered section. Otherwise focus active selection.
         const isFocused = hoveredSectionId ? isHoveredFromList : isSelected;
 
         const hasSelection = activeSectionId !== null || activeElement !== null || hoveredSectionId !== null;
@@ -414,7 +621,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                     : 'center',
               opacity: isDimmed ? 0.35 : 1,
               filter: isDimmed ? 'opacity(0.4)' : 'none',
-              transition: 'opacity 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease',
+              transition: 'opacity 0.2s ease, filter 0.2s ease, box-shadow 0.15s ease',
               boxShadow: isFocused 
                 ? `inset 0 0 0 2.5px ${rawThemeAccent}` 
                 : 'none',
@@ -423,8 +630,22 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             } as React.CSSProperties}
             onClick={(e) => {
               e.stopPropagation();
+              setHoveredSectionId?.(null);
               setActiveSectionId(sec.id);
               setActiveElement(null);
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setHoveredSectionId?.(null);
+              setActiveSectionId(sec.id);
+              setActiveElement(null);
+              setContextMenu({
+                x: e.clientX,
+                y: e.clientY,
+                type: 'section',
+                sectionId: sec.id,
+              });
             }}
           >
             {/* 1. Left Dimmed Margin Shading Layer */}
@@ -587,7 +808,23 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                       sectionId={sec.id}
                       parentLayoutMode={sec.layoutMode || 'grid'}
                       isActive={activeElement?.elementId === el.id}
-                      onClick={() => setActiveElement({ sectionId: sec.id, elementId: el.id })}
+                      onClick={() => {
+                        setHoveredSectionId?.(null);
+                        setActiveElement({ sectionId: sec.id, elementId: el.id });
+                      }}
+                      onContextMenu={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setHoveredSectionId?.(null);
+                        setActiveElement({ sectionId: sec.id, elementId: el.id });
+                        setContextMenu({
+                          x: e.clientX,
+                          y: e.clientY,
+                          type: 'element',
+                          sectionId: sec.id,
+                          elementId: el.id,
+                        });
+                      }}
                       onDragStart={sec.layoutMode === 'flex' ? undefined : onElementDragStart}
                       onResizeStart={sec.layoutMode === 'flex' ? undefined : onElementResizeStart}
                       onTextChange={handleTextChange}
@@ -630,7 +867,9 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             </div>
           </div>
         );
-      })}
+      })
+      )}
+      </div>
 
       <style>{`
         /* Structured Header Component Styles */
@@ -680,9 +919,12 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
 
         .canvas-grid-root {
           width: 100%;
+          min-width: calc(1024px + 56px);
           min-height: 100%;
           position: relative;
-          padding: 40px 0;
+          padding: 32px 28px;
+          box-sizing: border-box;
+          cursor: default;
         }
 
         /* Full width section node */
@@ -950,6 +1192,155 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           border-top: 1px dashed var(--figma-danger);
         }
       `}</style>
+      {/* Floating Canvas Right-Click Context Menu Layer */}
+      {contextMenu && (() => {
+        const targetSection = sections.find(s => s.id === contextMenu.sectionId);
+        if (!targetSection) return null;
+
+        const targetElement = contextMenu.elementId 
+          ? targetSection.elements.find(e => e.id === contextMenu.elementId)
+          : null;
+
+        const menuWidth = 140;
+        const menuHeight = 130;
+
+        const posX = Math.min(contextMenu.x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - menuWidth - 10);
+        const posY = Math.min(contextMenu.y, (typeof window !== 'undefined' ? window.innerHeight : 800) - menuHeight - 10);
+
+        return (
+          <div
+            className="canvas-context-menu-layer"
+            style={{
+              position: 'fixed',
+              top: `${posY}px`,
+              left: `${posX}px`,
+              zIndex: 99999,
+              width: `${menuWidth}px`,
+              backgroundColor: '#ffffff',
+              borderRadius: '0px',
+              border: '1px solid #cbd5e1',
+              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.16)',
+              padding: '0px',
+              fontFamily: 'Inter, Pretendard, sans-serif',
+              userSelect: 'none',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {contextMenu.type === 'element' && targetElement ? (
+              <>
+                <button
+                  type="button"
+                  className="context-menu-item"
+                  onClick={() => {
+                    handleMoveElement(contextMenu.sectionId, targetElement.id, 'up');
+                    setContextMenu(null);
+                  }}
+                >
+                  위로 이동
+                </button>
+
+                <button
+                  type="button"
+                  className="context-menu-item"
+                  onClick={() => {
+                    handleMoveElement(contextMenu.sectionId, targetElement.id, 'down');
+                    setContextMenu(null);
+                  }}
+                >
+                  아래로 이동
+                </button>
+
+                <button
+                  type="button"
+                  className="context-menu-item danger"
+                  onClick={() => {
+                    handleDeleteElement(contextMenu.sectionId, targetElement.id);
+                    setContextMenu(null);
+                  }}
+                >
+                  삭제하기
+                </button>
+              </>
+            ) : (
+              <>
+                {targetSection.sharedType !== 'header' && targetSection.sharedType !== 'footer' ? (
+                  <>
+                    <button
+                      type="button"
+                      className="context-menu-item"
+                      onClick={() => {
+                        handleMoveSection(contextMenu.sectionId, 'up');
+                        setContextMenu(null);
+                      }}
+                    >
+                      위로 이동
+                    </button>
+
+                    <button
+                      type="button"
+                      className="context-menu-item"
+                      onClick={() => {
+                        handleMoveSection(contextMenu.sectionId, 'down');
+                        setContextMenu(null);
+                      }}
+                    >
+                      아래로 이동
+                    </button>
+
+                    <button
+                      type="button"
+                      className="context-menu-item danger"
+                      onClick={() => {
+                        handleDeleteSection(contextMenu.sectionId);
+                        setContextMenu(null);
+                      }}
+                    >
+                      삭제하기
+                    </button>
+                  </>
+                ) : (
+                  <div style={{ padding: '10px 16px', fontSize: '14px', color: '#94a3b8' }}>
+                    공통 컴포넌트
+                  </div>
+                )}
+              </>
+            )}
+
+            <style>{`
+              .context-menu-item {
+                width: 100%;
+                display: block;
+                padding: 10px 16px;
+                border: none;
+                border-bottom: 1px solid #f1f5f9;
+                background: #ffffff;
+                color: #0f172a;
+                font-size: 14px;
+                font-weight: 600;
+                border-radius: 0px;
+                cursor: pointer;
+                transition: background 0.1s ease, color 0.1s ease;
+                text-align: left;
+                box-sizing: border-box;
+              }
+              .context-menu-item:last-child {
+                border-bottom: none;
+              }
+              .context-menu-item:hover {
+                background-color: #f1f5f9;
+                color: #0284c7;
+              }
+              .context-menu-item.danger {
+                color: #dc2626;
+              }
+              .context-menu-item.danger:hover {
+                background-color: #fef2f2;
+                color: #b91c1c;
+              }
+            `}</style>
+          </div>
+        );
+      })()}
     </div>
   );
 };

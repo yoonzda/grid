@@ -973,6 +973,42 @@ ${fontLinksHtml}
     files[p.fileName] = indexHtml;
   });
 
+  // Generate siteMap.html automatically if not defined
+  if (!files['siteMap.html']) {
+    const validPages = pages.filter(p => p.fileName !== 'siteMap.html');
+    let sitemapHtml = `<!DOCTYPE html>\n<html lang="ko">\n<head>\n`;
+    sitemapHtml += `  <meta charset="UTF-8">\n`;
+    sitemapHtml += `  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n`;
+    sitemapHtml += `  <title>사이트맵 (SiteMap)</title>\n`;
+    sitemapHtml += `${fontLinksHtml}\n`;
+    sitemapHtml += `  <link rel="stylesheet" href="variables.css">\n`;
+    sitemapHtml += `  <link rel="stylesheet" href="style.css">\n`;
+    sitemapHtml += `  <style>\n`;
+    sitemapHtml += `    .sitemap-container { max-width: 960px; margin: 60px auto; padding: 0 24px; font-family: 'Inter', sans-serif; }\n`;
+    sitemapHtml += `    .sitemap-title { font-size: 30px; font-weight: 800; color: #0f172a; border-bottom: 2px solid var(--theme-primary, #1e3a8a); padding-bottom: 16px; margin-bottom: 32px; }\n`;
+    sitemapHtml += `    .sitemap-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(270px, 1fr)); gap: 20px; list-style: none; padding: 0; margin: 0; }\n`;
+    sitemapHtml += `    .sitemap-item a { display: block; padding: 24px; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 8px; text-decoration: none; transition: all 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }\n`;
+    sitemapHtml += `    .sitemap-item a:hover { border-color: var(--theme-primary, #1e3a8a); transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,0.08); }\n`;
+    sitemapHtml += `    .sitemap-page-name { font-size: 18px; font-weight: 700; color: #0f172a; margin-bottom: 6px; }\n`;
+    sitemapHtml += `    .sitemap-file-name { font-size: 13px; color: #64748b; font-family: monospace; }\n`;
+    sitemapHtml += `  </style>\n`;
+    sitemapHtml += `</head>\n<body>\n`;
+    sitemapHtml += `  <div class="sitemap-container">\n`;
+    sitemapHtml += `    <h1 class="sitemap-title">사이트맵 (Site Map)</h1>\n`;
+    sitemapHtml += `    <ul class="sitemap-list">\n`;
+    validPages.forEach((p) => {
+      sitemapHtml += `      <li class="sitemap-item">\n`;
+      sitemapHtml += `        <a href="${p.fileName}">\n`;
+      sitemapHtml += `          <div class="sitemap-page-name">${p.name}</div>\n`;
+      sitemapHtml += `          <div class="sitemap-file-name">${p.fileName}</div>\n`;
+      sitemapHtml += `        </a>\n`;
+      sitemapHtml += `      </li>\n`;
+    });
+    sitemapHtml += `    </ul>\n`;
+    sitemapHtml += `  </div>\n</body>\n</html>\n`;
+    files['siteMap.html'] = sitemapHtml;
+  }
+
   return files;
 };
 

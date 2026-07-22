@@ -53,7 +53,6 @@ export const useGridSnap = (
     element: EditorElement,
     containerWidth: number
   ) => {
-    e.preventDefault();
     e.stopPropagation();
 
     const colWidth = (containerWidth - (GRID_COLS - 1) * GAP) / GRID_COLS;

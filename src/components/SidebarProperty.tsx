@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Section, EditorElement, ThemeSettings, Page, GuidelineWidth } from '../types';
 import { SUPPORTED_FONTS, findSupportedFont } from '../utils/fontManager';
 import { ICON_TEMPLATES } from '../utils/iconTemplates';
-import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Trash2, X, Grid, ExternalLink, ArrowRight, Link, Globe, List, ChevronLeft, Plus, Check, ChevronDown } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Trash2, X, Grid, ExternalLink, ArrowRight, Link, Globe, List, ChevronLeft, Plus, Check, ChevronDown, Sliders } from 'lucide-react';
 import { resolveCollisions } from '../utils/collision';
 
 interface SidebarPropertyProps {
@@ -217,7 +217,15 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   previewHeaderLogoFont,
   setPreviewHeaderLogoFont,
 }) => {
-  if (!activeElement && activeSectionId) {
+  const [showSectionDetail, setShowSectionDetail] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (activeSectionId && !activeElement) {
+      setShowSectionDetail(true);
+    }
+  }, [activeSectionId]);
+
+  if (!activeElement && activeSectionId && showSectionDetail) {
     const section = sections.find(s => s.id === activeSectionId);
     if (!section) {
       return (
@@ -268,7 +276,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: '#0f172a', display: 'flex', alignItems: 'center' }}
                 onClick={() => {
                   setActiveElement(null);
-                  setActiveSectionId(null);
+                  setShowSectionDetail(false);
                 }}
                 title="사용 컴포넌트 목록으로 돌아가기"
               >
@@ -821,6 +829,166 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
       );
     }
 
+    if (section.sharedType === 'footer') {
+      const footerElement = section.elements[0];
+      const updateFooterElement = (fields: Partial<EditorElement>) => {
+        if (!footerElement) return;
+        const updatedElements = section.elements.map(el =>
+          el.id === footerElement.id ? { ...el, ...fields } : el
+        );
+        updateSection({ elements: updatedElements });
+      };
+
+      return (
+        <div className="properties-panel">
+          <div className="panel-header flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: '#0f172a', display: 'flex', alignItems: 'center' }}
+                onClick={() => {
+                  setActiveElement(null);
+                  setShowSectionDetail(false);
+                }}
+                title="사용 컴포넌트 목록으로 돌아가기"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <span className="font-bold text-base text-slate-900">공통 푸터 컴포넌트</span>
+            </div>
+          </div>
+
+          <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
+            {/* 1. Guideline Width */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">가로폭</label>
+              <div className="flex gap-2">
+                {(['100%', '80%', '60%'] as const).map((width) => (
+                  <button
+                    key={width}
+                    type="button"
+                    className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
+                      (section.guidelineWidth || '100%') === width
+                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                    onClick={() => updateSection({ guidelineWidth: width })}
+                    onMouseEnter={() => setHoveredGuidelineWidth?.(width)}
+                    onMouseLeave={() => setHoveredGuidelineWidth?.(null)}
+                  >
+                    {width}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Footer Background Color */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">푸터 배경 색상</label>
+              <div className="color-picker-wrapper">
+                <input
+                  type="color"
+                  value={section.backgroundColor?.startsWith('#') ? section.backgroundColor : '#111827'}
+                  onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+                />
+                <input
+                  type="text"
+                  value={section.backgroundColor || '#111827'}
+                  onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* 3. Footer Text Content */}
+            {footerElement && (
+              <div className="property-group flex flex-col gap-2">
+                <label className="group-title">푸터 문구 & 카피라이트</label>
+                <textarea
+                  rows={3}
+                  value={footerElement.content || ''}
+                  onChange={(e) => updateFooterElement({ content: e.target.value })}
+                  placeholder="© 2026 Corporate Inc. All rights reserved."
+                />
+              </div>
+            )}
+
+            {/* 4. Footer Text Styling */}
+            {footerElement && (
+              <div className="property-group flex flex-col gap-3">
+                <label className="group-title">텍스트 스타일</label>
+                <div className="grid-inputs-row">
+                  <div className="grid-input-item">
+                    <span className="input-label">글자 크기</span>
+                    <input
+                      type="text"
+                      value={footerElement.fontSize || '12px'}
+                      onChange={(e) => updateFooterElement({ fontSize: e.target.value })}
+                    />
+                  </div>
+                  <div className="grid-input-item">
+                    <span className="input-label">글자 색상</span>
+                    <div className="color-picker-wrapper">
+                      <input
+                        type="color"
+                        value={footerElement.color?.startsWith('#') ? footerElement.color : '#9ca3af'}
+                        onChange={(e) => updateFooterElement({ color: e.target.value })}
+                      />
+                      <input
+                        type="text"
+                        value={footerElement.color || '#9ca3af'}
+                        onChange={(e) => updateFooterElement({ color: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Footer Text Alignment */}
+                <div className="flex flex-col gap-1.5">
+                  <span className="input-label">텍스트 정렬</span>
+                  <div className="align-buttons-row">
+                    <button
+                      type="button"
+                      className={`align-btn ${footerElement.align === 'left' ? 'active' : ''}`}
+                      onClick={() => updateFooterElement({ align: 'left' })}
+                    >
+                      좌측
+                    </button>
+                    <button
+                      type="button"
+                      className={`align-btn ${footerElement.align === 'center' ? 'active' : ''}`}
+                      onClick={() => updateFooterElement({ align: 'center' })}
+                    >
+                      중앙
+                    </button>
+                    <button
+                      type="button"
+                      className={`align-btn ${footerElement.align === 'right' ? 'active' : ''}`}
+                      onClick={() => updateFooterElement({ align: 'right' })}
+                    >
+                      우측
+                    </button>
+                  </div>
+                </div>
+
+                {/* Footer Font Selector */}
+                <div className="input-block mt-1">
+                  <span className="input-label">글꼴 (Font Family)</span>
+                  <select
+                    value={footerElement.fontFamily || 'Inter'}
+                    onChange={(e) => updateFooterElement({ fontFamily: e.target.value })}
+                  >
+                    {SUPPORTED_FONTS.map(f => (
+                      <option key={f.name} value={f.name}>{f.name}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
     const deleteSection = () => {
       if (sections.length <= 1) {
         alert('최소 하나의 섹션은 존재해야 합니다.');
@@ -869,7 +1037,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: '#0f172a', display: 'flex', alignItems: 'center' }}
               onClick={() => {
                 setActiveElement(null);
-                setActiveSectionId(null);
+                setShowSectionDetail(false);
               }}
               title="사용 컴포넌트 목록으로 돌아가기"
             >
@@ -1427,6 +1595,27 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
     );
   }
 
+  if (activePageId === 'sitemap') {
+    return (
+      <div className="properties-panel">
+        <div className="panel-header">
+          <span style={{ fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>사이트맵 (Site Map)</span>
+        </div>
+        <div className="properties-body p-5">
+          <div className="p-4 bg-slate-50 border border-slate-200 rounded-lg flex flex-col gap-2">
+            <span className="font-bold text-sm text-slate-800">시스템 자동 연동 페이지</span>
+            <p className="text-xs text-slate-600 leading-relaxed">
+              사이트맵은 프로젝트 내의 모든 페이지(HTML) 목록을 실시간으로 자동 취합하여 생성하는 시스템 전용 페이지입니다.
+            </p>
+            <div className="mt-2 pt-2 border-t border-slate-200 text-[11.5px] text-slate-500">
+              * 메인 페이지와 함께 삭제가 불가능하도록 관리됩니다.
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   if (!activeElement) {
     let bodySectionIdx = 0;
     return (
@@ -1453,31 +1642,27 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 label = `섹션 ${bodySectionIdx}`;
               }
             
-              const isFocused = activeSectionId === sec.id;
+              const isFocused = (hoveredSectionId ? hoveredSectionId === sec.id : activeSectionId === sec.id);
               const isLast = idx === sections.length - 1;
             
               return (
                 <div
                   key={sec.id}
                   onClick={() => {
+                    setHoveredSectionId?.(null);
                     setActiveSectionId(sec.id);
                     setActiveElement(null);
+                    setShowSectionDetail(true);
                     const targetSecEl = document.getElementById(`section-${sec.id}`) || document.querySelector(`.section-${sec.id}`);
                     if (targetSecEl) {
                       targetSecEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
                     }
                   }}
-                  onMouseEnter={(e) => {
+                  onMouseEnter={() => {
                     setHoveredSectionId?.(sec.id);
-                    if (!isFocused) {
-                      e.currentTarget.style.backgroundColor = '#f8fafc';
-                    }
                   }}
-                  onMouseLeave={(e) => {
+                  onMouseLeave={() => {
                     setHoveredSectionId?.(null);
-                    if (!isFocused) {
-                      e.currentTarget.style.backgroundColor = '#ffffff';
-                    }
                   }}
                   style={{
                     display: 'flex',
@@ -1487,7 +1672,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
                     backgroundColor: isFocused ? '#f0f9ff' : '#ffffff',
-                    borderLeft: isFocused ? '4px solid #0284c7' : '4px solid transparent',
                     borderBottom: isLast ? 'none' : '1px solid #f1f5f9',
                   }}
                 >
@@ -1496,7 +1680,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     fontWeight: 700,
                     padding: '3px 8px',
                     borderRadius: '4px',
-                    backgroundColor: isFocused ? '#dbeafe' : '#f1f5f9',
+                    backgroundColor: isFocused ? '#e0f2fe' : '#f1f5f9',
                     color: isFocused ? '#0284c7' : '#64748b',
                   }}>
                     {String(idx + 1).padStart(2, '0')}
@@ -1505,7 +1689,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     flex: 1,
                     fontSize: '14px',
                     fontWeight: isFocused ? 700 : 600,
-                    color: isFocused ? '#0284c7' : '#1e293b',
+                    color: isFocused ? '#0369a1' : '#1e293b',
                     letterSpacing: '-0.2px',
                   }}>
                     {label}
@@ -1712,14 +1896,14 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-all flex items-center justify-center"
+            style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: '#0f172a', display: 'flex', alignItems: 'center' }}
             onClick={() => {
               setActiveElement(null);
-              setActiveSectionId(null);
+              setShowSectionDetail(true);
             }}
-            title="사용 컴포넌트 목록으로 돌아가기"
+            title="상위 섹션 설정으로 돌아가기"
           >
-            <ChevronLeft size={20} />
+            <ChevronLeft size={22} />
           </button>
           <span className="font-bold text-base text-slate-900">속성 설정 ({element.type})</span>
         </div>
@@ -1730,28 +1914,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
         {/* If Flex layout, show ordering and margins instead of Grid coordinates */}
         {section.layoutMode === 'flex' ? (
           <>
-            {/* Element Ordering Controls */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">섹션 내 배치 순서 이동</label>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  className="flex-1 py-1.5 px-3 rounded text-xs border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-all"
-                  onClick={() => moveElementOrder('up')}
-                  title="이전 위치로 요소를 한 칸 이동합니다"
-                >
-                  순서 올리기 (Move Up/Left)
-                </button>
-                <button
-                  type="button"
-                  className="flex-1 py-1.5 px-3 rounded text-xs border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 font-medium transition-all"
-                  onClick={() => moveElementOrder('down')}
-                  title="다음 위치로 요소를 한 칸 이동합니다"
-                >
-                  순서 내리기 (Move Down/Right)
-                </button>
-              </div>
-            </div>
+
 
             {/* Margins */}
             <div className="property-group flex flex-col gap-2">
@@ -1866,10 +2029,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
               }`}
               style={element.widthMode !== 'fit-content' && element.widthMode !== 'fixed' ? {
-                backgroundColor: 'var(--theme-primary, #10b981)',
+                backgroundColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
                 color: '#ffffff',
-                borderColor: 'var(--theme-primary, #10b981)',
-                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                borderColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
+                boxShadow: '0 2px 4px rgba(30, 58, 138, 0.2)',
                 fontWeight: '700'
               } : {}}
               onClick={() => updateElement({ gridX: 0, gridW: 12, widthMode: 'stretch' })}
@@ -1885,10 +2048,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
               }`}
               style={element.widthMode === 'fit-content' ? {
-                backgroundColor: 'var(--theme-primary, #10b981)',
+                backgroundColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
                 color: '#ffffff',
-                borderColor: 'var(--theme-primary, #10b981)',
-                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                borderColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
+                boxShadow: '0 2px 4px rgba(30, 58, 138, 0.2)',
                 fontWeight: '700'
               } : {}}
               onClick={() => updateElement({ widthMode: 'fit-content' })}
@@ -1904,10 +2067,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
               }`}
               style={element.widthMode === 'fixed' ? {
-                backgroundColor: 'var(--theme-primary, #10b981)',
+                backgroundColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
                 color: '#ffffff',
-                borderColor: 'var(--theme-primary, #10b981)',
-                boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                borderColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
+                boxShadow: '0 2px 4px rgba(30, 58, 138, 0.2)',
                 fontWeight: '700'
               } : {}}
               onClick={() => updateElement({ widthMode: 'fixed', fixedWidth: element.fixedWidth || 150 })}

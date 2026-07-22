@@ -648,6 +648,14 @@ export const BUSINESS_TEMPLATE: Page[] = [
       },
       getBusinessFooter()
     ]
+  },
+  // Page 7: SiteMap (siteMap.html)
+  {
+    id: 'sitemap',
+    name: '사이트맵',
+    fileName: 'siteMap.html',
+    isSystem: true,
+    sections: []
   }
 ];
 
@@ -1256,5 +1264,12 @@ export const MODERN_TEMPLATE: Page[] = [
       },
       getModernFooter()
     ]
+  },
+  {
+    id: 'sitemap',
+    name: '사이트맵',
+    fileName: 'siteMap.html',
+    isSystem: true,
+    sections: []
   }
 ];

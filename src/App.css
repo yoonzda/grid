@@ -288,8 +288,8 @@ textarea:focus,
 }
 
 .align-btn.active {
-  background: rgba(24, 160, 251, 0.08);
-  color: var(--figma-accent);
+  background: var(--theme-primary, #1e3a8a) !important;
+  color: #ffffff !important;
 }
 
 input[type="range"] {

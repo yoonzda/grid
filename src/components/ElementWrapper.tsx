@@ -10,6 +10,7 @@ interface ElementWrapperProps {
   parentLayoutMode?: 'grid' | 'flex';
   isActive: boolean;
   onClick: (e: React.MouseEvent) => void;
+  onContextMenu?: (e: React.MouseEvent) => void;
   onDragStart?: (e: React.MouseEvent, sectionId: string, element: EditorElement, containerWidth: number) => void;
   onResizeStart?: (e: React.MouseEvent, sectionId: string, element: EditorElement, handle: 'r' | 'b' | 'br', containerWidth: number) => void;
   onTextChange?: (sectionId: string, elementId: string, newText: string) => void;
@@ -23,6 +24,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   parentLayoutMode = 'grid',
   isActive,
   onClick,
+  onContextMenu,
   onDragStart,
   onResizeStart,
   onTextChange,
@@ -34,6 +36,9 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
 
   // Trigger drag start
   const handleMouseDown = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onClick(e);
+
     // Prevent dragging if double clicked to edit text or dragging is disabled
     if (isEditingRef.current || !onDragStart) return;
     
@@ -363,6 +368,11 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       onClick={(e) => {
         e.stopPropagation();
         onClick(e);
+      }}
+      onContextMenu={(e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (onContextMenu) onContextMenu(e);
       }}
       onMouseDown={handleMouseDown}
     >
