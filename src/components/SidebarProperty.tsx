@@ -1,7 +1,8 @@
-import { Section, EditorElement, ThemeSettings } from '../types';
-import { SUPPORTED_FONTS } from '../utils/fontManager';
+import React, { useState, useEffect, useRef } from 'react';
+import { Section, EditorElement, ThemeSettings, Page, GuidelineWidth } from '../types';
+import { SUPPORTED_FONTS, findSupportedFont } from '../utils/fontManager';
 import { ICON_TEMPLATES } from '../utils/iconTemplates';
-import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Trash2, X, Grid } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Trash2, X, Grid, ExternalLink, ArrowRight, Link, Globe, List, ChevronLeft, Plus, Check, ChevronDown } from 'lucide-react';
 import { resolveCollisions } from '../utils/collision';
 
 interface SidebarPropertyProps {
@@ -13,7 +14,185 @@ interface SidebarPropertyProps {
   setActiveSectionId: (val: string | null) => void;
   themeSettings?: ThemeSettings;
   setActivePaddingGuide: (val: { sectionId: string; type: 'top' | 'bottom' | 'both' } | null) => void;
+  
+  // Page link & navigation props
+  pages?: Page[];
+  activePageId?: string;
+  onNavigatePage?: (id: string) => void;
+
+  // Hover section preview props
+  hoveredSectionId?: string | null;
+  setHoveredSectionId?: (id: string | null) => void;
+
+  // Guideline width hover preview props
+  hoveredGuidelineWidth?: GuidelineWidth | null;
+  setHoveredGuidelineWidth?: (w: GuidelineWidth | null) => void;
+
+  // Layout style hover preview props
+  previewHeaderLayout?: string | null;
+  setPreviewHeaderLayout?: (layout: string | null) => void;
+  previewFlexAlign?: string | null;
+  setPreviewFlexAlign?: (align: string | null) => void;
+  previewHeaderLogoFont?: string | null;
+  setPreviewHeaderLogoFont?: (font: string | null) => void;
 }
+
+const FontCustomSelect: React.FC<{
+  currentFontName: string;
+  onSelectFont: (fontName: string) => void;
+  onHoverFont: (fontName: string | null) => void;
+}> = ({ currentFontName, onSelectFont, onHoverFont }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const selectedFont = findSupportedFont(currentFontName);
+
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(() => {
+    const idx = SUPPORTED_FONTS.findIndex(f => f.name === selectedFont.name || f.family === selectedFont.family);
+    return idx >= 0 ? idx : 0;
+  });
+  
+  const containerRef = useRef<HTMLDivElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const idx = SUPPORTED_FONTS.findIndex(f => f.name === selectedFont.name || f.family === selectedFont.family);
+    if (idx >= 0) setHighlightedIndex(idx);
+  }, [currentFontName, isOpen, selectedFont]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+        onHoverFont(null);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onHoverFont]);
+
+  useEffect(() => {
+    if (isOpen && listRef.current) {
+      const itemEl = listRef.current.children[highlightedIndex] as HTMLElement;
+      if (itemEl) {
+        itemEl.scrollIntoView({ block: 'nearest' });
+      }
+    }
+  }, [highlightedIndex, isOpen]);
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!isOpen) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        setIsOpen(true);
+      }
+      return;
+    }
+
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const nextIndex = Math.min(highlightedIndex + 1, SUPPORTED_FONTS.length - 1);
+      setHighlightedIndex(nextIndex);
+      onHoverFont(SUPPORTED_FONTS[nextIndex].name);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prevIndex = Math.max(highlightedIndex - 1, 0);
+      setHighlightedIndex(prevIndex);
+      onHoverFont(SUPPORTED_FONTS[prevIndex].name);
+    } else if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (SUPPORTED_FONTS[highlightedIndex]) {
+        onSelectFont(SUPPORTED_FONTS[highlightedIndex].name);
+        setIsOpen(false);
+        onHoverFont(null);
+      }
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsOpen(false);
+      onHoverFont(null);
+    }
+  };
+
+  return (
+    <div
+      ref={containerRef}
+      tabIndex={0}
+      onKeyDown={handleKeyDown}
+      style={{ position: 'relative', width: '100%', outline: 'none' }}
+    >
+      <div
+        className={`custom-select-trigger ${isOpen ? 'active' : ''}`}
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          cursor: 'pointer',
+          userSelect: 'none',
+          fontFamily: selectedFont.family,
+        }}
+      >
+        <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+          {selectedFont.name}
+        </span>
+        <ChevronDown size={16} style={{ color: '#64748b', marginLeft: '6px', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease' }} />
+      </div>
+
+      {isOpen && (
+        <div
+          ref={listRef}
+          onMouseLeave={() => onHoverFont(null)}
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            right: 0,
+            zIndex: 9999,
+            maxHeight: '220px',
+            overflowY: 'auto',
+            backgroundColor: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '6px',
+            boxShadow: '0 6px 20px rgba(0,0,0,0.18)',
+            padding: '4px 0',
+          }}
+        >
+          {SUPPORTED_FONTS.map((f, idx) => {
+            const isSelected = f.name === selectedFont.name || f.family === selectedFont.family;
+            const isHighlighted = idx === highlightedIndex;
+            return (
+              <div
+                key={f.name}
+                onClick={() => {
+                  onSelectFont(f.name);
+                  setIsOpen(false);
+                }}
+                onMouseEnter={() => {
+                  setHighlightedIndex(idx);
+                  onHoverFont(f.name);
+                }}
+                style={{
+                  padding: '8px 12px',
+                  fontSize: '13px',
+                  fontFamily: f.family,
+                  cursor: 'pointer',
+                  backgroundColor: isSelected ? '#e0f2fe' : isHighlighted ? '#f1f5f9' : 'transparent',
+                  color: isSelected ? '#0284c7' : '#0f172a',
+                  fontWeight: isSelected ? 600 : 500,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  transition: 'background-color 0.1s ease',
+                }}
+              >
+                <span>{f.name}</span>
+                {isSelected && <Check size={14} strokeWidth={2.5} style={{ color: '#0284c7' }} />}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   activeElement,
@@ -24,6 +203,19 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   setActiveSectionId,
   themeSettings,
   setActivePaddingGuide,
+  pages,
+  activePageId,
+  onNavigatePage,
+  hoveredSectionId,
+  setHoveredSectionId,
+  hoveredGuidelineWidth,
+  setHoveredGuidelineWidth,
+  previewHeaderLayout,
+  setPreviewHeaderLayout,
+  previewFlexAlign,
+  setPreviewFlexAlign,
+  previewHeaderLogoFont,
+  setPreviewHeaderLogoFont,
 }) => {
   if (!activeElement && activeSectionId) {
     const section = sections.find(s => s.id === activeSectionId);
@@ -69,15 +261,28 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
       return (
         <div className="properties-panel">
-          <div className="panel-header">
-            <span>🌐 공통 헤더 컴포넌트 설정</span>
+          <div className="panel-header flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: '#0f172a', display: 'flex', alignItems: 'center' }}
+                onClick={() => {
+                  setActiveElement(null);
+                  setActiveSectionId(null);
+                }}
+                title="사용 컴포넌트 목록으로 돌아가기"
+              >
+                <ChevronLeft size={22} />
+              </button>
+              <span className="font-bold text-base text-slate-900">공통 헤더 컴포넌트</span>
+            </div>
           </div>
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             
             {/* 0. Section Width (Guideline) settings */}
             <div className="property-group flex flex-col gap-2">
-              <label className="group-title">헤더 가로폭 (Guideline)</label>
+              <label className="group-title">가로폭</label>
               <div className="flex gap-2">
                 {(['100%', '80%', '60%'] as const).map((width) => (
                   <button
@@ -89,6 +294,8 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                     }`}
                     onClick={() => updateSection({ guidelineWidth: width })}
+                    onMouseEnter={() => setHoveredGuidelineWidth?.(width)}
+                    onMouseLeave={() => setHoveredGuidelineWidth?.(null)}
                   >
                     {width}
                   </button>
@@ -96,84 +303,72 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 1. Alignment Layout presets */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">정렬 레이아웃 스타일</label>
-              <select
-                value={section.headerLayout || 'spread-center'}
-                onChange={(e) => updateSection({ headerLayout: e.target.value as any })}
-              >
-                <option value="spread-center">양끝 정렬 및 메뉴 중앙 (Logo 좌 / Menu 중 / Btn 우)</option>
-                <option value="spread-between">양끝 분할 정렬 (요소 자동 밀착 배치)</option>
-                <option value="left">좌측 밀착 정렬 (Logo - Menu - Btn)</option>
-                <option value="center">가로 중앙 정렬 (Logo, Menu, Btn 모두 중앙)</option>
-                <option value="right">우측 밀착 정렬 (Logo - Menu - Btn 우측)</option>
-                <option value="even-space">균등 간격 정렬 (균일 공간 배분)</option>
-              </select>
-            </div>
+            {/* 1. Show/Hide Elements Toggle Switches */}
+            {(() => {
+              const visibleCount = (section.headerShowLogo !== false ? 1 : 0) + (section.headerShowMenu !== false ? 1 : 0) + (section.headerShowBtn !== false ? 1 : 0);
+              return (
+                <div className="property-group flex flex-col gap-2">
+                  <label className="group-title">헤더 구성 요소</label>
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
+                    {[
+                      { key: 'headerShowLogo', label: '브랜드 로고', val: section.headerShowLogo !== false },
+                      { key: 'headerShowMenu', label: '네비게이션 메뉴', val: section.headerShowMenu !== false },
+                      { key: 'headerShowBtn', label: 'CTA 버튼', val: section.headerShowBtn !== false },
+                    ].map((item, idx, arr) => {
+                      const isLastRemaining = item.val && visibleCount <= 1;
+                      return (
+                        <div 
+                          key={item.key}
+                          onClick={() => {
+                            if (isLastRemaining) return;
+                            updateSection({ [item.key]: !item.val });
+                          }}
+                          title={isLastRemaining ? '최소 1개의 요소는 화면에 표시되어야 합니다' : ''}
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '12px 0px',
+                            borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #f1f5f9',
+                            cursor: isLastRemaining ? 'not-allowed' : 'pointer',
+                            opacity: isLastRemaining ? 0.6 : 1,
+                            userSelect: 'none',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>{item.label}</span>
+                          <div style={{
+                            width: '42px',
+                            height: '24px',
+                            borderRadius: '12px',
+                            backgroundColor: item.val ? '#0284c7' : '#cbd5e1',
+                            position: 'relative',
+                            transition: 'background-color 0.2s ease',
+                          }}>
+                            <div style={{
+                              width: '20px',
+                              height: '20px',
+                              borderRadius: '50%',
+                              backgroundColor: '#ffffff',
+                              position: 'absolute',
+                              top: '2px',
+                              left: item.val ? '20px' : '2px',
+                              transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                              boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                            }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
 
-            {/* 1-2. Spacing Settings */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">헤더 간격 설정</label>
-              <div className="input-block">
-                <span className="input-label">요소 간격 (Gap): {section.headerGap ?? 40}px</span>
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  step="5"
-                  value={section.headerGap ?? 40}
-                  onChange={(e) => updateSection({ headerGap: parseInt(e.target.value) })}
-                />
-              </div>
-              <div className="input-block mt-1">
-                <span className="input-label">메뉴 내부 간격: {section.headerMenuGap ?? 24}px</span>
-                <input
-                  type="range"
-                  min="10"
-                  max="80"
-                  step="2"
-                  value={section.headerMenuGap ?? 24}
-                  onChange={(e) => updateSection({ headerMenuGap: parseInt(e.target.value) })}
-                />
-              </div>
-            </div>
-
-            {/* 2. Show/Hide Elements Checkboxes */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">구성요소 노출 제어</label>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={section.headerShowLogo !== false}
-                    onChange={(e) => updateSection({ headerShowLogo: e.target.checked })}
-                  />
-                  <span>로고 브랜드 노출</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={section.headerShowMenu !== false}
-                    onChange={(e) => updateSection({ headerShowMenu: e.target.checked })}
-                  />
-                  <span>네비게이션 메뉴 노출</span>
-                </label>
-                <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={section.headerShowBtn !== false}
-                    onChange={(e) => updateSection({ headerShowBtn: e.target.checked })}
-                  />
-                  <span>CTA 액션 버튼 노출</span>
-                </label>
-              </div>
-            </div>
-
-            {/* 3. Brand Logo styling */}
+            {/* 1-2. Brand Logo styling */}
             {section.headerShowLogo !== false && (
               <div className="property-group flex flex-col gap-2">
-                <label className="group-title">로고 브랜드 설정</label>
+                <label className="group-title">브랜드 로고 설정</label>
                 
                 <div className="input-block">
                   <span className="input-label">로고 표시 타입</span>
@@ -279,18 +474,108 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 )}
                 {/* Logo Font Selector */}
                 <div className="input-block mt-2">
-                  <span className="input-label">로고 글꼴 (Font Family)</span>
-                  <select
-                    value={section.headerLogoFont || 'Inter'}
-                    onChange={(e) => updateSection({ headerLogoFont: e.target.value })}
-                  >
-                    {SUPPORTED_FONTS.map(f => (
-                      <option key={f.name} value={f.name}>{f.name}</option>
-                    ))}
-                  </select>
+                  <span className="input-label">글꼴</span>
+                  <FontCustomSelect
+                    currentFontName={section.headerLogoFont || 'Inter'}
+                    onSelectFont={(fontName) => {
+                      updateSection({ headerLogoFont: fontName });
+                      setPreviewHeaderLogoFont?.(null);
+                    }}
+                    onHoverFont={(fontName) => {
+                      setPreviewHeaderLogoFont?.(fontName);
+                    }}
+                  />
                 </div>
               </div>
             )}
+
+            {/* 2. Alignment Layout presets */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">배치 스타일</label>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
+                {[
+                  { value: 'spread-center', label: '양끝 정렬 및 메뉴 중앙' },
+                  { value: 'spread-between', label: '양끝 분할 정렬' },
+                  { value: 'left', label: '좌측 밀착 정렬' },
+                  { value: 'center', label: '가로 중앙 정렬' },
+                  { value: 'right', label: '우측 밀착 정렬' },
+                  { value: 'even-space', label: '균등 간격 정렬' },
+                ].map((opt, idx, arr) => {
+                  const currentLayout = section.headerLayout || 'spread-center';
+                  const isSelected = currentLayout === opt.value;
+                  const isLast = idx === arr.length - 1;
+                  return (
+                    <div
+                      key={opt.value}
+                      onClick={() => updateSection({ headerLayout: opt.value as any })}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '12px 8px',
+                        margin: '0 -8px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        backgroundColor: isSelected ? '#f0f9ff' : 'transparent',
+                        borderBottom: isLast ? 'none' : '1px solid #f1f5f9',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = '#f8fafc';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
+                    >
+                      {/* Left Check Icon Container */}
+                      <div style={{ width: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {isSelected && (
+                          <Check size={18} strokeWidth={2.5} style={{ color: '#0284c7' }} />
+                        )}
+                      </div>
+
+                      {/* Label Text */}
+                      <span style={{
+                        fontSize: '13.5px',
+                        fontWeight: isSelected ? 700 : 500,
+                        color: isSelected ? '#0284c7' : '#334155',
+                        letterSpacing: '-0.2px',
+                        flex: 1,
+                      }}>
+                        {opt.label}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 3. Spacing Settings */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">헤더 간격 설정</label>
+              <div className="input-block">
+                <span className="input-label">요소 간격 (Gap): {section.headerGap ?? 40}px</span>
+                <input
+                  type="range"
+                  min="10"
+                  max="100"
+                  step="5"
+                  value={section.headerGap ?? 40}
+                  onChange={(e) => updateSection({ headerGap: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="input-block mt-1">
+                <span className="input-label">메뉴 내부 간격: {section.headerMenuGap ?? 24}px</span>
+                <input
+                  type="range"
+                  min="10"
+                  max="80"
+                  step="2"
+                  value={section.headerMenuGap ?? 24}
+                  onChange={(e) => updateSection({ headerMenuGap: parseInt(e.target.value) })}
+                />
+              </div>
+            </div>
 
             {/* 4. Menu Link list */}
             {section.headerShowMenu !== false && (
@@ -559,19 +844,45 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
       });
     };
 
+    let currentSectionTitle = '섹션';
+    if (section.sharedType === 'header') currentSectionTitle = '공통 헤더 컴포넌트';
+    else if (section.sharedType === 'footer') currentSectionTitle = '공통 푸터 컴포넌트';
+    else {
+      let bodyCount = 0;
+      for (const s of sections) {
+        if (s.sharedType !== 'header' && s.sharedType !== 'footer') {
+          bodyCount++;
+          if (s.id === section.id) {
+            currentSectionTitle = `섹션 ${bodyCount}`;
+            break;
+          }
+        }
+      }
+    }
+
     return (
       <div className="properties-panel">
         <div className="panel-header flex items-center justify-between">
-          <span>섹션 설정</span>
-          <button className="del-el-btn" onClick={deleteSection} title="섹션 삭제">
-            <Trash2 size={13} />
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: '#0f172a', display: 'flex', alignItems: 'center' }}
+              onClick={() => {
+                setActiveElement(null);
+                setActiveSectionId(null);
+              }}
+              title="사용 컴포넌트 목록으로 돌아가기"
+            >
+              <ChevronLeft size={22} />
+            </button>
+            <span className="font-bold text-base text-slate-900">{currentSectionTitle}</span>
+          </div>
         </div>
 
         <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
           {/* Section Width (Guideline Width) */}
           <div className="property-group flex flex-col gap-2">
-            <label className="group-title">섹션 가로폭 (Guideline)</label>
+            <label className="group-title">가로폭</label>
             <div className="flex gap-2">
               {(['100%', '80%', '60%'] as const).map((width) => (
                 <button
@@ -590,6 +901,8 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     fontWeight: '700'
                   } : {}}
                   onClick={() => updateSection({ guidelineWidth: width })}
+                  onMouseEnter={() => setHoveredGuidelineWidth?.(width)}
+                  onMouseLeave={() => setHoveredGuidelineWidth?.(null)}
                 >
                   {width}
                 </button>
@@ -870,16 +1183,44 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           </div>
 
           <div className="property-group flex flex-col gap-2">
-            <label className="group-title">흐름 정렬 방식</label>
-            <select
-              value={section.flexAlign || 'center'}
-              onChange={(e) => updateSection({ flexAlign: e.target.value as any })}
-            >
-              <option value="start">시작 정렬 (Start)</option>
-              <option value="center">중앙 정렬 (Center)</option>
-              <option value="end">끝 정렬 (End)</option>
-              <option value="space-between">양끝 정렬 (Space Between)</option>
-            </select>
+            <label className="group-title">요소 배치 정렬</label>
+            <div className="grid grid-cols-2 gap-1.5">
+              {[
+                { value: 'start', label: '시작 정렬 (Start)' },
+                { value: 'center', label: '중앙 정렬 (Center)' },
+                { value: 'end', label: '끝 정렬 (End)' },
+                { value: 'space-between', label: '양끝 정렬 (Between)' },
+              ].map((opt) => {
+                const currentAlign = section.flexAlign || 'center';
+                const isSelected = currentAlign === opt.value;
+                const isHovered = previewFlexAlign === opt.value;
+                return (
+                  <button
+                    key={opt.value}
+                    type="button"
+                    onClick={() => updateSection({ flexAlign: opt.value as any })}
+                    onMouseEnter={() => setPreviewFlexAlign?.(opt.value)}
+                    onMouseLeave={() => setPreviewFlexAlign?.(null)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '8px 10px',
+                      borderRadius: '0px',
+                      border: isSelected ? '1.5px solid #0284c7' : isHovered ? '1px solid #7dd3fc' : '1px solid #e2e8f0',
+                      backgroundColor: isSelected ? '#f0f9ff' : isHovered ? '#f8fafc' : '#ffffff',
+                      color: isSelected ? '#0284c7' : '#0f172a',
+                      fontSize: '12.5px',
+                      fontWeight: isSelected ? 700 : 500,
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    {opt.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           <div className="property-group flex flex-col gap-2">
@@ -1052,7 +1393,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             <div className="flex gap-2">
               <button
                 className="align-btn"
-                style={{ fontSize: '11px', padding: '8px' }}
+                style={{ fontSize: '12px', padding: '8px' }}
                 disabled={sections.findIndex(s => s.id === activeSectionId) === 0}
                 onClick={() => moveSection('up')}
               >
@@ -1060,7 +1401,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </button>
               <button
                 className="align-btn"
-                style={{ fontSize: '11px', padding: '8px' }}
+                style={{ fontSize: '12px', padding: '8px' }}
                 disabled={sections.findIndex(s => s.id === activeSectionId) === sections.length - 1}
                 onClick={() => moveSection('down')}
               >
@@ -1068,76 +1409,171 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </button>
             </div>
           </div>
+
+          {/* Full-width Section Delete Button */}
+          <div className="pt-4 mt-2 border-t border-red-100 flex flex-col">
+            <button
+              type="button"
+              className="w-full py-3 px-4 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+              onClick={deleteSection}
+              title="현재 선택된 섹션을 삭제합니다"
+            >
+              <Trash2 size={16} />
+              <span>해당 섹션 삭제하기</span>
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   if (!activeElement) {
+    let bodySectionIdx = 0;
     return (
       <div className="properties-panel">
-        <div className="panel-header">레이아웃 아웃라인</div>
+        <div className="panel-header">
+          <span style={{ fontSize: '15.5px', fontWeight: 700, color: '#0f172a' }}>페이지 구성</span>
+        </div>
         
-        <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
-          <div className="property-group" style={{ border: 'none', padding: 0 }}>
-            <span className="group-title" style={{ marginBottom: '12px' }}>페이지 사용 컴포넌트 목록</span>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {sections.map((sec, idx) => {
-                const label = sec.sharedType === 'header' 
-                  ? '🌐 공통 헤더 컴포넌트' 
-                  : (sec.sharedType === 'footer' ? '🌐 공통 푸터 컴포넌트' : `📄 섹션 ${idx + 1} (${sec.height}px)`);
-                
-                const isFocused = activeSectionId === sec.id;
-                
-                return (
-                  <div
-                    key={sec.id}
-                    onClick={() => {
-                      setActiveSectionId(sec.id);
-                      setActiveElement(null);
-                    }}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      padding: '10px 12px',
-                      background: isFocused ? 'rgba(24, 160, 251, 0.08)' : 'var(--figma-bg)',
-                      border: isFocused ? '1px solid var(--figma-accent)' : '1px solid var(--figma-border)',
-                      borderRadius: '6px',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                      fontWeight: 600,
-                      color: isFocused ? 'var(--figma-accent)' : 'var(--figma-text)',
-                      transition: 'all 0.2s',
-                    }}
-                    onMouseEnter={(e) => {
-                      if (!isFocused) {
-                        e.currentTarget.style.borderColor = 'var(--figma-accent)';
-                        e.currentTarget.style.backgroundColor = 'rgba(24, 160, 251, 0.04)';
-                      }
-                    }}
-                    onMouseLeave={(e) => {
-                      if (!isFocused) {
-                        e.currentTarget.style.borderColor = 'var(--figma-border)';
-                        e.currentTarget.style.backgroundColor = 'var(--figma-bg)';
-                      }
-                    }}
-                  >
-                    <span style={{ marginRight: '8px' }}>
-                      {sec.sharedType === 'header' || sec.sharedType === 'footer' ? '📦' : '🧩'}
-                    </span>
-                    <span style={{ flex: 1 }}>{label}</span>
-                    <span style={{ fontSize: '10px', opacity: 0.5 }}>설정 &gt;</span>
-                  </div>
-                );
-              })}
-            </div>
+        <div className="properties-body flex-1 overflow-auto flex flex-col" style={{ padding: 0 }}>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            backgroundColor: '#ffffff',
+            borderBottom: '1px solid #e2e8f0',
+          }}>
+            {sections.map((sec, idx) => {
+              let label = '';
+              if (sec.sharedType === 'header') {
+                label = '공통 헤더 컴포넌트';
+              } else if (sec.sharedType === 'footer') {
+                label = '공통 푸터 컴포넌트';
+              } else {
+                bodySectionIdx++;
+                label = `섹션 ${bodySectionIdx}`;
+              }
+            
+              const isFocused = activeSectionId === sec.id;
+              const isLast = idx === sections.length - 1;
+            
+              return (
+                <div
+                  key={sec.id}
+                  onClick={() => {
+                    setActiveSectionId(sec.id);
+                    setActiveElement(null);
+                    const targetSecEl = document.getElementById(`section-${sec.id}`) || document.querySelector(`.section-${sec.id}`);
+                    if (targetSecEl) {
+                      targetSecEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    setHoveredSectionId?.(sec.id);
+                    if (!isFocused) {
+                      e.currentTarget.style.backgroundColor = '#f8fafc';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    setHoveredSectionId?.(null);
+                    if (!isFocused) {
+                      e.currentTarget.style.backgroundColor = '#ffffff';
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px',
+                    padding: '16px 22px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    backgroundColor: isFocused ? '#f0f9ff' : '#ffffff',
+                    borderLeft: isFocused ? '4px solid #0284c7' : '4px solid transparent',
+                    borderBottom: isLast ? 'none' : '1px solid #f1f5f9',
+                  }}
+                >
+                  <span style={{
+                    fontSize: '12px',
+                    fontWeight: 700,
+                    padding: '3px 8px',
+                    borderRadius: '4px',
+                    backgroundColor: isFocused ? '#dbeafe' : '#f1f5f9',
+                    color: isFocused ? '#0284c7' : '#64748b',
+                  }}>
+                    {String(idx + 1).padStart(2, '0')}
+                  </span>
+                  <span style={{
+                    flex: 1,
+                    fontSize: '14px',
+                    fontWeight: isFocused ? 700 : 600,
+                    color: isFocused ? '#0284c7' : '#1e293b',
+                    letterSpacing: '-0.2px',
+                  }}>
+                    {label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
-          
-          <div className="properties-empty" style={{ flex: 'none', padding: '16px 8px', marginTop: '20px', borderTop: '1px solid var(--figma-border)' }}>
-            <HelpCircle size={20} className="help-icon" style={{ marginBottom: '8px' }} />
-            <span className="empty-text" style={{ fontSize: '10.5px', maxWidth: '240px' }}>
-              캔버스의 요소를 더블클릭하면 텍스트를 인라인으로 편집할 수 있으며, 드래그하여 레이아웃 순서와 크기를 조정할 수 있습니다.
-            </span>
+
+          {/* Bottom Section Add Button */}
+          <div style={{ width: '100%', backgroundColor: '#ffffff' }}>
+            <button
+              onClick={() => {
+                const newSecId = `s_${Date.now()}`;
+                const newSection: Section = {
+                  id: newSecId,
+                  height: 350,
+                  backgroundColor: '#ffffff',
+                  elements: [],
+                };
+                setSections(prev => {
+                  const footerIdx = prev.findIndex(s => s.sharedType === 'footer');
+                  if (footerIdx !== -1) {
+                    const copy = [...prev];
+                    copy.splice(footerIdx, 0, newSection);
+                    return copy;
+                  }
+                  return [...prev, newSection];
+                });
+                setActiveSectionId(newSecId);
+                setActiveElement(null);
+              }}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '8px',
+                padding: '15px 22px',
+                borderRadius: '0px',
+                borderTop: '1px solid #e2e8f0',
+                borderBottom: 'none',
+                borderLeft: 'none',
+                borderRight: 'none',
+                backgroundColor: '#f8fafc',
+                color: '#0f172a',
+                fontSize: '14px',
+                fontWeight: 600,
+                letterSpacing: '-0.2px',
+                cursor: 'pointer',
+                transition: 'all 0.15s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = '#0f172a';
+                e.currentTarget.style.color = '#ffffff';
+                const iconEl = e.currentTarget.querySelector('.plus-icon-svg') as HTMLElement;
+                if (iconEl) iconEl.style.color = '#ffffff';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = '#f8fafc';
+                e.currentTarget.style.color = '#0f172a';
+                const iconEl = e.currentTarget.querySelector('.plus-icon-svg') as HTMLElement;
+                if (iconEl) iconEl.style.color = '#0f172a';
+              }}
+            >
+              <Plus className="plus-icon-svg" size={16} strokeWidth={2.2} style={{ color: '#0f172a', transition: 'color 0.15s ease' }} />
+              <span>섹션 추가</span>
+            </button>
           </div>
         </div>
       </div>
@@ -1273,10 +1709,20 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   return (
     <div className="properties-panel">
       <div className="panel-header flex items-center justify-between">
-        <span>속성 설정 ({element.type})</span>
-        <button className="del-el-btn" onClick={deleteElement} title="요소 삭제">
-          <Trash2 size={13} />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="p-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition-all flex items-center justify-center"
+            onClick={() => {
+              setActiveElement(null);
+              setActiveSectionId(null);
+            }}
+            title="사용 컴포넌트 목록으로 돌아가기"
+          >
+            <ChevronLeft size={20} />
+          </button>
+          <span className="font-bold text-base text-slate-900">속성 설정 ({element.type})</span>
+        </div>
       </div>
 
       <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
@@ -1718,6 +2164,107 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 </div>
               </div>
             )}
+
+            {/* 🔗 Button Link & Click Action Control */}
+            <div className="pt-2 border-t border-gray-100 flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <label className="group-title mb-0 flex items-center gap-1.5 text-xs text-[#0f172a] font-bold">
+                  <ExternalLink size={13} className="text-[#18a0fb]" />
+                  <span>버튼 클릭 동작 설정</span>
+                </label>
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-50 text-blue-600 font-semibold border border-blue-100">
+                  {element.linkType === 'page' ? '페이지 이동' : element.linkType === 'url' ? '외부 링크' : '동작 없음'}
+                </span>
+              </div>
+
+              <div className="input-block">
+                <span className="input-label font-semibold text-slate-700">클릭 시 실행할 동작</span>
+                <select
+                  value={element.linkType || 'none'}
+                  onChange={(e) => updateElement({ linkType: e.target.value as any })}
+                  className="w-full"
+                >
+                  <option value="none">없음 (일반 디자인 버튼)</option>
+                  <option value="page">페이지 이동 (내부 연결)</option>
+                  <option value="url">외부 웹사이트 링크</option>
+                </select>
+              </div>
+
+              {/* Action: Internal Page Navigation */}
+              {element.linkType === 'page' && (
+                <div className="flex flex-col gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="input-block">
+                    <span className="input-label font-semibold text-slate-700">이동할 페이지 선택</span>
+                    <select
+                      value={element.linkPageId || (pages && pages[0]?.id) || 'main'}
+                      onChange={(e) => updateElement({ linkPageId: e.target.value })}
+                      className="w-full bg-white"
+                    >
+                      {(pages || []).map(p => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.fileName})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {onNavigatePage && (
+                    <button
+                      type="button"
+                      className="w-full py-2 px-3 rounded-md bg-[#18a0fb] hover:bg-[#0c8ce9] text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-[0.98]"
+                      onClick={() => {
+                        const targetId = element.linkPageId || (pages && pages[0]?.id) || 'main';
+                        const targetPage = (pages || []).find(p => p.id === targetId);
+                        onNavigatePage(targetId);
+                        alert(`'${targetPage?.name || '페이지'}' (${targetPage?.fileName || 'html'})로 성공적으로 이동했습니다!`);
+                      }}
+                    >
+                      <ArrowRight size={14} />
+                      <span>연결된 페이지로 지금 이동 확인</span>
+                    </button>
+                  )}
+                </div>
+              )}
+
+              {/* Action: External URL */}
+              {element.linkType === 'url' && (
+                <div className="flex flex-col gap-2.5 p-3 rounded-lg bg-slate-50 border border-slate-200">
+                  <div className="input-block">
+                    <span className="input-label font-semibold text-slate-700">이동할 웹사이트 URL</span>
+                    <input
+                      type="text"
+                      placeholder="https://example.com"
+                      value={element.linkUrl || ''}
+                      onChange={(e) => updateElement({ linkUrl: e.target.value })}
+                      className="w-full bg-white"
+                    />
+                  </div>
+
+                  <div className="input-block">
+                    <span className="input-label font-semibold text-slate-700 font-sans">열기 방식</span>
+                    <select
+                      value={element.linkTarget || '_blank'}
+                      onChange={(e) => updateElement({ linkTarget: e.target.value as any })}
+                      className="w-full bg-white"
+                    >
+                      <option value="_blank">새 탭에서 열기 (_blank)</option>
+                      <option value="_self">현재 창에서 이동 (_self)</option>
+                    </select>
+                  </div>
+
+                  {element.linkUrl && (
+                    <button
+                      type="button"
+                      className="w-full py-1.5 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-sm transition-all"
+                      onClick={() => window.open(element.linkUrl, element.linkTarget || '_blank')}
+                    >
+                      <ExternalLink size={14} />
+                      <span>외부 링크 바로 테스트</span>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -2168,6 +2715,18 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           );
         })()}
 
+        {/* Full-width Element Delete Button */}
+        <div className="pt-4 mt-2 border-t border-red-100 flex flex-col">
+          <button
+            type="button"
+            className="w-full py-3 px-4 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
+            onClick={deleteElement}
+            title="현재 선택된 요소를 삭제합니다"
+          >
+            <Trash2 size={16} />
+            <span>해당 요소 삭제하기</span>
+          </button>
+        </div>
       </div>
 
     </div>

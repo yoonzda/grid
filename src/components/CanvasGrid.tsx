@@ -1,8 +1,9 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { Section, EditorElement, GuidelineWidth } from '../types';
+import { Section, EditorElement, GuidelineWidth, Page, ThemeSettings } from '../types';
 import { ElementWrapper } from './ElementWrapper';
 import { useGridSnap } from '../hooks/useGridSnap';
 import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
+import { getFontFamilyByFamilyName } from '../utils/fontManager';
 
 interface CanvasGridProps {
   sections: Section[];
@@ -12,6 +13,14 @@ interface CanvasGridProps {
   activeSectionId: string | null;
   setActiveSectionId: (val: string | null) => void;
   activePaddingGuide: { sectionId: string; type: 'top' | 'bottom' | 'both' } | null;
+  pages?: Page[];
+  onNavigatePage?: (id: string) => void;
+  hoveredSectionId?: string | null;
+  themeSettings?: ThemeSettings;
+  hoveredGuidelineWidth?: GuidelineWidth | null;
+  previewHeaderLayout?: string | null;
+  previewFlexAlign?: string | null;
+  previewHeaderLogoFont?: string | null;
 }
 
 export const CanvasGrid: React.FC<CanvasGridProps> = ({
@@ -22,6 +31,14 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   activeSectionId,
   setActiveSectionId,
   activePaddingGuide,
+  pages,
+  onNavigatePage,
+  hoveredSectionId,
+  themeSettings,
+  hoveredGuidelineWidth,
+  previewHeaderLayout,
+  previewFlexAlign,
+  previewHeaderLogoFont,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
@@ -179,13 +196,15 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   };
 
   const renderHeaderComponent = (sec: Section) => {
+    const isSelectedHeader = activeSectionId === sec.id;
     const layout = sec.headerLayout || 'spread-center';
     
+    const activeLogoFont = (isSelectedHeader && previewHeaderLogoFont) ? previewHeaderLogoFont : (sec.headerLogoFont || 'Inter');
     const logoStyle: React.CSSProperties = {
       color: sec.headerLogoColor || '#ffffff',
       fontSize: sec.headerLogoSize || '20px',
       fontWeight: 800,
-      fontFamily: sec.headerLogoFont || 'inherit',
+      fontFamily: getFontFamilyByFamilyName(activeLogoFont),
       cursor: 'pointer',
       margin: 0,
       whiteSpace: 'nowrap',
@@ -239,7 +258,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       fontWeight: 600,
       cursor: 'pointer',
       whiteSpace: 'nowrap',
-      transition: 'background-color 0.2s, opacity 0.2s',
     };
 
     const logoNode = sec.headerShowLogo !== false && (
@@ -262,7 +280,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         style={{ 
           display: 'flex', 
           gap: `${sec.headerMenuGap ?? 24}px`, 
-          alignItems: 'center' 
+          alignItems: 'center',
         }}
       >
         {(sec.headerMenuItems || []).map((item) => (
@@ -285,7 +303,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       </div>
     );
 
-    // 1. 'spread-center' Layout: Perfectly center navigation menu horizontally, logo left, button right.
+    // 1. 'spread-center' Layout: Absolute horizontal center for navigation menu
     if (layout === 'spread-center') {
       return (
         <div 
@@ -323,7 +341,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       );
     }
 
-    // 2. 'spread-between' and other standard flow alignment layouts
+    // 2. Standard flow alignment layouts ('spread-between', 'left', 'center', 'right', 'even-space')
     let justifyStyle = 'flex-start';
     if (layout === 'spread-between') justifyStyle = 'space-between';
     if (layout === 'right') justifyStyle = 'flex-end';
@@ -354,22 +372,28 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
 
   return (
     <div className="canvas-grid-root" ref={containerRef}>
-      {/* Top section divider button */}
-      <div className="section-insert-line top-line">
-        <button className="insert-btn" onClick={() => addSection(-1)}>
-          <Plus size={12} />
-          <span>섹션 추가</span>
-        </button>
-      </div>
-
       {sections.map((sec, secIdx) => {
         const isDraggingInThisSection = dragState?.sectionId === sec.id;
-        const gWidth = sec.guidelineWidth || '80%';
+        const isSelected = activeSectionId === sec.id || activeElement?.sectionId === sec.id;
+        const isHoveringGuideline = isSelected && hoveredGuidelineWidth !== null && hoveredGuidelineWidth !== undefined;
+        const gWidth = isHoveringGuideline ? hoveredGuidelineWidth : (sec.guidelineWidth || '80%');
+
+        const isHoveredFromList = hoveredSectionId === sec.id;
+        
+        // Prioritize list hover preview: when hovering list item, focus ONLY the hovered section. Otherwise focus active selection.
+        const isFocused = hoveredSectionId ? isHoveredFromList : isSelected;
+
+        const hasSelection = activeSectionId !== null || activeElement !== null || hoveredSectionId !== null;
+        const isDimmed = hasSelection && !isFocused;
+
+        // Theme-adaptive primary accent color (e.g. #FF6B6B or #1E3A8A)
+        const rawThemeAccent = themeSettings?.primaryColor || '#18a0fb';
 
         return (
           <div
             key={sec.id}
-            className={`canvas-section-node relative w-full ${activeSectionId === sec.id ? 'active-section' : ''}`}
+            id={`section-${sec.id}`}
+            className={`canvas-section-node section-${sec.id} relative w-full ${isFocused ? 'active-section' : ''}`}
             style={{
               minHeight: sec.sharedType === 'header' ? 'auto' : sec.heightMode === 'auto' ? 'auto' : `${sec.height}${sec.heightUnit || 'px'}`,
               height: 'auto', // dynamic height flow
@@ -388,6 +412,14 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                   : sec.verticalAlign === 'end'
                     ? 'flex-end'
                     : 'center',
+              opacity: isDimmed ? 0.35 : 1,
+              filter: isDimmed ? 'opacity(0.4)' : 'none',
+              transition: 'opacity 0.2s ease, filter 0.2s ease, box-shadow 0.2s ease',
+              boxShadow: isFocused 
+                ? `inset 0 0 0 2.5px ${rawThemeAccent}` 
+                : 'none',
+              position: 'relative',
+              zIndex: isFocused ? 20 : 1,
             } as React.CSSProperties}
             onClick={(e) => {
               e.stopPropagation();
@@ -400,6 +432,24 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               <div className="side-margin-shading left" style={{ width: getMarginPercent(gWidth) }}>
                 <div className="margin-border-line right-border"></div>
               </div>
+            )}
+
+            {/* Visual Guide Overlay for Guideline Width Hover Preview (Diagonal Hatched Pattern, No Side Borders) */}
+            {isSelected && hoveredGuidelineWidth && (
+              <div 
+                style={{
+                  position: 'absolute',
+                  top: 0,
+                  bottom: 0,
+                  left: getMarginPercent(hoveredGuidelineWidth),
+                  width: getContentPercent(hoveredGuidelineWidth),
+                  backgroundImage: 'repeating-linear-gradient(-45deg, rgba(2, 132, 199, 0.14), rgba(2, 132, 199, 0.14) 10px, rgba(2, 132, 199, 0.03) 10px, rgba(2, 132, 199, 0.03) 20px)',
+                  border: 'none',
+                  zIndex: 35,
+                  pointerEvents: 'none',
+                  transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+              />
             )}
 
             {/* Visual Guide Overlay for Padding Top customization (Bound to section boundaries) */}
@@ -503,23 +553,28 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                   padding: 0,
                   gap: 0,
                   minHeight: '100%'
-                } : sec.layoutMode === 'flex' ? {
-                  display: 'flex',
-                  flexDirection: sec.flexDirection === 'horizontal' ? 'row' : 'column',
-                  gap: sec.flexGap !== undefined ? `${sec.flexGap}px` : 'var(--theme-default-flex-gap)',
-                  alignItems: sec.flexDirection === 'horizontal' ? 'center' : 'stretch',
-                  justifyContent: sec.flexAlign === 'start' ? 'flex-start' : sec.flexAlign === 'end' ? 'flex-end' : sec.flexAlign === 'space-between' ? 'space-between' : 'center',
-                  paddingTop: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)',
-                  paddingBottom: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)',
+                } : sec.layoutMode === 'flex' ? (() => {
+                  const activeAlign = (isSelected && previewFlexAlign) ? previewFlexAlign : (sec.flexAlign || 'center');
+                  return {
+                    display: 'flex',
+                    flexDirection: sec.flexDirection === 'horizontal' ? 'row' : 'column',
+                    gap: sec.flexGap !== undefined ? `${sec.flexGap}px` : 'var(--theme-default-flex-gap)',
+                    alignItems: sec.flexDirection === 'horizontal' ? 'center' : 'stretch',
+                    justifyContent: activeAlign === 'start' ? 'flex-start' : activeAlign === 'end' ? 'flex-end' : activeAlign === 'space-between' ? 'space-between' : 'center',
+                    paddingTop: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)',
+                    paddingBottom: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)',
+                    height: 'auto',
+                    minHeight: 'auto',
+                    boxSizing: 'border-box',
+                    transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
+                  };
+                })() : { 
                   height: 'auto',
                   minHeight: 'auto',
-                  boxSizing: 'border-box'
-                } : { 
-                  height: 'auto',
-                  minHeight: 'auto',
                   paddingTop: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)',
                   paddingBottom: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)',
-                  boxSizing: 'border-box'
+                  boxSizing: 'border-box',
+                  transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
                 }}
               >
                 {sec.sharedType === 'header' ? (
@@ -536,6 +591,8 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                       onDragStart={sec.layoutMode === 'flex' ? undefined : onElementDragStart}
                       onResizeStart={sec.layoutMode === 'flex' ? undefined : onElementResizeStart}
                       onTextChange={handleTextChange}
+                      pages={pages}
+                      onNavigatePage={onNavigatePage}
                     />
                   ))
                 )}
@@ -563,34 +620,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               </div>
             )}
 
-            {/* Section Operations Bar (Floating controller) */}
-            <div className="section-operations">
-              <div className="operation-tag">섹션 {secIdx + 1}</div>
-              <button
-                className="op-btn"
-                disabled={secIdx === 0}
-                onClick={(e) => moveSection(sec.id, 'up', e)}
-                title="위로 이동"
-              >
-                <ChevronUp size={14} />
-              </button>
-              <button
-                className="op-btn"
-                disabled={secIdx === sections.length - 1}
-                onClick={(e) => moveSection(sec.id, 'down', e)}
-                title="아래로 이동"
-              >
-                <ChevronDown size={14} />
-              </button>
-              <button
-                className="op-btn delete"
-                onClick={(e) => deleteSection(sec.id, e)}
-                title="섹션 삭제"
-              >
-                <Trash2 size={13} />
-              </button>
-            </div>
-
             {/* Section Height Resize Handle (Bottom border drag) */}
             <div
               className="section-resize-handle"
@@ -598,14 +627,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               title="섹션 높이 조절"
             >
               <div className="resize-indicator"></div>
-            </div>
-
-            {/* Section Insert Divider Line */}
-            <div className="section-insert-line">
-              <button className="insert-btn" onClick={() => addSection(secIdx)}>
-                <Plus size={12} />
-                <span>섹션 추가</span>
-              </button>
             </div>
           </div>
         );

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType, Page, ThemeSettings } from '../types';
-import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns } from 'lucide-react';
+import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns, FileText } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 
@@ -61,6 +61,11 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   const [isAddPageModalOpen, setIsAddPageModalOpen] = useState(false);
   const [newPageName, setNewPageName] = useState('');
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
+  const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
+  const [hoveredGuidelineWidth, setHoveredGuidelineWidth] = useState<GuidelineWidth | null>(null);
+  const [previewHeaderLayout, setPreviewHeaderLayout] = useState<string | null>(null);
+  const [previewFlexAlign, setPreviewFlexAlign] = useState<string | null>(null);
+  const [previewHeaderLogoFont, setPreviewHeaderLogoFont] = useState<string | null>(null);
 
   const handleCopyColor = (colorHex: string) => {
     navigator.clipboard.writeText(colorHex).then(() => {
@@ -321,13 +326,14 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           {pages.map((p) => (
             <div
               key={p.id}
-              className={`page-tab flex items-center gap-1.5 ${p.id === activePageId ? 'active' : ''}`}
+              className={`page-tab flex items-center gap-2 ${p.id === activePageId ? 'active' : ''}`}
               onClick={() => {
                 setActivePageId(p.id);
                 setActiveElement(null);
                 setActiveSectionId(null);
               }}
             >
+              <span className={`tab-indicator ${p.id === activePageId ? 'active' : ''}`}></span>
               <span className="tab-name">{p.name}</span>
               {p.id !== 'main' && (
                 <button
@@ -335,7 +341,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
                   onClick={(e) => handleDeletePage(p.id, e)}
                   title="페이지 삭제"
                 >
-                  <X size={10} />
+                  <X size={12} />
                 </button>
               )}
             </div>
@@ -343,11 +349,11 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         </div>
 
         <button
-          className="add-page-btn flex items-center gap-1"
+          className="add-page-btn flex items-center gap-1.5"
           onClick={() => setIsAddPageModalOpen(true)}
           title="새로운 페이지 추가"
         >
-          <Plus size={14} />
+          <Plus size={15} />
           <span>페이지 추가</span>
         </button>
       </div>
@@ -379,25 +385,6 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
               <span>3열 글상자</span>
             </button>
           </div>
-          
-          <div className="divider" style={{ margin: '14px 0', width: 'auto' }}></div>
-
-          {/* Section controller inside left palette */}
-          <div className="px-3 flex flex-col gap-2">
-            <span className="group-label">섹션 관리</span>
-            <button className="icon-tool-btn w-full justify-center" onClick={() => {
-              const newSection: Section = {
-                id: `s_${Date.now()}`,
-                height: 350,
-                backgroundColor: '#ffffff',
-                elements: [],
-              };
-              setSections(prev => [...prev, newSection]);
-            }} title="새 섹션 추가">
-              <Plus size={16} />
-              <span>새 섹션 추가</span>
-            </button>
-          </div>
         </div>
 
         {/* Center Canvas Area */}
@@ -410,6 +397,18 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             activeSectionId={activeSectionId}
             setActiveSectionId={setActiveSectionId}
             activePaddingGuide={activePaddingGuide}
+            pages={pages}
+            onNavigatePage={(id) => {
+              setActivePageId(id);
+              setActiveElement(null);
+              setActiveSectionId(null);
+            }}
+            hoveredSectionId={hoveredSectionId}
+            themeSettings={themeSettings}
+            hoveredGuidelineWidth={hoveredGuidelineWidth}
+            previewHeaderLayout={previewHeaderLayout}
+            previewFlexAlign={previewFlexAlign}
+            previewHeaderLogoFont={previewHeaderLogoFont}
           />
         </div>
 
@@ -423,6 +422,23 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           setActiveSectionId={setActiveSectionId}
           themeSettings={themeSettings}
           setActivePaddingGuide={setActivePaddingGuide}
+          pages={pages}
+          activePageId={activePageId}
+          onNavigatePage={(id) => {
+            setActivePageId(id);
+            setActiveElement(null);
+            setActiveSectionId(null);
+          }}
+          hoveredSectionId={hoveredSectionId}
+          setHoveredSectionId={setHoveredSectionId}
+          hoveredGuidelineWidth={hoveredGuidelineWidth}
+          setHoveredGuidelineWidth={setHoveredGuidelineWidth}
+          previewHeaderLayout={previewHeaderLayout}
+          setPreviewHeaderLayout={setPreviewHeaderLayout}
+          previewFlexAlign={previewFlexAlign}
+          setPreviewFlexAlign={setPreviewFlexAlign}
+          previewHeaderLogoFont={previewHeaderLogoFont}
+          setPreviewHeaderLogoFont={setPreviewHeaderLogoFont}
         />
       </div>
 
@@ -522,78 +538,122 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
 
         /* Row 2 toolbar styles */
         .page-toolbar {
-          height: 38px;
-          background-color: #1e2025; /* dark VSCode/Figma background */
-          border-bottom: 1px solid var(--figma-border);
-          padding: 0 16px;
+          height: 64px;
+          background-color: #f8fafc;
+          border-top: 1px solid #e2e8f0;
+          border-bottom: 1px solid #e2e8f0;
+          padding: 0 24px;
           display: flex;
           align-items: center;
+          justify-content: space-between;
+          font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
         }
 
         .page-tabs {
           display: flex;
+          align-items: center;
+          gap: 8px;
           height: 100%;
-          gap: 1px;
         }
 
         .page-tab {
-          height: 100%;
-          padding: 0 16px;
-          background-color: #16171a; /* darker inactive tabs */
-          border-right: 1px solid rgba(255, 255, 255, 0.05);
-          color: rgba(255, 255, 255, 0.55);
-          font-size: 11.5px;
+          height: 34px;
+          padding: 0 14px;
+          background-color: #ffffff;
+          border: 1px solid #e2e8f0;
+          border-radius: 6px;
+          color: #64748b;
+          font-size: 12.5px;
           font-weight: 500;
+          font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
           cursor: pointer;
-          transition: all 0.2s;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
           display: flex;
           align-items: center;
           gap: 8px;
-        }
-
-        .page-tab:hover {
-          background-color: #1a1b1f;
-          color: #ffffff;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+          user-select: none;
         }
 
         .page-tab.active {
-          background-color: #1e2025; /* matches bar background */
-          color: #ffffff; /* pure white text - fully visible! */
-          border-bottom: 2px solid var(--figma-accent);
+          background-color: #ffffff;
+          border-color: var(--figma-accent);
+          color: #0f172a;
+          font-weight: 600;
+          box-shadow: 0 3px 10px rgba(24, 160, 251, 0.2), 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-indicator {
+          width: 6px;
+          height: 6px;
+          border-radius: 50%;
+          background-color: #cbd5e1;
+          transition: all 0.2s ease;
+        }
+
+        .tab-indicator.active {
+          background-color: var(--figma-accent);
+          box-shadow: 0 0 6px rgba(24, 160, 251, 0.7);
+        }
+
+        .tab-icon {
+          color: #94a3b8;
+          transition: color 0.2s ease;
+        }
+
+        .page-tab.active .tab-icon {
+          color: var(--figma-accent);
+        }
+
+        .tab-name {
+          font-weight: 500;
+          letter-spacing: -0.2px;
+        }
+
+        .page-tab.active .tab-name {
           font-weight: 600;
         }
 
         .tab-close-btn {
           background: transparent;
           border: none;
-          color: rgba(255, 255, 255, 0.4);
+          color: #94a3b8;
           cursor: pointer;
-          padding: 2px;
-          border-radius: 50%;
+          padding: 3px;
+          border-radius: 4px;
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: all 0.15s ease;
+          margin-left: 2px;
         }
 
         .tab-close-btn:hover {
-          background-color: rgba(255, 0, 0, 0.2);
-          color: #ffffff;
+          background-color: #fee2e2;
+          color: #ef4444;
         }
 
         .add-page-btn {
-          background-color: var(--figma-accent);
-          border: none;
-          color: white;
-          padding: 4px 10px;
-          border-radius: 4px;
-          font-size: 11px;
+          height: 34px;
+          padding: 0 16px;
+          border-radius: 6px;
+          background-color: #ffffff;
+          border: 1px dashed #cbd5e1;
+          color: #475569;
+          font-size: 12.5px;
           font-weight: 600;
+          font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
           cursor: pointer;
-          transition: background-color 0.2s;
+          transition: all 0.2s ease;
+          display: flex;
+          align-items: center;
+          gap: 6px;
         }
 
         .add-page-btn:hover {
-          background-color: var(--figma-accent-hover);
+          background-color: #ffffff;
+          border-color: var(--figma-accent);
+          color: var(--figma-accent);
         }
 
         /* Preset select and Styles */
@@ -779,8 +839,6 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
 
         .export-action-btn:hover {
           background: linear-gradient(135deg, #0c8ce9 0%, #057bd0 100%);
-          box-shadow: 0 2px 4px rgba(24, 160, 251, 0.25);
-          transform: translateY(-0.5px);
         }
 
         .color-code-tag.copyable {
@@ -806,7 +864,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
 
         .workspace-main {
           display: flex;
-          height: calc(100% - 58px - 38px - 25px); /* adjusted for double row */
+          flex: 1;
+          min-height: 0;
         }
 
         .elements-palette {
@@ -845,9 +904,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         .add-el-btn:hover {
-          background-color: rgba(255, 255, 255, 0.07);
+          background-color: rgba(0, 0, 0, 0.04);
           border-color: var(--figma-accent);
-          transform: translateY(-1px);
         }
 
         .canvas-wrapper {

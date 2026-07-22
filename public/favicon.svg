@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E1B4B" />
+      <stop offset="100%" stop-color="#0F172A" />
+    </linearGradient>
+    <linearGradient id="grid-accent" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6366F1" />
+      <stop offset="100%" stop-color="#8B5CF6" />
+    </linearGradient>
+    <linearGradient id="grid-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#06B6D4" />
+      <stop offset="100%" stop-color="#3B82F6" />
+    </linearGradient>
+  </defs>
+  <!-- Background Card -->
+  <rect width="32" height="32" rx="7" fill="url(#bg)" />
+  <rect width="30" height="30" x="1" y="1" rx="6" fill="none" stroke="#334155" stroke-width="0.8" />
+
+  <!-- Grid blocks representing website builder layout -->
+  <!-- Top Header block -->
+  <rect x="5" y="5" width="22" height="5" rx="1.5" fill="url(#grid-accent)" />
+
+  <!-- Left Sidebar block -->
+  <rect x="5" y="12" width="6" height="15" rx="1.5" fill="#334155" opacity="0.8" />
+
+  <!-- Main Content Cards -->
+  <rect x="13" y="12" width="14" height="7" rx="1.5" fill="url(#grid-cyan)" />
+  <rect x="13" y="21" width="14" height="6" rx="1.5" fill="#475569" opacity="0.9" />
+</svg>

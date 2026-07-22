@@ -37,6 +37,12 @@ export interface EditorElement {
   marginBottom?: number;
   marginRight?: number;
 
+  // Button action & link properties
+  linkType?: 'none' | 'page' | 'url';
+  linkPageId?: string;
+  linkUrl?: string;
+  linkTarget?: '_blank' | '_self';
+
   // 3-column properties
   col1Title?: string;
   col1Text?: string;

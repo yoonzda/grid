@@ -8,31 +8,54 @@
 
 /* Sidebar properties panel style definitions */
 .properties-panel {
-  width: 300px;
-  min-width: 300px;
-  max-width: 300px;
+  width: 380px;
+  min-width: 380px;
+  max-width: 380px;
   flex-shrink: 0;
-  background-color: var(--figma-panel);
-  border-left: 1px solid var(--figma-border);
+  background-color: #ffffff;
+  border-left: 1px solid #e2e8f0;
   display: flex;
   flex-direction: column;
   height: 100%;
   box-sizing: border-box;
+  font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.02);
+}
+
+.properties-panel * {
+  font-family: 'Inter', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif !important;
+}
+
+.properties-panel .panel-header {
+  padding: 18px 22px;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  border-bottom: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .del-el-btn {
   background: transparent;
   border: none;
-  color: var(--figma-text-muted);
+  color: #94a3b8;
   cursor: pointer;
-  padding: 4px;
-  border-radius: 4px;
-  transition: background 0.2s;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .del-el-btn:hover {
-  background: rgba(242, 78, 30, 0.1);
-  color: var(--figma-danger);
+  background: #fee2e2;
+  color: #ef4444;
 }
 
 .properties-empty {
@@ -41,25 +64,25 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 32px 24px;
   text-align: center;
   box-sizing: border-box;
   width: 100%;
 }
 
 .empty-text {
-  font-size: 11.5px;
-  color: var(--figma-text-muted);
+  font-size: 13.5px;
+  color: #475569;
   line-height: 1.6;
   word-break: keep-all;
-  max-width: 230px;
+  max-width: 300px;
   display: block;
 }
 
 .help-icon {
-  color: var(--figma-text-muted);
-  margin-bottom: 12px;
-  opacity: 0.5;
+  color: #94a3b8;
+  margin-bottom: 14px;
+  opacity: 0.7;
 }
 
 .properties-body {
@@ -67,50 +90,58 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
+  padding: 22px;
   box-sizing: border-box;
 }
 
 .property-group {
-  border-bottom: 1px solid var(--figma-border);
-  padding-bottom: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.property-group:last-child {
+  border-bottom: none;
 }
 
 .group-title {
   display: block;
-  font-size: 10px;
-  font-weight: 700;
-  color: var(--figma-text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
+  font-size: 15px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  margin-bottom: 8px;
 }
 
 /* Layout shortcuts grid */
 .shortcut-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
+  gap: 10px;
 }
 
 .shortcut-btn {
-  background: var(--figma-bg);
-  border: 1px solid var(--figma-border);
-  color: var(--figma-text);
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #334155;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border-radius: 4px;
-  font-size: 10px;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 
 .shortcut-btn:hover {
-  background: rgba(0,0,0,0.03);
-  border-color: var(--figma-accent);
+  background: #f8fafc;
+  border-color: var(--figma-accent, #18a0fb);
+  color: var(--figma-accent, #18a0fb);
 }
 
 .shortcut-btn.center-btn {
@@ -122,62 +153,100 @@
 .input-block {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 7px;
 }
 
 .input-label {
-  font-size: 10px;
+  font-size: 13.5px;
   font-weight: 600;
-  color: var(--figma-text-muted);
+  color: #334155;
 }
 
 input[type="text"],
 input[type="number"],
 select,
-textarea {
+textarea,
+.custom-select-trigger {
   width: 100%;
-  background: var(--figma-bg);
-  border: 1px solid var(--figma-border);
-  color: var(--figma-text);
-  padding: 6px 8px;
-  border-radius: 4px;
-  font-size: 11px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
+  padding: 8px 12px;
+  height: 38px;
+  border-radius: 6px;
+  font-size: 13.5px;
+  font-weight: 500;
   outline: none;
   font-family: inherit;
+  box-sizing: border-box;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+input[type="text"]:hover,
+input[type="number"]:hover,
+select:hover,
+textarea:hover,
+.custom-select-trigger:hover {
+  border-color: #94a3b8;
 }
 
 input[type="text"]:focus,
 input[type="number"]:focus,
 select:focus,
-textarea:focus {
-  border-color: var(--figma-accent);
+textarea:focus,
+.custom-select-trigger:focus,
+.custom-select-trigger.active {
+  border-color: #0284c7;
+  box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.12);
 }
 
 .grid-inputs-row {
   display: flex;
-  gap: 8px;
+  gap: 10px;
 }
 
 .grid-input-item {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .color-picker-wrapper {
   display: flex;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
 }
 
 .color-picker-wrapper input[type="color"] {
-  border: 1px solid var(--figma-border);
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border: 1px solid #cbd5e1;
   padding: 0;
-  width: 25px;
-  height: 25px;
-  border-radius: 4px;
+  width: 38px;
+  height: 38px;
+  border-radius: 6px;
   cursor: pointer;
-  background: transparent;
+  overflow: hidden;
+  background: none;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.color-picker-wrapper input[type="color"]::-webkit-color-swatch-wrapper {
+  padding: 0;
+}
+
+.color-picker-wrapper input[type="color"]::-webkit-color-swatch {
+  border: none;
+  border-radius: 5px;
+}
+
+.color-picker-wrapper input[type="color"]::-moz-color-swatch {
+  border: none;
+  border-radius: 5px;
 }
 
 .color-picker-wrapper input[type="text"] {
@@ -187,26 +256,27 @@ textarea:focus {
 /* Align buttons row */
 .align-buttons-row {
   display: flex;
-  border: 1px solid var(--figma-border);
-  border-radius: 4px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
   overflow: hidden;
+  background: #ffffff;
 }
 
 .align-btn {
   flex: 1;
-  background: var(--figma-bg);
+  background: #ffffff;
   border: none;
-  border-right: 1px solid var(--figma-border);
-  color: var(--figma-text-muted);
-  padding: 6px 4px;
+  border-right: 1px solid #cbd5e1;
+  color: #475569;
+  padding: 8px 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  font-size: 10px;
+  gap: 6px;
+  font-size: 12px;
   font-weight: 600;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: background 0.15s, color 0.15s;
 }
 
 .align-btn:last-child {

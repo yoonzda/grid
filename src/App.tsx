@@ -9,6 +9,7 @@ import './App.css';
 import JSZip from 'jszip';
 import { updateGoogleFontsInDOM } from './utils/fontManager';
 
+// App root component for GRID design system builder
 const compactSectionElements = (elements: EditorElement[]): EditorElement[] => {
   if (elements.length === 0) return elements;
   const minY = elements.reduce((min, el) => Math.min(min, el.gridY), Infinity);
@@ -369,7 +370,7 @@ function App() {
         .canvas-grid-root select,
         .canvas-grid-root input,
         .canvas-grid-root textarea {
-          font-family: '${themeSettings.fontFamily}', sans-serif !important;
+          font-family: '${themeSettings.fontFamily}', sans-serif;
         }
 
         /* Preset class rules */

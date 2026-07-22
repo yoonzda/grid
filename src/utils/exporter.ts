@@ -882,28 +882,38 @@ ${fontLinksHtml}
         } else if (el.type === 'button') {
           const iconSvg = getIconSvg(el.iconType);
           
-          // Connect standard button routes
-          let clickAttr = '';
-          if (el.id === 'el-header-btn') {
-            // Links to contact/login page
-            const loginPage = pages.find(pageLink => pageLink.id === 'login');
-            if (loginPage) {
-              clickAttr = ` onclick="location.href='${loginPage.fileName}'"`;
+          let targetHref = '';
+          let targetAttr = '';
+          
+          if (el.linkType === 'page' && el.linkPageId) {
+            const targetPage = pages.find(pageLink => pageLink.id === el.linkPageId);
+            if (targetPage) {
+              targetHref = targetPage.fileName;
             }
+          } else if (el.linkType === 'url' && el.linkUrl) {
+            targetHref = el.linkUrl;
+            if (el.linkTarget === '_blank') {
+              targetAttr = ' target="_blank" rel="noopener noreferrer"';
+            }
+          } else if (el.id === 'el-header-btn') {
+            const loginPage = pages.find(pageLink => pageLink.id === 'login');
+            if (loginPage) targetHref = loginPage.fileName;
           } else if (el.id === 'el-hero-btn') {
             const submainPage = pages.find(pageLink => pageLink.id === 'submain');
-            if (submainPage) {
-              clickAttr = ` onclick="location.href='${submainPage.fileName}'"`;
-            }
+            if (submainPage) targetHref = submainPage.fileName;
           } else if (el.id === 'el-login-submit') {
             const mypagePage = pages.find(pageLink => pageLink.id === 'mypage');
-            if (mypagePage) {
-              clickAttr = ` onclick="location.href='${mypagePage.fileName}'"`;
-            }
+            if (mypagePage) targetHref = mypagePage.fileName;
           }
 
+          const clickAttr = targetHref ? ` onclick="location.href='${targetHref}'"` : '';
           const presetClass = el.fontPresetId ? ` font-preset-${el.fontPresetId}` : '';
-          indexHtml += `          <button class="btn-element btn-${el.id}${presetClass}"${clickAttr}>\n`;
+          
+          if (targetHref && !targetHref.startsWith('javascript:')) {
+            indexHtml += `          <a href="${targetHref}"${targetAttr} class="btn-element btn-${el.id}${presetClass}" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center;">\n`;
+          } else {
+            indexHtml += `          <button class="btn-element btn-${el.id}${presetClass}"${clickAttr}>\n`;
+          }
           if (iconSvg && el.iconPosition === 'before') {
             indexHtml += `            ${iconSvg}\n`;
           }
@@ -911,7 +921,11 @@ ${fontLinksHtml}
           if (iconSvg && el.iconPosition === 'after') {
             indexHtml += `            ${iconSvg}\n`;
           }
-          indexHtml += `          </button>\n`;
+          if (targetHref && !targetHref.startsWith('javascript:')) {
+            indexHtml += `          </a>\n`;
+          } else {
+            indexHtml += `          </button>\n`;
+          }
         } else if (el.type === 'three-column') {
           const col1IconSvg = getIconSvg(el.col1Icon);
           const col2IconSvg = getIconSvg(el.col2Icon);

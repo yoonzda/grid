@@ -1,7 +1,8 @@
 import React, { useRef } from 'react';
-import { EditorElement } from '../types';
+import { EditorElement, Page } from '../types';
 import { getIconSvg } from '../utils/iconTemplates';
 import { getFontFamilyByFamilyName } from '../utils/fontManager';
+import { ExternalLink, ArrowRight } from 'lucide-react';
 
 interface ElementWrapperProps {
   element: EditorElement;
@@ -12,6 +13,8 @@ interface ElementWrapperProps {
   onDragStart?: (e: React.MouseEvent, sectionId: string, element: EditorElement, containerWidth: number) => void;
   onResizeStart?: (e: React.MouseEvent, sectionId: string, element: EditorElement, handle: 'r' | 'b' | 'br', containerWidth: number) => void;
   onTextChange?: (sectionId: string, elementId: string, newText: string) => void;
+  pages?: Page[];
+  onNavigatePage?: (id: string) => void;
 }
 
 export const ElementWrapper: React.FC<ElementWrapperProps> = ({
@@ -23,6 +26,8 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   onDragStart,
   onResizeStart,
   onTextChange,
+  pages,
+  onNavigatePage,
 }) => {
   const isEditingRef = useRef(false);
   const textInputRef = useRef<HTMLDivElement>(null);
@@ -178,9 +183,11 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       const padX = `${element.paddingX ?? defaultPadX}px`;
       const pad = `${padY} ${padX}`;
 
+      const targetPage = pages && element.linkType === 'page' ? pages.find(p => p.id === (element.linkPageId || 'main')) : undefined;
+
       return (
         <div
-          className={`canvas-btn-inner btn-${variant} btn-${size} ${hasPreset ? `font-preset-${element.fontPresetId}` : ''}`}
+          className={`canvas-btn-inner btn-${variant} btn-${size} ${hasPreset ? `font-preset-${element.fontPresetId}` : ''} relative group`}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -198,8 +205,41 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
             fontWeight: hasPreset ? undefined : 600,
             boxSizing: 'border-box',
             transition: 'background-color 0.2s, opacity 0.2s',
+            cursor: element.linkType ? 'pointer' : 'default',
           }}
         >
+          {/* Action indicator badge on active element */}
+          {isActive && element.linkType === 'page' && targetPage && (
+            <div
+              className="absolute -top-3 right-2 bg-[#0284c7] text-white text-[10px] px-2 py-0.5 rounded-full font-sans font-bold flex items-center gap-1 shadow-md z-30 cursor-pointer hover:bg-[#0369a1] transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                if (onNavigatePage) {
+                  onNavigatePage(targetPage.id);
+                  alert(`'${targetPage.name}' (${targetPage.fileName}) 페이지로 이동했습니다!`);
+                }
+              }}
+              title="클릭하여 연결된 페이지로 이동 확인"
+            >
+              <span>🔗 {targetPage.name} 이동</span>
+              <ArrowRight size={10} />
+            </div>
+          )}
+
+          {isActive && element.linkType === 'url' && element.linkUrl && (
+            <div
+              className="absolute -top-3 right-2 bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full font-sans font-bold flex items-center gap-1 shadow-md z-30 cursor-pointer hover:bg-emerald-700 transition-all"
+              onClick={(e) => {
+                e.stopPropagation();
+                window.open(element.linkUrl, element.linkTarget || '_blank');
+              }}
+              title="클릭하여 외부 링크 이동 확인"
+            >
+              <span>🌐 외부 링크</span>
+              <ExternalLink size={10} />
+            </div>
+          )}
+
           {iconSvg && element.iconPosition === 'before' && (
             <span className="btn-icon-wrapper" style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }} dangerouslySetInnerHTML={{ __html: iconSvg }} />
           )}
