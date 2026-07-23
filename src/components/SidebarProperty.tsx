@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Section, EditorElement, ThemeSettings, Page, GuidelineWidth } from '../types';
 import { SUPPORTED_FONTS, findSupportedFont } from '../utils/fontManager';
 import { ICON_TEMPLATES } from '../utils/iconTemplates';
-import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, Trash2, X, Grid, ExternalLink, ArrowRight, ChevronLeft, Plus, Check, ChevronDown } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, Trash2, X, Grid, ExternalLink, ArrowRight, ChevronLeft, Plus, Check, ChevronDown, ChevronUp } from 'lucide-react';
 import { resolveCollisions } from '../utils/collision';
 
 interface SidebarPropertyProps {
@@ -218,6 +218,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   setPreviewHeaderLogoFont,
 }) => {
   const [showSectionDetail, setShowSectionDetail] = useState<boolean>(true);
+  const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null);
 
   useEffect(() => {
     if (activeSectionId && !activeElement) {
@@ -2988,72 +2989,115 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                           isOpen: true,
                         };
                         updateElement({ legalArticles: [...current, newArticle] });
+                        setExpandedArticleId(nextId);
                       }}
                     >
                       + 조항 추가
                     </button>
                   </div>
 
-                  <div className="articles-list flex flex-col gap-3 max-h-[360px] overflow-y-auto pr-1">
-                    {(element.legalArticles || []).map((art, idx) => (
-                      <div key={art.id || idx} className="article-item-card p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex flex-col gap-2 relative">
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-[11px] font-bold text-slate-500">#{idx + 1} 조항</span>
-                          <button
-                            type="button"
-                            className="text-xs text-red-500 hover:text-red-700 font-semibold"
-                            onClick={() => {
-                              const updated = (element.legalArticles || []).filter(a => a.id !== art.id);
-                              updateElement({ legalArticles: updated });
-                            }}
+                  <div className="articles-list flex flex-col gap-2.5 max-h-[420px] overflow-y-auto pr-1">
+                    {(element.legalArticles || []).map((art, idx) => {
+                      const isExpanded = expandedArticleId === art.id || (expandedArticleId === null && idx === 0);
+
+                      return (
+                        <div
+                          key={art.id || idx}
+                          className={`article-item-card rounded-lg border transition-all ${
+                            isExpanded ? 'border-sky-300 bg-white shadow-sm' : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100/80'
+                          }`}
+                        >
+                          {/* Accordion Item Header Bar */}
+                          <div
+                            className="flex items-center justify-between p-2.5 cursor-pointer select-none"
+                            onClick={() => setExpandedArticleId(isExpanded ? '' : art.id)}
                           >
-                            🗑️ 삭제
-                          </button>
-                        </div>
+                            <div className="flex items-center gap-2 overflow-hidden flex-1 mr-2">
+                              <span className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 shrink-0">
+                                #{idx + 1}
+                              </span>
+                              {art.num && (
+                                <span className="text-xs font-bold text-sky-600 shrink-0">
+                                  {art.num}
+                                </span>
+                              )}
+                              <span className="text-xs font-semibold text-slate-800 truncate">
+                                {art.title || '제목 없음'}
+                              </span>
+                            </div>
 
-                        <div className="grid-inputs-row">
-                          <div className="grid-input-item" style={{ flex: '0 0 70px' }}>
-                            <span className="input-label">번호</span>
-                            <input
-                              type="text"
-                              value={art.num || ''}
-                              onChange={(e) => {
-                                const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, num: e.target.value } : a);
-                                updateElement({ legalArticles: updated });
-                              }}
-                              placeholder="1.1"
-                            />
+                            <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                              <button
+                                type="button"
+                                className="p-1 text-slate-400 hover:text-slate-600 rounded transition-all"
+                                onClick={() => setExpandedArticleId(isExpanded ? '' : art.id)}
+                                title={isExpanded ? '접기' : '펼치기'}
+                              >
+                                {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                              </button>
+                              <button
+                                type="button"
+                                className="p-1 text-red-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
+                                onClick={() => {
+                                  const updated = (element.legalArticles || []).filter(a => a.id !== art.id);
+                                  updateElement({ legalArticles: updated });
+                                }}
+                                title="조항 삭제"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </div>
 
-                          <div className="grid-input-item flex-1">
-                            <span className="input-label">조항 제목</span>
-                            <input
-                              type="text"
-                              value={art.title || ''}
-                              onChange={(e) => {
-                                const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, title: e.target.value } : a);
-                                updateElement({ legalArticles: updated });
-                              }}
-                              placeholder="Article 1. 제목"
-                            />
-                          </div>
-                        </div>
+                          {/* Accordion Item Content (Expanded Fields) */}
+                          {isExpanded && (
+                            <div className="p-3 pt-1 border-t border-slate-100 flex flex-col gap-2.5 bg-white rounded-b-lg">
+                              <div className="grid-inputs-row">
+                                <div className="grid-input-item" style={{ flex: '0 0 70px' }}>
+                                  <span className="input-label">번호</span>
+                                  <input
+                                    type="text"
+                                    value={art.num || ''}
+                                    onChange={(e) => {
+                                      const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, num: e.target.value } : a);
+                                      updateElement({ legalArticles: updated });
+                                    }}
+                                    placeholder="1.1"
+                                  />
+                                </div>
 
-                        <div className="input-block">
-                          <span className="input-label">조항 내용</span>
-                          <textarea
-                            rows={3}
-                            value={art.content || ''}
-                            onChange={(e) => {
-                              const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, content: e.target.value } : a);
-                              updateElement({ legalArticles: updated });
-                            }}
-                            className="w-full p-2 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-sky-500"
-                            placeholder="조항 상세 내용을 입력하세요."
-                          />
+                                <div className="grid-input-item flex-1">
+                                  <span className="input-label">조항 제목</span>
+                                  <input
+                                    type="text"
+                                    value={art.title || ''}
+                                    onChange={(e) => {
+                                      const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, title: e.target.value } : a);
+                                      updateElement({ legalArticles: updated });
+                                    }}
+                                    placeholder="Article 1. 제목"
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="input-block">
+                                <span className="input-label">조항 상세 내용</span>
+                                <textarea
+                                  rows={4}
+                                  value={art.content || ''}
+                                  onChange={(e) => {
+                                    const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, content: e.target.value } : a);
+                                    updateElement({ legalArticles: updated });
+                                  }}
+                                  className="w-full p-2 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-sky-500 leading-relaxed"
+                                  placeholder="조항 상세 내용을 입력하세요."
+                                />
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
