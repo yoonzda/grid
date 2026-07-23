@@ -373,6 +373,11 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
         <div className="legal-doc-container w-full" style={{ textAlign: element.align || 'left' }}>
           <ul className="legal-chapter-list" style={{ listStyle: 'none', padding: 0, margin: 0 }}>
             <li className="legal-chapter-item">
+              {element.legalChapterTitle && (
+                <h4 className="legal-chapter-title" style={{ fontSize: '13.5px', fontWeight: 800, color: '#475569', letterSpacing: '0.5px', textTransform: 'uppercase', margin: '0 0 16px 0', borderBottom: '2px solid #e2e8f0', paddingBottom: '8px' }}>
+                  {element.legalChapterTitle}
+                </h4>
+              )}
               <ul className="legal-article-list" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
                 {articles.map((art, idx) => (
                   <li key={art.id || idx} className="legal-article-item" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>

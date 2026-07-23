@@ -1175,6 +1175,9 @@ ${fontLinksHtml}
           indexHtml += `          <div class="legal-doc-container" style="text-align: ${el.align || 'left'};">\n`;
           indexHtml += `            <ul class="legal-chapter-list">\n`;
           indexHtml += `              <li class="legal-chapter-item">\n`;
+          if (el.legalChapterTitle) {
+            indexHtml += `                <h4 class="legal-chapter-title">${el.legalChapterTitle}</h4>\n`;
+          }
           indexHtml += `                <ul class="legal-article-list">\n`;
           
           articles.forEach((art) => {

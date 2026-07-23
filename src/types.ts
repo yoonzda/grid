@@ -89,6 +89,7 @@ export interface EditorElement {
   legalStyle?: 'list' | 'accordion';
   legalHeaderColor?: string;
   legalNumberColor?: string;
+  legalChapterTitle?: string;
 }
 
 export type HeaderLayoutType = 'spread-center' | 'spread-between' | 'left' | 'center' | 'right' | 'even-space';

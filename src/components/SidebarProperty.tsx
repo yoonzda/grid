@@ -2914,6 +2914,17 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               <div className="property-group flex flex-col gap-4">
                 <label className="group-title">약관 문서 설정</label>
 
+                {/* Chapter Title input */}
+                <div className="input-block">
+                  <span className="input-label font-bold text-slate-800">장 / 챕터 제목 (선택)</span>
+                  <input
+                    type="text"
+                    value={element.legalChapterTitle || ''}
+                    onChange={(e) => updateElement({ legalChapterTitle: e.target.value })}
+                    placeholder="예: CHAPTER 1. INTRODUCTORY RULES"
+                  />
+                </div>
+
                 {/* Color pickers */}
                 <div className="grid-inputs-row">
                   <div className="grid-input-item">
@@ -3040,33 +3051,35 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
                           {/* Accordion Item Content (Expanded Fields) */}
                           {isExpanded && (
-                            <div className="p-3 pt-1 border-t border-slate-100 flex flex-col gap-2.5 bg-white rounded-b-lg">
-                              <div className="grid-inputs-row">
-                                <div className="grid-input-item" style={{ flex: '0 0 70px' }}>
-                                  <span className="input-label">번호</span>
-                                  <input
-                                    type="text"
-                                    value={art.num || ''}
-                                    onChange={(e) => {
-                                      const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, num: e.target.value } : a);
-                                      updateElement({ legalArticles: updated });
-                                    }}
-                                    placeholder="1.1"
-                                  />
-                                </div>
+                            <div className="p-3 pt-2 border-t border-slate-100 flex flex-col gap-2.5 bg-white rounded-b-lg">
+                              {/* 1. Article Title Header */}
+                              <div className="input-block">
+                                <span className="input-label font-bold text-slate-800">조항 대표 제목 (Article Title)</span>
+                                <input
+                                  type="text"
+                                  value={art.title || ''}
+                                  onChange={(e) => {
+                                    const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, title: e.target.value } : a);
+                                    updateElement({ legalArticles: updated });
+                                  }}
+                                  className="w-full p-2 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-sky-500 font-semibold"
+                                  placeholder="예: Article 1. Rules and Institution"
+                                />
+                              </div>
 
-                                <div className="grid-input-item flex-1">
-                                  <span className="input-label">조항 제목</span>
-                                  <input
-                                    type="text"
-                                    value={art.title || ''}
-                                    onChange={(e) => {
-                                      const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, title: e.target.value } : a);
-                                      updateElement({ legalArticles: updated });
-                                    }}
-                                    placeholder="Article 1. 제목"
-                                  />
-                                </div>
+                              {/* 2. Article Number */}
+                              <div className="input-block">
+                                <span className="input-label font-bold text-slate-800">조항 번호 / 기호</span>
+                                <input
+                                  type="text"
+                                  value={art.num || ''}
+                                  onChange={(e) => {
+                                    const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, num: e.target.value } : a);
+                                    updateElement({ legalArticles: updated });
+                                  }}
+                                  className="w-full p-1.5 px-2 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-sky-500 font-bold text-sky-700"
+                                  placeholder="예: 1.1 또는 제 1 조"
+                                />
                               </div>
 
                               <div className="input-block">
