@@ -630,17 +630,43 @@ export const BUSINESS_TEMPLATE: Page[] = [
           },
           {
             id: 'el-terms-content',
-            type: 'text',
+            type: 'legal-doc',
             gridX: 1,
             gridW: 10,
             gridY: 3,
             gridH: 10,
-            content: `<div class="legal-doc-container"><ul class="legal-chapter-list"><li class="legal-chapter-item"><h4 class="legal-chapter-title">CHAPTER 1. INTRODUCTORY RULES</h4><ul class="legal-article-list"><li class="legal-article-item"><h5 id="article101" class="legal-article-title">Article 1. Rules and Institution</h5><ol class="legal-clause-list"><li class="legal-clause-item"><span class="legal-clause-num">1.1</span><div class="legal-clause-body">These are the international arbitration and service rules of <strong>(주) 코퍼레이트</strong> (hereinafter referred to as "Company"). Arbitrations or disputes conducted under these Rules shall be administered by the Company.</div></li><li class="legal-clause-item"><span class="legal-clause-num">1.2</span><div class="legal-clause-body">“Arbitral Tribunal” refers to an arbitral tribunal composed of one or more arbitrators appointed under these Rules.</div></li><li class="legal-clause-item"><span class="legal-clause-num">1.3</span><div class="legal-clause-body">The Secretariat acts under the direction and supervision of the Secretary-General, and performs the administrative functions referred to in the Rules.</div></li></ol></li><li class="legal-article-item"><h5 id="article102" class="legal-article-title">Article 2. Scope of Application & Definitions</h5><ol class="legal-clause-list"><li class="legal-clause-item"><span class="legal-clause-num">2.1</span><div class="legal-clause-body">Terms used in these Rules shall be defined as follows:<ol class="legal-subclause-list"><li class="legal-subclause-item"><span class="legal-subclause-num">i.</span><div class="legal-subclause-body">“Service” refers to digital web platform services provided by the Company.</div></li><li class="legal-subclause-item"><span class="legal-subclause-num">ii.</span><div class="legal-subclause-body">“Member” refers to a party who has agreed to these Rules and uses the Service.</div></li></ol></div></li></ol></li></ul></li></ul></div>`,
-            color: 'var(--theme-text)',
-            fontSize: '13px',
-            fontFamily: 'Inter',
+            legalStyle: 'accordion',
+            legalHeaderColor: 'var(--theme-primary)',
+            legalNumberColor: 'var(--theme-primary)',
             align: 'left',
             widthMode: 'stretch',
+            legalArticles: [
+              {
+                id: 'art-terms-1',
+                num: '1.1',
+                title: 'Article 1. Rules and Institution (목적 및 총칙)',
+                content: '본 약관은 (주) 코퍼레이트(이하 "회사"라 함)가 제공하는 디지털 웹 플랫폼 서비스의 이용조건 및 절차, 회원과 회사 간의 권리, 의무 및 책임사항 규정을 목적으로 합니다.',
+                isOpen: true,
+              },
+              {
+                id: 'art-terms-2',
+                num: '2.1',
+                title: 'Article 2. Scope of Application & Definitions (용어의 정의)',
+                content: '본 약관에서 사용하는 용어의 정의는 다음과 같습니다.',
+                isOpen: true,
+                subItems: [
+                  { id: 'sub-terms-2-1', num: 'i.', content: '“서비스”라 함은 회사가 회원에게 제공하는 디지털 웹 플랫폼 및 제반 기능 일체를 말합니다.' },
+                  { id: 'sub-terms-2-2', num: 'ii.', content: '“회원”이라 함은 회사의 서비스에 접속하여 본 약관에 동의하고 이용계약을 체결한 고객을 말합니다.' },
+                ]
+              },
+              {
+                id: 'art-terms-3',
+                num: '3.1',
+                title: 'Article 3. Notification & Revision (약관의 개정 및 고지)',
+                content: '회사는 관련 법률을 위배하지 않는 범위에서 본 약관을 개정할 수 있으며, 개정 시 적용일자 및 개정사유를 명시하여 사전 공지합니다.',
+                isOpen: false,
+              }
+            ]
           }
         ]
       },
@@ -675,17 +701,36 @@ export const BUSINESS_TEMPLATE: Page[] = [
           },
           {
             id: 'el-privacy-content',
-            type: 'text',
+            type: 'legal-doc',
             gridX: 1,
             gridW: 10,
             gridY: 3,
             gridH: 10,
-            content: `<div class="legal-doc-container"><ul class="legal-chapter-list"><li class="legal-chapter-item"><h4 class="legal-chapter-title">CHAPTER 1. PRIVACY PROTECTION & COLLECTION</h4><ul class="legal-article-list"><li class="legal-article-item"><h5 id="privacy101" class="legal-article-title">Article 1. Purpose of Processing</h5><ol class="legal-clause-list"><li class="legal-clause-item"><span class="legal-clause-num">1.1</span><div class="legal-clause-body"><strong>(주) 코퍼레이트</strong> (hereinafter referred to as "Company") processes personal information for member identification, service management, and customer support.</div></li></ol></li><li class="legal-article-item"><h5 id="privacy102" class="legal-article-title">Article 2. Collected Items & Retaining Period</h5><ol class="legal-clause-list"><li class="legal-clause-item"><span class="legal-clause-num">2.1</span><div class="legal-clause-body">The Company collects minimal information required:<ol class="legal-subclause-list"><li class="legal-subclause-item"><span class="legal-subclause-num">i.</span><div class="legal-subclause-body"><strong>Required Items:</strong> Name, Email Address, Contact Number, IP Address, Service Log.</div></li><li class="legal-subclause-item"><span class="legal-subclause-num">ii.</span><div class="legal-subclause-body"><strong>Retaining Period:</strong> Deleted immediately after fulfillment of purpose, or stored per relevant legal regulations.</div></li></ol></div></li></ol></li></ul></li></ul></div>`,
-            color: 'var(--theme-text)',
-            fontSize: '13px',
-            fontFamily: 'Inter',
+            legalStyle: 'accordion',
+            legalHeaderColor: 'var(--theme-primary)',
+            legalNumberColor: 'var(--theme-primary)',
             align: 'left',
             widthMode: 'stretch',
+            legalArticles: [
+              {
+                id: 'art-privacy-1',
+                num: '1.1',
+                title: 'Article 1. Purpose of Processing (수집 및 이용 목적)',
+                content: '(주) 코퍼레이트는 회원 식별, 서비스 제공, 고객 문의 응대 및 품질 개선을 위해 최소한의 개인정보를 수집 및 처리합니다.',
+                isOpen: true,
+              },
+              {
+                id: 'art-privacy-2',
+                num: '2.1',
+                title: 'Article 2. Collected Items & Retaining Period (수집 항목 및 보유기간)',
+                content: '회사가 수집하는 최소한의 개인정보 항목 및 보유 기간은 다음과 같습니다.',
+                isOpen: true,
+                subItems: [
+                  { id: 'sub-privacy-2-1', num: 'i.', content: '필수 수집항목: 성명, 이메일 주소, 연락처(전화번호), 접속 IP, 서비스 이용 기록' },
+                  { id: 'sub-privacy-2-2', num: 'ii.', content: '보유 및 파기: 목적 달성 후 지체 없이 파기하며, 법령에 따른 보존 의무 시 해당 기간 보관' },
+                ]
+              }
+            ]
           }
         ]
       },

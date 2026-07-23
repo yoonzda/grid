@@ -2908,6 +2908,157 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           );
         })()}
 
+        {/* Legal Document Property Panel */}
+        {element.type === 'legal-doc' && (
+              <div className="property-group flex flex-col gap-4">
+                <label className="group-title">약관 / 아코디언 컴포넌트 설정</label>
+
+                {/* Style Mode: List vs Accordion */}
+                <div className="input-block">
+                  <span className="input-label">표시 방식</span>
+                  <div className="align-buttons-row">
+                    <button
+                      type="button"
+                      className={`align-btn ${(element.legalStyle || 'list') === 'list' ? 'active' : ''}`}
+                      onClick={() => updateElement({ legalStyle: 'list' })}
+                    >
+                      전체 펼침 (List)
+                    </button>
+                    <button
+                      type="button"
+                      className={`align-btn ${element.legalStyle === 'accordion' ? 'active' : ''}`}
+                      onClick={() => updateElement({ legalStyle: 'accordion' })}
+                    >
+                      아코디언 접기 (Accordion)
+                    </button>
+                  </div>
+                </div>
+
+                {/* Color pickers */}
+                <div className="grid-inputs-row">
+                  <div className="grid-input-item">
+                    <span className="input-label">조항 제목 색상</span>
+                    <div className="color-picker-wrapper">
+                      <input
+                        type="color"
+                        value={element.legalHeaderColor?.startsWith('#') ? element.legalHeaderColor : '#0f172a'}
+                        onChange={(e) => updateElement({ legalHeaderColor: e.target.value })}
+                      />
+                      <input
+                        type="text"
+                        value={element.legalHeaderColor || '#0f172a'}
+                        onChange={(e) => updateElement({ legalHeaderColor: e.target.value })}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid-input-item">
+                    <span className="input-label">번호 강조 색상</span>
+                    <div className="color-picker-wrapper">
+                      <input
+                        type="color"
+                        value={element.legalNumberColor?.startsWith('#') ? element.legalNumberColor : '#0284c7'}
+                        onChange={(e) => updateElement({ legalNumberColor: e.target.value })}
+                      />
+                      <input
+                        type="text"
+                        value={element.legalNumberColor || '#0284c7'}
+                        onChange={(e) => updateElement({ legalNumberColor: e.target.value })}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Articles Manager */}
+                <div className="input-block flex flex-col gap-3 pt-2 border-t border-slate-200">
+                  <div className="flex items-center justify-between">
+                    <span className="input-label font-bold text-slate-800">조항 목록 관리</span>
+                    <button
+                      type="button"
+                      className="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-xs font-semibold border border-sky-200 transition-all"
+                      onClick={() => {
+                        const current = element.legalArticles || [];
+                        const nextId = `art-${Date.now()}`;
+                        const nextNum = `${current.length + 1}.1`;
+                        const newArticle: any = {
+                          id: nextId,
+                          num: nextNum,
+                          title: `Article ${current.length + 1}. 새로운 조항 제목`,
+                          content: '새로운 조항에 들어갈 상세 내용을 입력하세요.',
+                          isOpen: true,
+                        };
+                        updateElement({ legalArticles: [...current, newArticle] });
+                      }}
+                    >
+                      + 조항 추가
+                    </button>
+                  </div>
+
+                  <div className="articles-list flex flex-col gap-3 max-h-[360px] overflow-y-auto pr-1">
+                    {(element.legalArticles || []).map((art, idx) => (
+                      <div key={art.id || idx} className="article-item-card p-3 rounded-lg border border-slate-200 bg-slate-50/50 flex flex-col gap-2 relative">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[11px] font-bold text-slate-500">#{idx + 1} 조항</span>
+                          <button
+                            type="button"
+                            className="text-xs text-red-500 hover:text-red-700 font-semibold"
+                            onClick={() => {
+                              const updated = (element.legalArticles || []).filter(a => a.id !== art.id);
+                              updateElement({ legalArticles: updated });
+                            }}
+                          >
+                            🗑️ 삭제
+                          </button>
+                        </div>
+
+                        <div className="grid-inputs-row">
+                          <div className="grid-input-item" style={{ flex: '0 0 70px' }}>
+                            <span className="input-label">번호</span>
+                            <input
+                              type="text"
+                              value={art.num || ''}
+                              onChange={(e) => {
+                                const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, num: e.target.value } : a);
+                                updateElement({ legalArticles: updated });
+                              }}
+                              placeholder="1.1"
+                            />
+                          </div>
+
+                          <div className="grid-input-item flex-1">
+                            <span className="input-label">조항 제목</span>
+                            <input
+                              type="text"
+                              value={art.title || ''}
+                              onChange={(e) => {
+                                const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, title: e.target.value } : a);
+                                updateElement({ legalArticles: updated });
+                              }}
+                              placeholder="Article 1. 제목"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="input-block">
+                          <span className="input-label">조항 내용</span>
+                          <textarea
+                            rows={3}
+                            value={art.content || ''}
+                            onChange={(e) => {
+                              const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, content: e.target.value } : a);
+                              updateElement({ legalArticles: updated });
+                            }}
+                            className="w-full p-2 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-sky-500"
+                            placeholder="조항 상세 내용을 입력하세요."
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
         {/* Full-width Element Delete Button */}
         <div className="pt-4 mt-2 border-t border-red-100 flex flex-col">
           <button

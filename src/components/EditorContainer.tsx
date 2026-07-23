@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType, Page, ThemeSettings } from '../types';
-import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns } from 'lucide-react';
+import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns, FileText } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 
@@ -202,6 +202,62 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
     setActiveElement({ sectionId: targetSection.id, elementId: newElement.id });
   };
 
+  const addLegalDocElement = () => {
+    let targetSection = activeSectionId ? sections.find(s => s.id === activeSectionId) : null;
+    if (!targetSection) {
+      targetSection = sections.find(s => s.sharedType !== 'header' && s.sharedType !== 'footer');
+    }
+
+    if (!targetSection) {
+      alert('요소를 추가할 일반 섹션이 존재하지 않습니다.');
+      return;
+    }
+
+    const defaultArticles = [
+      {
+        id: `art-1`,
+        num: '1.1',
+        title: 'Article 1. Rules and Institution',
+        content: 'These are the international arbitration and service rules of the Company.',
+        isOpen: true,
+      },
+      {
+        id: `art-2`,
+        num: '2.1',
+        title: 'Article 2. Scope of Application & Definitions',
+        content: 'Terms used in these Rules shall be defined as follows.\n1. Service: Digital web platform services provided by the Company.\n2. Member: A party who has agreed to these Rules and uses the Service.',
+        isOpen: true,
+      },
+    ];
+
+    const newElement: EditorElement = {
+      id: `el-${Date.now()}`,
+      type: 'legal-doc',
+      gridX: 1,
+      gridW: 10,
+      gridY: targetSection.elements.length * 4 + 1,
+      gridH: 8,
+      legalArticles: defaultArticles,
+      legalStyle: 'list',
+      legalHeaderColor: 'var(--theme-primary)',
+      legalNumberColor: 'var(--theme-primary)',
+      align: 'left',
+      widthMode: 'stretch',
+    };
+
+    setSections(prev =>
+      prev.map(s => {
+        if (s.id !== targetSection.id) return s;
+        return {
+          ...s,
+          elements: [...s.elements, newElement],
+        };
+      })
+    );
+
+    setActiveElement({ sectionId: targetSection.id, elementId: newElement.id });
+  };
+
   // Delete Page Action
   const handleDeletePage = (pageId: string, e: React.MouseEvent) => {
     e.stopPropagation(); // Avoid switching page when clicking delete icon
@@ -385,6 +441,10 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             <button className="add-el-btn flex flex-col items-center" onClick={addThreeColumnTextBox}>
               <Columns size={20} />
               <span>3열 글상자</span>
+            </button>
+            <button className="add-el-btn flex flex-col items-center" onClick={addLegalDocElement}>
+              <FileText size={20} />
+              <span>약관/아코디언</span>
             </button>
           </div>
         </div>

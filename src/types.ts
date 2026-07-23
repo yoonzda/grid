@@ -3,7 +3,22 @@ export type GuidelineWidth = '100%' | '80%' | '60%';
 export type ButtonSize = 'small' | 'medium' | 'large';
 export type ButtonVariant = 'filled' | 'outlined' | 'ghost';
 
-export type ElementType = 'title' | 'text' | 'image' | 'button' | 'three-column';
+export type ElementType = 'title' | 'text' | 'image' | 'button' | 'three-column' | 'legal-doc';
+
+export interface LegalSubclauseItem {
+  id: string;
+  num: string;
+  content: string;
+}
+
+export interface LegalArticleItem {
+  id: string;
+  num: string;
+  title: string;
+  content: string;
+  isOpen?: boolean;
+  subItems?: LegalSubclauseItem[];
+}
 
 export interface EditorElement {
   id: string;
@@ -68,6 +83,12 @@ export interface EditorElement {
   colTextPresetId?: string;
   colGap?: number;
   colContentGap?: number;
+
+  // Legal Document / Accordion properties
+  legalArticles?: LegalArticleItem[];
+  legalStyle?: 'list' | 'accordion';
+  legalHeaderColor?: string;
+  legalNumberColor?: string;
 }
 
 export type HeaderLayoutType = 'spread-center' | 'spread-between' | 'left' | 'center' | 'right' | 'even-space';

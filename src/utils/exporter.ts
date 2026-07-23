@@ -1169,6 +1169,51 @@ ${fontLinksHtml}
           indexHtml += writeColumn(el.col3Title || '타이틀', el.col3Text || '본문 내용을 입력하세요.', col3IconSvg);
 
           indexHtml += `          </div>\n`;
+        } else if (el.type === 'legal-doc') {
+          const articles = el.legalArticles || [];
+          const isAccordion = el.legalStyle === 'accordion';
+          
+          indexHtml += `          <div class="legal-doc-container" style="text-align: ${el.align || 'left'};">\n`;
+          indexHtml += `            <ul class="legal-chapter-list">\n`;
+          indexHtml += `              <li class="legal-chapter-item">\n`;
+          indexHtml += `                <ul class="legal-article-list">\n`;
+          
+          articles.forEach((art) => {
+            indexHtml += `                  <li class="legal-article-item" style="margin-bottom: 20px;">\n`;
+            if (isAccordion) {
+              indexHtml += `                    <details class="legal-accordion-details" open>\n`;
+              indexHtml += `                      <summary className="legal-article-title-summary" style="font-weight: 700; cursor: pointer; font-size: 15px; margin-bottom: 8px;">${art.title}</summary>\n`;
+            } else {
+              indexHtml += `                    <h5 class="legal-article-title">${art.title}</h5>\n`;
+            }
+            
+            indexHtml += `                    <ol class="legal-clause-list">\n`;
+            indexHtml += `                      <li class="legal-clause-item">\n`;
+            if (art.num) indexHtml += `                        <span class="legal-clause-num">${art.num}</span>\n`;
+            indexHtml += `                        <div class="legal-clause-body">${art.content.replace(/\n/g, '<br/>')}`;
+            
+            if (art.subItems && art.subItems.length > 0) {
+              indexHtml += `\n                          <ol class="legal-subclause-list">\n`;
+              art.subItems.forEach((sub) => {
+                indexHtml += `                            <li class="legal-subclause-item"><span class="legal-subclause-num">${sub.num}</span><div class="legal-subclause-body">${sub.content}</div></li>\n`;
+              });
+              indexHtml += `                          </ol>\n                        `;
+            }
+            
+            indexHtml += `</div>\n`;
+            indexHtml += `                      </li>\n`;
+            indexHtml += `                    </ol>\n`;
+            
+            if (isAccordion) {
+              indexHtml += `                    </details>\n`;
+            }
+            indexHtml += `                  </li>\n`;
+          });
+
+          indexHtml += `                </ul>\n`;
+          indexHtml += `              </li>\n`;
+          indexHtml += `            </ul>\n`;
+          indexHtml += `          </div>\n`;
         }
         
         indexHtml += `        </div>\n`;
