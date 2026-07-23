@@ -429,6 +429,37 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     );
   };
 
+  const renderFooterComponent = (sec: Section) => {
+    const textFont = sec.footerTextFont || 'Inter';
+    const fontStyle = getFontFamilyByFamilyName(textFont);
+    const align = sec.footerAlign || 'center';
+    const textColor = sec.footerTextColor || '#9ca3af';
+    const textSize = sec.footerTextSize || '12px';
+    const paddingY = sec.footerPaddingY !== undefined ? sec.footerPaddingY : 20;
+    const contentText = sec.footerText || '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침';
+
+    return (
+      <div
+        className="footer-flex-wrapper"
+        style={{
+          width: '100%',
+          margin: '0 auto',
+          paddingTop: `${paddingY}px`,
+          paddingBottom: `${paddingY}px`,
+          textAlign: align,
+          color: textColor,
+          fontSize: textSize,
+          fontFamily: fontStyle,
+          lineHeight: 1.5,
+          boxSizing: 'border-box',
+          pointerEvents: 'auto',
+        }}
+      >
+        {contentText}
+      </div>
+    );
+  };
+
   return (
     <div 
       className="canvas-grid-root" 
@@ -757,6 +788,8 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               >
                 {sec.sharedType === 'header' ? (
                   renderHeaderComponent(sec)
+                ) : sec.sharedType === 'footer' ? (
+                  renderFooterComponent(sec)
                 ) : (
                   sec.elements.map(el => (
                     <ElementWrapper

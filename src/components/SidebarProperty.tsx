@@ -830,14 +830,12 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
     }
 
     if (section.sharedType === 'footer') {
-      const footerElement = section.elements[0];
-      const updateFooterElement = (fields: Partial<EditorElement>) => {
-        if (!footerElement) return;
-        const updatedElements = section.elements.map(el =>
-          el.id === footerElement.id ? { ...el, ...fields } : el
-        );
-        updateSection({ elements: updatedElements });
-      };
+      const footerText = section.footerText || '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침';
+      const textColor = section.footerTextColor || '#9ca3af';
+      const textSize = section.footerTextSize || '12px';
+      const textFont = section.footerTextFont || 'Inter';
+      const align = section.footerAlign || 'center';
+      const paddingY = section.footerPaddingY !== undefined ? section.footerPaddingY : 20;
 
       return (
         <div className="properties-panel">
@@ -882,108 +880,119 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 2. Footer Background Color */}
+            {/* 2. Footer Text Content */}
             <div className="property-group flex flex-col gap-2">
-              <label className="group-title">푸터 배경 색상</label>
-              <div className="color-picker-wrapper">
-                <input
-                  type="color"
-                  value={section.backgroundColor?.startsWith('#') ? section.backgroundColor : '#111827'}
-                  onChange={(e) => updateSection({ backgroundColor: e.target.value })}
-                />
-                <input
-                  type="text"
-                  value={section.backgroundColor || '#111827'}
-                  onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+              <label className="group-title">푸터 문구 & 카피라이트</label>
+              <textarea
+                rows={3}
+                value={footerText}
+                onChange={(e) => updateSection({ footerText: e.target.value })}
+                placeholder="© 2026 Corporate Inc. All rights reserved."
+              />
+            </div>
+
+            {/* 3. Footer Text Styling */}
+            <div className="property-group flex flex-col gap-3">
+              <label className="group-title">텍스트 스타일</label>
+              <div className="grid-inputs-row">
+                <div className="grid-input-item">
+                  <span className="input-label">글자 크기</span>
+                  <input
+                    type="text"
+                    value={textSize}
+                    onChange={(e) => updateSection({ footerTextSize: e.target.value })}
+                  />
+                </div>
+                <div className="grid-input-item">
+                  <span className="input-label">글자 색상</span>
+                  <div className="color-picker-wrapper">
+                    <input
+                      type="color"
+                      value={textColor.startsWith('#') ? textColor : '#9ca3af'}
+                      onChange={(e) => updateSection({ footerTextColor: e.target.value })}
+                    />
+                    <input
+                      type="text"
+                      value={textColor}
+                      onChange={(e) => updateSection({ footerTextColor: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Text Alignment */}
+              <div className="flex flex-col gap-1.5">
+                <span className="input-label">텍스트 정렬</span>
+                <div className="align-buttons-row">
+                  <button
+                    type="button"
+                    className={`align-btn ${align === 'left' ? 'active' : ''}`}
+                    onClick={() => updateSection({ footerAlign: 'left' })}
+                  >
+                    좌측
+                  </button>
+                  <button
+                    type="button"
+                    className={`align-btn ${align === 'center' ? 'active' : ''}`}
+                    onClick={() => updateSection({ footerAlign: 'center' })}
+                  >
+                    중앙
+                  </button>
+                  <button
+                    type="button"
+                    className={`align-btn ${align === 'right' ? 'active' : ''}`}
+                    onClick={() => updateSection({ footerAlign: 'right' })}
+                  >
+                    우측
+                  </button>
+                </div>
+              </div>
+
+              {/* Footer Font Selector */}
+              <div className="input-block mt-1">
+                <span className="input-label">글꼴 (Font Family)</span>
+                <FontCustomSelect
+                  currentFontName={textFont}
+                  onSelectFont={(fontName) => updateSection({ footerTextFont: fontName })}
+                  onHoverFont={() => {}}
                 />
               </div>
             </div>
 
-            {/* 3. Footer Text Content */}
-            {footerElement && (
-              <div className="property-group flex flex-col gap-2">
-                <label className="group-title">푸터 문구 & 카피라이트</label>
-                <textarea
-                  rows={3}
-                  value={footerElement.content || ''}
-                  onChange={(e) => updateFooterElement({ content: e.target.value })}
-                  placeholder="© 2026 Corporate Inc. All rights reserved."
-                />
-              </div>
-            )}
-
-            {/* 4. Footer Text Styling */}
-            {footerElement && (
-              <div className="property-group flex flex-col gap-3">
-                <label className="group-title">텍스트 스타일</label>
-                <div className="grid-inputs-row">
-                  <div className="grid-input-item">
-                    <span className="input-label">글자 크기</span>
+            {/* 4. Footer Section Base Settings (Padding & Background) */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">섹션 스타일</label>
+              <div className="grid-inputs-row">
+                <div className="grid-input-item" style={{ flex: '1.5 1 0%' }}>
+                  <span className="input-label">상하 여백 (Padding Y): {paddingY}px</span>
+                  <input
+                    type="range"
+                    min="0"
+                    max="80"
+                    step="2"
+                    value={paddingY}
+                    onChange={(e) => updateSection({ footerPaddingY: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                
+                <div className="grid-input-item">
+                  <span className="input-label">배경색</span>
+                  <div className="color-picker-wrapper">
+                    <input
+                      type="color"
+                      value={section.backgroundColor.startsWith('#') ? section.backgroundColor : '#111827'}
+                      onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+                    />
                     <input
                       type="text"
-                      value={footerElement.fontSize || '12px'}
-                      onChange={(e) => updateFooterElement({ fontSize: e.target.value })}
+                      value={section.backgroundColor}
+                      onChange={(e) => updateSection({ backgroundColor: e.target.value })}
                     />
                   </div>
-                  <div className="grid-input-item">
-                    <span className="input-label">글자 색상</span>
-                    <div className="color-picker-wrapper">
-                      <input
-                        type="color"
-                        value={footerElement.color?.startsWith('#') ? footerElement.color : '#9ca3af'}
-                        onChange={(e) => updateFooterElement({ color: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        value={footerElement.color || '#9ca3af'}
-                        onChange={(e) => updateFooterElement({ color: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Footer Text Alignment */}
-                <div className="flex flex-col gap-1.5">
-                  <span className="input-label">텍스트 정렬</span>
-                  <div className="align-buttons-row">
-                    <button
-                      type="button"
-                      className={`align-btn ${footerElement.align === 'left' ? 'active' : ''}`}
-                      onClick={() => updateFooterElement({ align: 'left' })}
-                    >
-                      좌측
-                    </button>
-                    <button
-                      type="button"
-                      className={`align-btn ${footerElement.align === 'center' ? 'active' : ''}`}
-                      onClick={() => updateFooterElement({ align: 'center' })}
-                    >
-                      중앙
-                    </button>
-                    <button
-                      type="button"
-                      className={`align-btn ${footerElement.align === 'right' ? 'active' : ''}`}
-                      onClick={() => updateFooterElement({ align: 'right' })}
-                    >
-                      우측
-                    </button>
-                  </div>
-                </div>
-
-                {/* Footer Font Selector */}
-                <div className="input-block mt-1">
-                  <span className="input-label">글꼴 (Font Family)</span>
-                  <select
-                    value={footerElement.fontFamily || 'Inter'}
-                    onChange={(e) => updateFooterElement({ fontFamily: e.target.value })}
-                  >
-                    {SUPPORTED_FONTS.map(f => (
-                      <option key={f.name} value={f.name}>{f.name}</option>
-                    ))}
-                  </select>
                 </div>
               </div>
-            )}
+            </div>
+
           </div>
         </div>
       );

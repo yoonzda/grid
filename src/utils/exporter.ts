@@ -112,6 +112,16 @@ ${fontImports.join('\n')}
         return;
       }
 
+      if (sec.sharedType === 'footer') {
+        variablesCss += `\n  /* --- Footer Component: ${sec.id} --- */\n`;
+        variablesCss += `  --sec-${sec.id}-bg-color: ${sec.backgroundColor};\n`;
+        variablesCss += `  --footer-${sec.id}-padding-y: ${sec.footerPaddingY ?? 20}px;\n`;
+        variablesCss += `  --footer-${sec.id}-text-color: ${sec.footerTextColor || '#9ca3af'};\n`;
+        variablesCss += `  --footer-${sec.id}-text-size: ${sec.footerTextSize || '12px'};\n`;
+        variablesCss += `  --footer-${sec.id}-text-font: ${getFontFamilyByFamilyName(sec.footerTextFont || 'Inter')};\n`;
+        return;
+      }
+
       variablesCss += `\n  /* --- Section: ${sec.id} --- */\n`;
       variablesCss += `  --sec-${sec.id}-bg-color: ${sec.backgroundColor};\n`;
       if (sec.backgroundImage) {
@@ -436,6 +446,28 @@ body {
           styleCss += `  background-color: rgba(120, 120, 120, 0.08);\n`;
           styleCss += `}\n`;
         }
+        return;
+      }
+
+      if (sec.sharedType === 'footer') {
+        styleCss += `\n/* Footer Component: ${sec.id} */\n`;
+        styleCss += `.section-${sec.id} {\n`;
+        styleCss += `  --content-width: ${sec.guidelineWidth || '80%'};\n`;
+        styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
+        styleCss += `  padding-top: var(--footer-${sec.id}-padding-y);\n`;
+        styleCss += `  padding-bottom: var(--footer-${sec.id}-padding-y);\n`;
+        styleCss += `  display: flex;\n`;
+        styleCss += `  align-items: center;\n`;
+        styleCss += `  justify-content: center;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .footer-wrapper {\n`;
+        styleCss += `  width: var(--content-width);\n`;
+        styleCss += `  margin: 0 auto;\n`;
+        styleCss += `  text-align: ${sec.footerAlign || 'center'};\n`;
+        styleCss += `  color: var(--footer-${sec.id}-text-color);\n`;
+        styleCss += `  font-size: var(--footer-${sec.id}-text-size);\n`;
+        styleCss += `  font-family: var(--footer-${sec.id}-text-font);\n`;
+        styleCss += `}\n`;
         return;
       }
 
@@ -837,6 +869,18 @@ ${fontLinksHtml}
         
         indexHtml += `    </header>\n`;
         indexHtml += `    <!-- Header End -->\n\n`;
+        return;
+      }
+
+      if (sec.sharedType === 'footer') {
+        const footerText = sec.footerText || '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침';
+        indexHtml += `    <!-- Footer Start -->\n`;
+        indexHtml += `    <footer class="section section-${sec.id}">\n`;
+        indexHtml += `      <div class="footer-wrapper">\n`;
+        indexHtml += `        <p>${footerText}</p>\n`;
+        indexHtml += `      </div>\n`;
+        indexHtml += `    </footer>\n`;
+        indexHtml += `    <!-- Footer End -->\n\n`;
         return;
       }
 

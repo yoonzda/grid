@@ -68,29 +68,20 @@ const getBusinessHeader = (): Section => ({
   headerPaddingY: 16,
 });
 
-// Common Business Footer
 const getBusinessFooter = (): Section => ({
   id: 'sec-footer',
-  height: 100,
+  height: 80,
   backgroundColor: '#111827', // Dark Gray
   isShared: true,
   sharedType: 'footer',
-  elements: [
-    {
-      id: 'el-footer-text',
-      type: 'text',
-      gridX: 0,
-      gridW: 12,
-      gridY: 0,
-      gridH: 1,
-      content: '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침',
-      color: '#9ca3af',
-      fontSize: '12px',
-      fontFamily: 'Inter',
-      align: 'center',
-      widthMode: 'stretch',
-    }
-  ]
+  heightMode: 'auto',
+  footerText: '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침',
+  footerTextColor: '#9ca3af',
+  footerTextSize: '12px',
+  footerTextFont: 'Inter',
+  footerAlign: 'center',
+  footerPaddingY: 20,
+  elements: []
 });
 
 export const BUSINESS_TEMPLATE: Page[] = [
@@ -730,26 +721,18 @@ const getModernHeader = (): Section => ({
 // Common Modern Footer
 const getModernFooter = (): Section => ({
   id: 'sec-footer',
-  height: 120,
+  height: 80,
   backgroundColor: 'var(--theme-secondary)',
   isShared: true,
   sharedType: 'footer',
-  elements: [
-    {
-      id: 'el-footer-text',
-      type: 'text',
-      gridX: 0,
-      gridW: 12,
-      gridY: 0,
-      gridH: 1,
-      content: 'M O D E R N  S T U D I O  /  All rights Reserved  /  Privacy Policy',
-      color: '#9ca3af',
-      fontSize: '11px',
-      fontFamily: 'Outfit',
-      align: 'center',
-      widthMode: 'stretch',
-    }
-  ]
+  heightMode: 'auto',
+  footerText: 'M O D E R N  S T U D I O  /  All rights Reserved  /  Privacy Policy',
+  footerTextColor: '#9ca3af',
+  footerTextSize: '11px',
+  footerTextFont: 'Outfit',
+  footerAlign: 'center',
+  footerPaddingY: 20,
+  elements: []
 });
 
 export const MODERN_TEMPLATE: Page[] = [

@@ -136,6 +136,14 @@ export interface Section {
   headerBtnSize?: ButtonSize;
   headerBtnVariant?: ButtonVariant;
   headerPaddingY?: number;
+
+  // Footer Component fields
+  footerText?: string;
+  footerTextColor?: string;
+  footerTextSize?: string;
+  footerTextFont?: string;
+  footerAlign?: 'left' | 'center' | 'right';
+  footerPaddingY?: number;
 }
 
 export interface Page {

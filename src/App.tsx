@@ -43,6 +43,24 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
         return { ...el, fontPresetId };
       });
 
+      if (sec.sharedType === 'footer') {
+        let textContent = sec.footerText;
+        if (!textContent && sec.elements && sec.elements.length > 0) {
+          textContent = sec.elements[0].content;
+        }
+        return {
+          ...sec,
+          heightMode: 'auto',
+          footerText: textContent || '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침',
+          footerTextColor: sec.footerTextColor || sec.elements?.[0]?.color || '#9ca3af',
+          footerTextSize: sec.footerTextSize || sec.elements?.[0]?.fontSize || '12px',
+          footerTextFont: sec.footerTextFont || sec.elements?.[0]?.fontFamily || 'Inter',
+          footerAlign: sec.footerAlign || sec.elements?.[0]?.align || 'center',
+          footerPaddingY: sec.footerPaddingY !== undefined ? sec.footerPaddingY : 20,
+          elements: [],
+        };
+      }
+
       return {
         ...sec,
         layoutMode: 'flex',
