@@ -444,7 +444,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             </button>
             <button className="add-el-btn flex flex-col items-center" onClick={addLegalDocElement}>
               <FileText size={20} />
-              <span>약관/아코디언</span>
+              <span>약관</span>
             </button>
           </div>
         </div>

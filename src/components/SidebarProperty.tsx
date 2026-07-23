@@ -2912,28 +2912,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
         {/* Legal Document Property Panel */}
         {element.type === 'legal-doc' && (
               <div className="property-group flex flex-col gap-4">
-                <label className="group-title">약관 / 아코디언 컴포넌트 설정</label>
-
-                {/* Style Mode: List vs Accordion */}
-                <div className="input-block">
-                  <span className="input-label">표시 방식</span>
-                  <div className="align-buttons-row">
-                    <button
-                      type="button"
-                      className={`align-btn ${(element.legalStyle || 'list') === 'list' ? 'active' : ''}`}
-                      onClick={() => updateElement({ legalStyle: 'list' })}
-                    >
-                      전체 펼침 (List)
-                    </button>
-                    <button
-                      type="button"
-                      className={`align-btn ${element.legalStyle === 'accordion' ? 'active' : ''}`}
-                      onClick={() => updateElement({ legalStyle: 'accordion' })}
-                    >
-                      아코디언 접기 (Accordion)
-                    </button>
-                  </div>
-                </div>
+                <label className="group-title">약관 문서 설정</label>
 
                 {/* Color pickers */}
                 <div className="grid-inputs-row">
@@ -3009,11 +2988,11 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                         >
                           {/* Accordion Item Header Bar */}
                           <div
-                            className="flex items-center justify-between p-2.5 cursor-pointer select-none"
+                            className="flex items-center justify-between p-2 px-2.5 cursor-pointer select-none min-w-0"
                             onClick={() => setExpandedArticleId(isExpanded ? '' : art.id)}
                           >
-                            <div className="flex items-center gap-2 overflow-hidden flex-1 mr-2">
-                              <span className="text-[11px] font-bold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 shrink-0">
+                            <div className="flex items-center gap-1.5 min-w-0 flex-1 mr-1">
+                              <span className="text-[10.5px] font-bold px-1.5 py-0.5 rounded bg-slate-200/80 text-slate-700 shrink-0">
                                 #{idx + 1}
                               </span>
                               {art.num && (
@@ -3021,19 +3000,19 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                                   {art.num}
                                 </span>
                               )}
-                              <span className="text-xs font-semibold text-slate-800 truncate">
+                              <span className="text-xs font-semibold text-slate-800 truncate block min-w-0">
                                 {art.title || '제목 없음'}
                               </span>
                             </div>
 
-                            <div className="flex items-center gap-1 shrink-0" onClick={(e) => e.stopPropagation()}>
+                            <div className="flex items-center gap-0.5 shrink-0" onClick={(e) => e.stopPropagation()}>
                               <button
                                 type="button"
                                 className="p-1 text-slate-400 hover:text-slate-600 rounded transition-all"
                                 onClick={() => setExpandedArticleId(isExpanded ? '' : art.id)}
                                 title={isExpanded ? '접기' : '펼치기'}
                               >
-                                {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
+                                {isExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                               </button>
                               <button
                                 type="button"
@@ -3044,7 +3023,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                                 }}
                                 title="조항 삭제"
                               >
-                                <Trash2 size={14} />
+                                <Trash2 size={13} />
                               </button>
                             </div>
                           </div>
