@@ -834,7 +834,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
       const address = section.footerAddress || '서울특별시 강남구 테헤란로 501, 15층 (삼성동, 코퍼레이트타워)';
       const tel = section.footerTel || '1588-0000';
       const bizNum = section.footerBizNum || '123-45-67890';
-      const links = section.footerLinksText || '개인정보처리방침   이용약관';
       const copyright = section.footerCopyright || 'Copyright © Corporate Inc. All rights reserved.';
       const layout = section.footerLayout || 'left-corporate';
 
@@ -1003,16 +1002,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </>
             )}
 
-            {/* 5. Policy & Links (Shown for all layouts) */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">상단 약관 & 퀵 링크 문구</label>
-              <input
-                type="text"
-                value={links}
-                onChange={(e) => updateSection({ footerLinksText: e.target.value })}
-                placeholder="개인정보처리방침   이용약관"
-              />
-            </div>
+            {/* 5. Copyright (Shown for all layouts) */}
 
             {/* 6. Copyright (Shown for all layouts) */}
             <div className="property-group flex flex-col gap-2">
