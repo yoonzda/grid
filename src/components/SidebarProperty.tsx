@@ -865,47 +865,58 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             {/* 1. Layout Style Preset */}
-            <div className="property-group flex flex-col gap-2.5">
-              <div className="flex items-center justify-between">
-                <label className="group-title">레이아웃 스타일</label>
-                <span className="text-[11px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
-                  {layout === 'left-corporate' && '기업 좌측형'}
-                  {layout === 'stacked-center' && '중앙 정렬형'}
-                  {layout === 'split-between' && '양분 분할형'}
-                  {layout === 'simple-center' && '심플 한줄형'}
-                </span>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">레이아웃 스타일</label>
+              <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {[
-                  { key: 'left-corporate', title: '기업 좌측형', desc: '한국 기업 표준 (추천)' },
-                  { key: 'stacked-center', title: '중앙 정렬형', desc: '4단 중앙 블록형' },
-                  { key: 'split-between', title: '양분 분할형', desc: '좌/우 양분 분할' },
-                  { key: 'simple-center', title: '심플 한줄형', desc: '약관 + 카피라이트' },
-                ].map((item) => {
-                  const isActive = layout === item.key;
+                  { value: 'left-corporate', label: '기업 좌측형 (한국 기업 표준)' },
+                  { value: 'stacked-center', label: '중앙 정렬형 (4단 중앙 블록)' },
+                  { value: 'split-between', label: '양분 분할형 (좌/우 분할)' },
+                  { value: 'simple-center', label: '심플 한줄형 (약관 + 카피라이트)' },
+                ].map((opt, idx, arr) => {
+                  const isSelected = layout === opt.value;
+                  const isLast = idx === arr.length - 1;
                   return (
-                    <button
-                      key={item.key}
-                      type="button"
-                      className={`flex flex-col items-start p-2.5 rounded-lg border text-left transition-all relative cursor-pointer ${
-                        isActive
-                          ? 'bg-sky-50/90 border-sky-500 text-sky-900 shadow-sm ring-2 ring-sky-500/20 font-bold'
-                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium'
-                      }`}
-                      onClick={() => updateSection({ footerLayout: item.key as any })}
+                    <div
+                      key={opt.value}
+                      onClick={() => updateSection({ footerLayout: opt.value as any })}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '10px',
+                        padding: '12px 8px',
+                        margin: '0 -8px',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        transition: 'all 0.15s ease',
+                        backgroundColor: isSelected ? '#f0f9ff' : 'transparent',
+                        borderBottom: isLast ? 'none' : '1px solid #f1f5f9',
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = '#f8fafc';
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
+                      }}
                     >
-                      <div className="flex items-center justify-between w-full mb-0.5">
-                        <span className={`text-xs ${isActive ? 'text-sky-900 font-bold' : 'text-slate-800'}`}>
-                          {item.title}
-                        </span>
-                        {isActive && (
-                          <span className="w-2 h-2 rounded-full bg-sky-500 shadow-sm"></span>
+                      {/* Left Check Icon Container */}
+                      <div style={{ width: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {isSelected && (
+                          <Check size={18} strokeWidth={2.5} style={{ color: '#0284c7' }} />
                         )}
                       </div>
-                      <span className={`text-[10px] ${isActive ? 'text-sky-700' : 'text-slate-400'}`}>
-                        {item.desc}
+
+                      {/* Label Text */}
+                      <span style={{
+                        fontSize: '13.5px',
+                        fontWeight: isSelected ? 700 : 500,
+                        color: isSelected ? '#0284c7' : '#334155',
+                        letterSpacing: '-0.2px',
+                        flex: 1,
+                      }}>
+                        {opt.label}
                       </span>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
