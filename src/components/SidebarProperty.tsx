@@ -830,14 +830,18 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
     }
 
     if (section.sharedType === 'footer') {
-      const company = section.footerCompany || '(주) 코퍼레이트 글로벌  |  CORPORATE Inc.';
-      const address = section.footerAddress || '대표이사: 홍길동  |  사업자등록번호: 123-45-67890  |  주소: 서울특별시 강남구 테헤란로 501  |  고객센터: 1588-0000';
-      const links = section.footerLinksText || '이용약관   |   개인정보처리방침   |   사업자정보확인   |   고객센터';
-      const copyright = section.footerCopyright || '© 2026 Corporate Inc. All rights reserved.';
-      const layout = section.footerLayout || 'stacked-center';
+      const company = section.footerCompany || '(주) 널리아이 / 마춤드림센터';
+      const representative = section.footerRepresentative || '이중선';
+      const address = section.footerAddress || '인천광역시 미추홀구 인주대로 147, 2~3층(용현동)';
+      const tel = section.footerTel || '032-751-1199';
+      const bizNum = section.footerBizNum || '346-85-02027';
+      const links = section.footerLinksText || '개인정보처리방침   직원로그인';
+      const copyright = section.footerCopyright || 'Copyright © Macum Dream Center. All rights reserved.';
+      const layout = section.footerLayout || 'left-corporate';
+      const showBadge = section.footerShowChannelBadge !== false;
 
-      const textColor = section.footerTextColor || '#ffffff';
-      const subTextColor = section.footerSubTextColor || '#9ca3af';
+      const textColor = section.footerTextColor || '#0f172a';
+      const subTextColor = section.footerSubTextColor || '#475569';
       const textFont = section.footerTextFont || 'Inter';
       const paddingY = section.footerPaddingY !== undefined ? section.footerPaddingY : 36;
 
@@ -864,8 +868,9 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             {/* 1. Layout Style Preset */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">레이아웃 스타일</label>
-              <div className="flex gap-2">
+              <div className="grid grid-cols-2 gap-2">
                 {[
+                  { key: 'left-corporate', label: '기업 좌측형 (추천)' },
                   { key: 'stacked-center', label: '중앙 정렬형' },
                   { key: 'split-between', label: '양분 분할형' },
                   { key: 'simple-center', label: '심플 한줄형' },
@@ -873,9 +878,9 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   <button
                     key={item.key}
                     type="button"
-                    className={`flex-1 py-1.5 px-2 rounded text-xs border font-medium transition-all ${
+                    className={`py-2 px-2 rounded text-xs border font-medium transition-all ${
                       layout === item.key
-                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
+                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc] font-bold shadow-sm'
                         : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
                     }`}
                     onClick={() => updateSection({ footerLayout: item.key as any })}
@@ -909,60 +914,102 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 3. Company Info */}
+            {/* 3. Links & Channel Badge */}
             <div className="property-group flex flex-col gap-2">
-              <label className="group-title">회사명 & 상호</label>
-              <input
-                type="text"
-                value={company}
-                onChange={(e) => updateSection({ footerCompany: e.target.value })}
-                placeholder="(주) 코퍼레이트 글로벌"
-              />
-            </div>
-
-            {/* 4. Address & Business Info */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">사업자 / 주소 / 연락처 정보</label>
-              <textarea
-                rows={3}
-                value={address}
-                onChange={(e) => updateSection({ footerAddress: e.target.value })}
-                placeholder="대표이사: 홍길동 | 사업자등록번호: 123-45-67890 | 주소: 서울특별시..."
-              />
-            </div>
-
-            {/* 5. Policy & Links */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">약관 & 퀵 링크 문구</label>
+              <label className="group-title">상단 약관 / 퀵 링크 & 채널 뱃지</label>
               <input
                 type="text"
                 value={links}
                 onChange={(e) => updateSection({ footerLinksText: e.target.value })}
-                placeholder="이용약관 | 개인정보처리방침 | 고객센터"
+                placeholder="개인정보처리방침   직원로그인"
+              />
+              <label className="flex items-center gap-2 mt-1 cursor-pointer text-xs text-slate-700">
+                <input
+                  type="checkbox"
+                  checked={showBadge}
+                  onChange={(e) => updateSection({ footerShowChannelBadge: e.target.checked })}
+                  className="rounded border-gray-300 text-sky-600 focus:ring-sky-500"
+                />
+                <span className="font-semibold text-slate-800">🟡 카카오/채널 뱃지 (Ch) 표출</span>
+              </label>
+            </div>
+
+            {/* 4. Representative & Tel */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">대표자 & 연락처 (TEL)</label>
+              <div className="grid-inputs-row">
+                <div className="grid-input-item">
+                  <span className="input-label">대표자명</span>
+                  <input
+                    type="text"
+                    value={representative}
+                    onChange={(e) => updateSection({ footerRepresentative: e.target.value })}
+                    placeholder="이중선"
+                  />
+                </div>
+                <div className="grid-input-item">
+                  <span className="input-label">전화번호 (TEL)</span>
+                  <input
+                    type="text"
+                    value={tel}
+                    onChange={(e) => updateSection({ footerTel: e.target.value })}
+                    placeholder="032-751-1199"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Address & BizNum */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">주소 & 사업자등록번호</label>
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  value={address}
+                  onChange={(e) => updateSection({ footerAddress: e.target.value })}
+                  placeholder="인천광역시 미추홀구 인주대로 147, 2~3층(용현동)"
+                />
+                <input
+                  type="text"
+                  value={bizNum}
+                  onChange={(e) => updateSection({ footerBizNum: e.target.value })}
+                  placeholder="사업자번호: 346-85-02027"
+                />
+              </div>
+            </div>
+
+            {/* 6. Company Name */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">회사명 / 브랜드 상호</label>
+              <input
+                type="text"
+                value={company}
+                onChange={(e) => updateSection({ footerCompany: e.target.value })}
+                placeholder="(주) 널리아이 / 마춤드림센터"
               />
             </div>
 
-            {/* 6. Copyright */}
+            {/* 7. Copyright */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">카피라이트 (Copyright)</label>
               <input
                 type="text"
                 value={copyright}
                 onChange={(e) => updateSection({ footerCopyright: e.target.value })}
-                placeholder="© 2026 Corporate Inc. All rights reserved."
+                placeholder="Copyright © Macum Dream Center. All rights reserved."
               />
             </div>
 
-            {/* 7. Color & Typography Styling */}
+            {/* 8. Color & Typography Styling */}
             <div className="property-group flex flex-col gap-3">
               <label className="group-title">텍스트 & 색상 스타일</label>
               <div className="grid-inputs-row">
                 <div className="grid-input-item">
-                  <span className="input-label">주 글자색</span>
+                  <span className="input-label">주 글자색 (라벨/제목)</span>
                   <div className="color-picker-wrapper">
                     <input
                       type="color"
-                      value={textColor.startsWith('#') ? textColor : '#ffffff'}
+                      value={textColor.startsWith('#') ? textColor : '#0f172a'}
                       onChange={(e) => updateSection({ footerTextColor: e.target.value })}
                     />
                     <input
@@ -974,11 +1021,11 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 </div>
 
                 <div className="grid-input-item">
-                  <span className="input-label">보조 글자색</span>
+                  <span className="input-label">보조 글자색 (본문/카피라이트)</span>
                   <div className="color-picker-wrapper">
                     <input
                       type="color"
-                      value={subTextColor.startsWith('#') ? subTextColor : '#9ca3af'}
+                      value={subTextColor.startsWith('#') ? subTextColor : '#475569'}
                       onChange={(e) => updateSection({ footerSubTextColor: e.target.value })}
                     />
                     <input
@@ -1001,7 +1048,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 8. Footer Section Base Settings (Padding & Background) */}
+            {/* 9. Footer Section Base Settings (Padding & Background) */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">섹션 스타일</label>
               <div className="grid-inputs-row">
@@ -1022,12 +1069,12 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   <div className="color-picker-wrapper">
                     <input
                       type="color"
-                      value={section.backgroundColor.startsWith('#') ? section.backgroundColor : '#111827'}
+                      value={section.backgroundColor?.startsWith('#') ? section.backgroundColor : '#f8fafc'}
                       onChange={(e) => updateSection({ backgroundColor: e.target.value })}
                     />
                     <input
                       type="text"
-                      value={section.backgroundColor}
+                      value={section.backgroundColor || '#f8fafc'}
                       onChange={(e) => updateSection({ backgroundColor: e.target.value })}
                     />
                   </div>

@@ -139,10 +139,14 @@ export interface Section {
 
   // Footer Component fields
   footerCompany?: string;
+  footerRepresentative?: string;
   footerAddress?: string;
+  footerTel?: string;
+  footerBizNum?: string;
   footerLinksText?: string;
   footerCopyright?: string;
-  footerLayout?: 'stacked-center' | 'split-between' | 'simple-center';
+  footerShowChannelBadge?: boolean;
+  footerLayout?: 'left-corporate' | 'stacked-center' | 'split-between' | 'simple-center';
   footerText?: string;
   footerTextColor?: string;
   footerSubTextColor?: string;

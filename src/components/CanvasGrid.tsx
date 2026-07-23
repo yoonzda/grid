@@ -432,15 +432,109 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   const renderFooterComponent = (sec: Section) => {
     const textFont = sec.footerTextFont || 'Inter';
     const fontStyle = getFontFamilyByFamilyName(textFont);
-    const textColor = sec.footerTextColor || '#ffffff';
-    const subTextColor = sec.footerSubTextColor || '#9ca3af';
+    const textColor = sec.footerTextColor || '#0f172a';
+    const subTextColor = sec.footerSubTextColor || '#475569';
     const paddingY = sec.footerPaddingY !== undefined ? sec.footerPaddingY : 36;
-    const layout = sec.footerLayout || 'stacked-center';
+    const layout = sec.footerLayout || 'left-corporate';
 
-    const company = sec.footerCompany || '(주) 코퍼레이트 글로벌  |  CORPORATE Inc.';
-    const address = sec.footerAddress || '대표이사: 홍길동  |  사업자등록번호: 123-45-67890  |  주소: 서울특별시 강남구 테헤란로 501  |  고객센터: 1588-0000';
-    const links = sec.footerLinksText || '이용약관   |   개인정보처리방침   |   사업자정보확인   |   고객센터';
-    const copyright = sec.footerCopyright || '© 2026 Corporate Inc. All rights reserved.';
+    const company = sec.footerCompany || '(주) 널리아이 / 마춤드림센터';
+    const rep = sec.footerRepresentative || '이중선';
+    const addr = sec.footerAddress || '인천광역시 미추홀구 인주대로 147, 2~3층(용현동)';
+    const tel = sec.footerTel || '032-751-1199';
+    const bizNum = sec.footerBizNum || '346-85-02027';
+    const links = sec.footerLinksText || '개인정보처리방침   직원로그인';
+    const copyright = sec.footerCopyright || 'Copyright © Macum Dream Center. All rights reserved.';
+    const showBadge = sec.footerShowChannelBadge !== false;
+
+    if (layout === 'left-corporate') {
+      return (
+        <div
+          className="footer-flex-wrapper left-corporate"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '14px',
+            width: '100%',
+            margin: '0 auto',
+            paddingTop: `${paddingY}px`,
+            paddingBottom: `${paddingY}px`,
+            textAlign: 'left',
+            fontFamily: fontStyle,
+            boxSizing: 'border-box',
+            pointerEvents: 'auto',
+          }}
+        >
+          {/* Row 1: Links & Channel Badge */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '13px', color: textColor }}>
+            <span style={{ fontWeight: 700, letterSpacing: '-0.2px' }}>{links}</span>
+            {showBadge && (
+              <span
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '20px',
+                  height: '20px',
+                  borderRadius: '50%',
+                  backgroundColor: '#fee500',
+                  color: '#3c1e1e',
+                  fontWeight: 900,
+                  fontSize: '11px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                }}
+                title="카카오톡 채널"
+              >
+                Ch
+              </span>
+            )}
+          </div>
+
+          {/* Row 2: Rep, Address, Tel, BizNum */}
+          <div
+            style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              columnGap: '20px',
+              rowGap: '6px',
+              fontSize: '12px',
+              color: subTextColor,
+              lineHeight: 1.6,
+            }}
+          >
+            {rep && (
+              <span>
+                <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>대표자</strong>
+                {rep}
+              </span>
+            )}
+            {addr && (
+              <span>
+                <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>주소</strong>
+                {addr}
+              </span>
+            )}
+            {tel && (
+              <span>
+                <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>TEL</strong>
+                {tel}
+              </span>
+            )}
+            {bizNum && (
+              <span>
+                <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>사업자번호</strong>
+                {bizNum}
+              </span>
+            )}
+          </div>
+
+          {/* Row 3: Copyright */}
+          <div style={{ fontSize: '12px', color: subTextColor, marginTop: '2px' }}>
+            {copyright}
+          </div>
+        </div>
+      );
+    }
 
     if (layout === 'split-between') {
       return (
@@ -465,7 +559,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               {company}
             </div>
             <div style={{ fontSize: '12px', color: subTextColor, lineHeight: 1.6 }}>
-              {address}
+              {addr ? `주소: ${addr} | 대표자: ${rep} | TEL: ${tel} | 사업자번호: ${bizNum}` : sec.footerAddress}
             </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end', textAlign: 'right' }}>
@@ -534,7 +628,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           {company}
         </div>
         <div style={{ fontSize: '12px', color: subTextColor, lineHeight: 1.6, maxWidth: '850px' }}>
-          {address}
+          {rep ? `대표자: ${rep}  |  주소: ${addr}  |  TEL: ${tel}  |  사업자번호: ${bizNum}` : sec.footerAddress}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', fontWeight: 600, color: textColor, marginTop: '4px' }}>
           {links}

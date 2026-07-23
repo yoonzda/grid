@@ -114,10 +114,10 @@ ${fontImports.join('\n')}
 
       if (sec.sharedType === 'footer') {
         variablesCss += `\n  /* --- Footer Component: ${sec.id} --- */\n`;
-        variablesCss += `  --sec-${sec.id}-bg-color: ${sec.backgroundColor};\n`;
-        variablesCss += `  --footer-${sec.id}-padding-y: ${sec.footerPaddingY ?? 20}px;\n`;
-        variablesCss += `  --footer-${sec.id}-text-color: ${sec.footerTextColor || '#9ca3af'};\n`;
-        variablesCss += `  --footer-${sec.id}-text-size: ${sec.footerTextSize || '12px'};\n`;
+        variablesCss += `  --sec-${sec.id}-bg-color: ${sec.backgroundColor || '#f8fafc'};\n`;
+        variablesCss += `  --footer-${sec.id}-padding-y: ${sec.footerPaddingY ?? 36}px;\n`;
+        variablesCss += `  --footer-${sec.id}-text-color: ${sec.footerTextColor || '#0f172a'};\n`;
+        variablesCss += `  --footer-${sec.id}-subtext-color: ${sec.footerSubTextColor || '#475569'};\n`;
         variablesCss += `  --footer-${sec.id}-text-font: ${getFontFamilyByFamilyName(sec.footerTextFont || 'Inter')};\n`;
         return;
       }
@@ -452,7 +452,7 @@ body {
       if (sec.sharedType === 'footer') {
         styleCss += `\n/* Footer Component: ${sec.id} */\n`;
         styleCss += `.section-${sec.id} {\n`;
-        styleCss += `  --content-width: ${sec.guidelineWidth || '80%'};\n`;
+        styleCss += `  --content-width: ${sec.guidelineWidth || '100%'};\n`;
         styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
         styleCss += `  padding-top: var(--footer-${sec.id}-padding-y);\n`;
         styleCss += `  padding-bottom: var(--footer-${sec.id}-padding-y);\n`;
@@ -463,10 +463,47 @@ body {
         styleCss += `.section-${sec.id} .footer-wrapper {\n`;
         styleCss += `  width: var(--content-width);\n`;
         styleCss += `  margin: 0 auto;\n`;
-        styleCss += `  text-align: ${sec.footerAlign || 'center'};\n`;
-        styleCss += `  color: var(--footer-${sec.id}-text-color);\n`;
-        styleCss += `  font-size: var(--footer-${sec.id}-text-size);\n`;
         styleCss += `  font-family: var(--footer-${sec.id}-text-font);\n`;
+        styleCss += `  color: var(--footer-${sec.id}-text-color);\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .footer-links-row {\n`;
+        styleCss += `  display: flex;\n`;
+        styleCss += `  align-items: center;\n`;
+        styleCss += `  gap: 14px;\n`;
+        styleCss += `  font-size: 13px;\n`;
+        styleCss += `  font-weight: 700;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .channel-badge {\n`;
+        styleCss += `  display: inline-flex;\n`;
+        styleCss += `  align-items: center;\n`;
+        styleCss += `  justify-content: center;\n`;
+        styleCss += `  width: 20px;\n`;
+        styleCss += `  height: 20px;\n`;
+        styleCss += `  border-radius: 50%;\n`;
+        styleCss += `  background-color: #fee500;\n`;
+        styleCss += `  color: #3c1e1e;\n`;
+        styleCss += `  font-weight: 900;\n`;
+        styleCss += `  font-size: 11px;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .footer-info-row {\n`;
+        styleCss += `  display: flex;\n`;
+        styleCss += `  flex-wrap: wrap;\n`;
+        styleCss += `  column-gap: 20px;\n`;
+        styleCss += `  row-gap: 6px;\n`;
+        styleCss += `  font-size: 12px;\n`;
+        styleCss += `  margin-top: 12px;\n`;
+        styleCss += `  color: var(--footer-${sec.id}-subtext-color);\n`;
+        styleCss += `  line-height: 1.6;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .footer-info-row strong {\n`;
+        styleCss += `  color: var(--footer-${sec.id}-text-color);\n`;
+        styleCss += `  font-weight: 700;\n`;
+        styleCss += `  margin-right: 6px;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .footer-copyright {\n`;
+        styleCss += `  font-size: 12px;\n`;
+        styleCss += `  margin-top: 12px;\n`;
+        styleCss += `  color: var(--footer-${sec.id}-subtext-color);\n`;
         styleCss += `}\n`;
         return;
       }
@@ -873,11 +910,30 @@ ${fontLinksHtml}
       }
 
       if (sec.sharedType === 'footer') {
-        const footerText = sec.footerText || '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침';
+        const links = sec.footerLinksText || '개인정보처리방침   직원로그인';
+        const rep = sec.footerRepresentative || '이중선';
+        const addr = sec.footerAddress || '인천광역시 미추홀구 인주대로 147, 2~3층(용현동)';
+        const tel = sec.footerTel || '032-751-1199';
+        const bizNum = sec.footerBizNum || '346-85-02027';
+        const copyright = sec.footerCopyright || 'Copyright © Macum Dream Center. All rights reserved.';
+        const showBadge = sec.footerShowChannelBadge !== false;
+
         indexHtml += `    <!-- Footer Start -->\n`;
         indexHtml += `    <footer class="section section-${sec.id}">\n`;
         indexHtml += `      <div class="footer-wrapper">\n`;
-        indexHtml += `        <p>${footerText}</p>\n`;
+        indexHtml += `        <div class="footer-links-row">\n`;
+        indexHtml += `          <span>${links}</span>\n`;
+        if (showBadge) {
+          indexHtml += `          <span class="channel-badge" title="카카오톡 채널">Ch</span>\n`;
+        }
+        indexHtml += `        </div>\n`;
+        indexHtml += `        <div class="footer-info-row">\n`;
+        if (rep) indexHtml += `          <span><strong>대표자</strong>${rep}</span>\n`;
+        if (addr) indexHtml += `          <span><strong>주소</strong>${addr}</span>\n`;
+        if (tel) indexHtml += `          <span><strong>TEL</strong>${tel}</span>\n`;
+        if (bizNum) indexHtml += `          <span><strong>사업자번호</strong>${bizNum}</span>\n`;
+        indexHtml += `        </div>\n`;
+        indexHtml += `        <div class="footer-copyright">${copyright}</div>\n`;
         indexHtml += `      </div>\n`;
         indexHtml += `    </footer>\n`;
         indexHtml += `    <!-- Footer End -->\n\n`;
