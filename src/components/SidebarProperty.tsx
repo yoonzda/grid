@@ -869,10 +869,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               <label className="group-title">레이아웃 스타일</label>
               <div style={{ display: 'flex', flexDirection: 'column' }}>
                 {[
-                  { value: 'left-corporate', label: '기업 좌측형 (한국 기업 표준)' },
-                  { value: 'stacked-center', label: '중앙 정렬형 (4단 중앙 블록)' },
-                  { value: 'split-between', label: '양분 분할형 (좌/우 분할)' },
-                  { value: 'simple-center', label: '심플 한줄형 (약관 + 카피라이트)' },
+                  { value: 'left-corporate', label: '기업 좌측형' },
+                  { value: 'stacked-center', label: '중앙 정렬형' },
+                  { value: 'split-between', label: '양분 분할형' },
+                  { value: 'simple-center', label: '심플 한줄형' },
                 ].map((opt, idx, arr) => {
                   const isSelected = layout === opt.value;
                   const isLast = idx === arr.length - 1;
