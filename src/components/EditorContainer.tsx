@@ -261,10 +261,10 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           <div className="divider"></div>
 
           {/* Style Guide Color Palette adjustments */}
-          <div className="tool-group flex items-center gap-5">
+          <div className="tool-group flex items-center gap-4">
             <span className="group-label pr-1">스타일 가이드 : </span>
 
-            <div className="theme-color-input flex items-center gap-3.5 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200" title="클릭하여 주조색 복사">
+            <div className="theme-color-input flex items-center gap-[7px] px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200" title="클릭하여 주조색 복사">
               <span className="color-label-tag text-xs font-semibold text-slate-600">주조색</span>
               <div className="color-picker-badge-wrapper">
                 <input
@@ -283,7 +283,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
               </span>
             </div>
 
-            <div className="theme-color-input flex items-center gap-3.5 px-3 py-1.5 rounded-md bg-slate-50 border border-slate-200" title="클릭하여 보조색 복사">
+            <div className="theme-color-input flex items-center gap-[7px] px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200" title="클릭하여 보조색 복사">
               <span className="color-label-tag text-xs font-semibold text-slate-600">보조색</span>
               <div className="color-picker-badge-wrapper">
                 <input
@@ -716,6 +716,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           border-radius: 6px;
           display: flex;
           align-items: center;
+          gap: 7px;
           transition: all 0.2s ease;
           box-sizing: border-box;
         }
@@ -727,8 +728,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         .color-label-tag {
           font-size: 13px;
           color: #64748b;
-          font-weight: 500;
-          margin-right: 4px;
+          font-weight: 600;
+          margin-right: 0px;
           letter-spacing: -0.1px;
         }
 
@@ -770,10 +771,12 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         .color-code-tag {
           font-size: 13px;
           color: #1e293b;
-          font-weight: 500;
-          width: 58px;
-          text-align: right;
+          font-weight: 600;
+          width: auto;
+          min-width: 60px;
+          text-align: left;
           letter-spacing: -0.1px;
+          margin-left: 0px;
         }
 
         .app-logo {
@@ -799,7 +802,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         }
 
         .tool-group {
-          gap: 8px;
+          gap: 16px;
         }
 
         .group-label {
