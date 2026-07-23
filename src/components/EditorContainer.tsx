@@ -261,11 +261,12 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           <div className="divider"></div>
 
           {/* Style Guide Color Palette adjustments */}
-          <div className="tool-group flex items-center gap-2">
-            <span className="group-label">스타일 가이드 : </span>
-            <div className="theme-color-input flex items-center gap-2" title="클릭하여 주조색 복사">
-              <span className="color-label-tag">주조색</span>
-              <div className="color-picker-badge-wrapper">
+          <div className="tool-group flex items-center gap-4">
+            <span className="group-label pr-1">스타일 가이드 : </span>
+
+            <div className="theme-color-input flex items-center gap-2.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200/80" title="클릭하여 주조색 복사">
+              <span className="color-label-tag text-xs font-semibold text-slate-600">주조색</span>
+              <div className="color-picker-badge-wrapper ml-1">
                 <input
                   type="color"
                   value={themeSettings.primaryColor}
@@ -274,16 +275,17 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
                 <span className="color-picker-badge" style={{ backgroundColor: themeSettings.primaryColor }}></span>
               </div>
               <span 
-                className="color-code-tag copyable" 
+                className="color-code-tag copyable font-mono text-xs font-semibold text-slate-700 ml-1" 
                 onClick={() => handleCopyColor(themeSettings.primaryColor)}
                 title="클릭하여 주조색 복사"
               >
                 {copiedColor === themeSettings.primaryColor ? '복사됨!' : themeSettings.primaryColor.toUpperCase()}
               </span>
             </div>
-            <div className="theme-color-input flex items-center gap-2" title="클릭하여 보조색 복사">
-              <span className="color-label-tag">보조색</span>
-              <div className="color-picker-badge-wrapper">
+
+            <div className="theme-color-input flex items-center gap-2.5 px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200/80 ml-2" title="클릭하여 보조색 복사">
+              <span className="color-label-tag text-xs font-semibold text-slate-600">보조색</span>
+              <div className="color-picker-badge-wrapper ml-1">
                 <input
                   type="color"
                   value={themeSettings.secondaryColor}
@@ -292,7 +294,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
                 <span className="color-picker-badge" style={{ backgroundColor: themeSettings.secondaryColor }}></span>
               </div>
               <span 
-                className="color-code-tag copyable" 
+                className="color-code-tag copyable font-mono text-xs font-semibold text-slate-700 ml-1" 
                 onClick={() => handleCopyColor(themeSettings.secondaryColor)}
                 title="클릭하여 보조색 복사"
               >

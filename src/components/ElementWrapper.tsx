@@ -97,6 +97,22 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
     };
 
     if (element.type === 'title') {
+      const isHtml = typeof element.content === 'string' && (element.content.trim().startsWith('<') || element.content.includes('<div') || element.content.includes('<p'));
+
+      if (isHtml) {
+        return (
+          <h2
+            ref={textInputRef}
+            className={`canvas-title-inner ${hasPreset ? `font-preset-${element.fontPresetId}` : ''}`}
+            style={{ ...textStyle, fontWeight: 700, margin: 0 }}
+            onBlur={handleBlur}
+            onDoubleClick={handleDoubleClick}
+            dangerouslySetInnerHTML={{ __html: element.content || '' }}
+            suppressContentEditableWarning
+          />
+        );
+      }
+
       return (
         <h2
           ref={textInputRef}
@@ -112,6 +128,22 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
     }
 
     if (element.type === 'text') {
+      const isHtml = typeof element.content === 'string' && (element.content.trim().startsWith('<') || element.content.includes('<div') || element.content.includes('<p') || element.content.includes('<ul'));
+
+      if (isHtml) {
+        return (
+          <div
+            ref={textInputRef}
+            className={`canvas-text-inner ${hasPreset ? `font-preset-${element.fontPresetId}` : ''}`}
+            style={textStyle}
+            onBlur={handleBlur}
+            onDoubleClick={handleDoubleClick}
+            dangerouslySetInnerHTML={{ __html: element.content || '' }}
+            suppressContentEditableWarning
+          />
+        );
+      }
+
       return (
         <div
           ref={textInputRef}
