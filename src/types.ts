@@ -13,24 +13,26 @@ export interface EditorElement {
   gridY: number; // grid row start index
   gridH: number; // grid row height (in row units, e.g. 40px per unit)
   
-  content: string; // text content for title, text, button
-  color: string; // text color (hex)
-  fontSize: string; // e.g. '16px', '32px', 'var(--font-xl)'
-  fontFamily: string; // Google Font name
-  align: 'left' | 'center' | 'right';
+  content?: string; // text content for title, text, button
+  color?: string; // text color (hex)
+  fontSize?: string; // e.g. '16px', '32px', 'var(--font-xl)'
+  fontFamily?: string; // Google Font name
+  align?: 'left' | 'center' | 'right';
   
   // Image properties
   src?: string;
   imageName?: string; // The filename of the uploaded image
   borderRadius?: number; // border-radius in px
   boxShadow?: string; // shadow style preset
+  paddingX?: number;
   
   // Button properties
   btnBgColor?: string;
   btnTextColor?: string;
   iconType?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
   iconPosition?: 'before' | 'after';
-  widthMode?: 'stretch' | 'fit-content';
+  widthMode?: 'stretch' | 'fit-content' | 'fixed';
+  fixedWidth?: number;
   btnSize?: ButtonSize;
   btnVariant?: ButtonVariant;
   fontPresetId?: string;
@@ -89,7 +91,7 @@ export interface Section {
   isShared?: boolean; // Common layout section (Header/Footer)
   sharedType?: 'header' | 'footer';
   // Layout and alignment mode (Grid or Flex Flow)
-  layoutMode?: 'grid' | 'flex';
+  layoutMode?: 'grid' | 'flex' | string;
   guidelineWidth?: GuidelineWidth;
   flexDirection?: 'vertical' | 'horizontal';
   flexGap?: number;
@@ -141,6 +143,7 @@ export interface Page {
   name: string; // Korean / display name (e.g. '메인')
   fileName: string; // HTML filename (e.g. 'index.html', 'introduce.html')
   sections: Section[];
+  isSystem?: boolean;
 }
 
 export interface FontPreset {

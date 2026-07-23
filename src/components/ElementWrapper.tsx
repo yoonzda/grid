@@ -83,7 +83,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
   };
 
   const renderContent = () => {
-    const fontStyle = getFontFamilyByFamilyName(element.fontFamily);
+    const fontStyle = element.fontFamily ? getFontFamilyByFamilyName(element.fontFamily) : undefined;
     const hasPreset = !!element.fontPresetId;
     
     const textStyle: React.CSSProperties = {

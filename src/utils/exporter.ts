@@ -1,4 +1,4 @@
-import { Page, ThemeSettings, GuidelineWidth, GeneratedFiles } from '../types';
+import { Page, ThemeSettings, GeneratedFiles } from '../types';
 import { SUPPORTED_FONTS, getFontFamilyByFamilyName } from './fontManager';
 import { getIconSvg } from './iconTemplates';
 
@@ -136,7 +136,7 @@ ${fontImports.join('\n')}
         variablesCss += `  --el-${el.id}-grid-h: ${el.gridH};\n`;
         variablesCss += `  --el-${el.id}-color: ${el.color};\n`;
         variablesCss += `  --el-${el.id}-font-size: ${el.fontSize};\n`;
-        variablesCss += `  --el-${el.id}-font-family: ${getFontFamilyByFamilyName(el.fontFamily)};\n`;
+        variablesCss += `  --el-${el.id}-font-family: ${el.fontFamily ? getFontFamilyByFamilyName(el.fontFamily) : 'inherit'};\n`;
         
         if (el.type === 'button') {
           variablesCss += `  --el-${el.id}-btn-bg: ${el.btnBgColor || 'var(--theme-primary)'};\n`;

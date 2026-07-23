@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Section, Page, ThemeSettings, GuidelineWidth, ExportFileName, GeneratedFiles, EditorElement } from './types';
+import { Section, Page, ThemeSettings, ExportFileName, GeneratedFiles, EditorElement } from './types';
 import { EditorContainer } from './components/EditorContainer';
 import { CodeViewerContainer } from './components/CodeViewerContainer';
 import { StyleViewerContainer } from './components/StyleViewerContainer';
@@ -20,7 +20,7 @@ const compactSectionElements = (elements: EditorElement[]): EditorElement[] => {
 };
 
 const ensurePresets = (pagesList: Page[]): Page[] => {
-  return pagesList.map(p => ({
+  const processed: Page[] = pagesList.map(p => ({
     ...p,
     sections: p.sections.map(sec => {
       const isHeaderOrFooter = sec.sharedType === 'header' || sec.sharedType === 'footer';
@@ -58,7 +58,7 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
     })
   }));
 
-  if (!processed.some(p => p.id === 'sitemap')) {
+  if (!processed.some((p: Page) => p.id === 'sitemap')) {
     processed.push({
       id: 'sitemap',
       name: '사이트맵',

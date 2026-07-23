@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType, Page, ThemeSettings } from '../types';
-import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns, FileText } from 'lucide-react';
+import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 

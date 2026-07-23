@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Section, EditorElement, GuidelineWidth, Page, ThemeSettings } from '../types';
 import { ElementWrapper } from './ElementWrapper';
 import { useGridSnap } from '../hooks/useGridSnap';
-import { Plus, Trash2, ChevronUp, ChevronDown } from 'lucide-react';
 import { getFontFamilyByFamilyName } from '../utils/fontManager';
 
 interface CanvasGridProps {
@@ -40,7 +39,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   setHoveredSectionId,
   themeSettings,
   hoveredGuidelineWidth,
-  previewHeaderLayout,
+  previewHeaderLayout: _previewHeaderLayout,
   previewFlexAlign,
   previewHeaderLogoFont,
 }) => {
@@ -213,49 +212,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     );
   };
 
-  // Section CRUD operations
-  const addSection = (index: number) => {
-    const newSection: Section = {
-      id: `s_${Date.now()}`,
-      height: 350,
-      backgroundColor: '#ffffff',
-      elements: [],
-    };
-    setSections(prev => {
-      const updated = [...prev];
-      updated.splice(index + 1, 0, newSection);
-      return updated;
-    });
-  };
 
-  const deleteSection = (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    if (sections.length <= 1) {
-      alert('최소 하나의 섹션은 존재해야 합니다.');
-      return;
-    }
-    setSections(prev => prev.filter(s => s.id !== id));
-    if (activeElement && activeElement.sectionId === id) {
-      setActiveElement(null);
-    }
-  };
-
-  const moveSection = (id: string, direction: 'up' | 'down', e: React.MouseEvent) => {
-    e.stopPropagation();
-    const index = sections.findIndex(s => s.id === id);
-    if (index === -1) return;
-    if (direction === 'up' && index === 0) return;
-    if (direction === 'down' && index === sections.length - 1) return;
-
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    setSections(prev => {
-      const updated = [...prev];
-      const temp = updated[index];
-      updated[index] = updated[targetIndex];
-      updated[targetIndex] = temp;
-      return updated;
-    });
-  };
 
   const renderGridCols = () => {
     return Array.from({ length: 12 }).map((_, idx) => (
@@ -581,7 +538,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             `}</style>
           </div>
         ) : (
-          sections.map((sec, secIdx) => {
+          sections.map((sec) => {
         const isDraggingInThisSection = dragState?.sectionId === sec.id;
         const isSelected = activeSectionId === sec.id;
         const isHoveringGuideline = isSelected && hoveredGuidelineWidth !== null && hoveredGuidelineWidth !== undefined;
@@ -806,7 +763,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                       key={el.id}
                       element={el}
                       sectionId={sec.id}
-                      parentLayoutMode={sec.layoutMode || 'grid'}
+                      parentLayoutMode={(sec.layoutMode as 'grid' | 'flex') || 'grid'}
                       isActive={activeElement?.elementId === el.id}
                       onClick={() => {
                         setHoveredSectionId?.(null);

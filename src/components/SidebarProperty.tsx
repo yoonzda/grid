@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Section, EditorElement, ThemeSettings, Page, GuidelineWidth } from '../types';
 import { SUPPORTED_FONTS, findSupportedFont } from '../utils/fontManager';
 import { ICON_TEMPLATES } from '../utils/iconTemplates';
-import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, HelpCircle, Trash2, X, Grid, ExternalLink, ArrowRight, Link, Globe, List, ChevronLeft, Plus, Check, ChevronDown, Sliders } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, Trash2, X, Grid, ExternalLink, ArrowRight, ChevronLeft, Plus, Check, ChevronDown } from 'lucide-react';
 import { resolveCollisions } from '../utils/collision';
 
 interface SidebarPropertyProps {
@@ -208,13 +208,13 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   onNavigatePage,
   hoveredSectionId,
   setHoveredSectionId,
-  hoveredGuidelineWidth,
+  hoveredGuidelineWidth: _hoveredGuidelineWidth,
   setHoveredGuidelineWidth,
-  previewHeaderLayout,
-  setPreviewHeaderLayout,
+  previewHeaderLayout: _previewHeaderLayout,
+  setPreviewHeaderLayout: _setPreviewHeaderLayout,
   previewFlexAlign,
   setPreviewFlexAlign,
-  previewHeaderLogoFont,
+  previewHeaderLogoFont: _previewHeaderLogoFont,
   setPreviewHeaderLogoFont,
 }) => {
   const [showSectionDetail, setShowSectionDetail] = useState<boolean>(true);
@@ -1859,23 +1859,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
     setActiveElement(null);
   };
 
-  // Reorder element in section flow
-  const moveElementOrder = (direction: 'up' | 'down') => {
-    const elementsList = [...(section.elements || [])];
-    const index = elementsList.findIndex(e => e.id === elementId);
-    if (index === -1) return;
-    const targetIndex = direction === 'up' ? index - 1 : index + 1;
-    if (targetIndex < 0 || targetIndex >= elementsList.length) return;
-    
-    // Swap elements
-    const temp = elementsList[index];
-    elementsList[index] = elementsList[targetIndex];
-    elementsList[targetIndex] = temp;
-    
-    setSections(prev =>
-      prev.map(s => (s.id === sectionId ? { ...s, elements: elementsList } : s))
-    );
-  };
+
 
   // --- Alignment & Width Filling Shortcuts ---
   const alignToLeftMargin = () => {
@@ -2186,12 +2170,12 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     <div className="color-picker-wrapper">
                       <input
                         type="color"
-                        value={element.color.startsWith('#') && element.color.length === 7 ? element.color : '#000000'}
+                        value={element.color && element.color.startsWith('#') && element.color.length === 7 ? element.color : '#000000'}
                         onChange={(e) => updateElement({ color: e.target.value })}
                       />
                       <input
                         type="text"
-                        value={element.color}
+                        value={element.color || ''}
                         onChange={(e) => updateElement({ color: e.target.value })}
                       />
                     </div>
