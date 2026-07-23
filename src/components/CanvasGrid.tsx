@@ -437,14 +437,55 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     const paddingY = sec.footerPaddingY !== undefined ? sec.footerPaddingY : 36;
     const layout = sec.footerLayout || 'left-corporate';
 
-    const company = sec.footerCompany || '(주) 널리아이 / 마춤드림센터';
-    const rep = sec.footerRepresentative || '이중선';
-    const addr = sec.footerAddress || '인천광역시 미추홀구 인주대로 147, 2~3층(용현동)';
-    const tel = sec.footerTel || '032-751-1199';
-    const bizNum = sec.footerBizNum || '346-85-02027';
-    const links = sec.footerLinksText || '개인정보처리방침   직원로그인';
-    const copyright = sec.footerCopyright || 'Copyright © Macum Dream Center. All rights reserved.';
+    const company = sec.footerCompany || '(주) 코퍼레이트';
+    const rep = sec.footerRepresentative || '홍길동';
+    const addr = sec.footerAddress || '서울특별시 강남구 테헤란로 501, 15층 (삼성동, 코퍼레이트타워)';
+    const tel = sec.footerTel || '1588-0000';
+    const bizNum = sec.footerBizNum || '123-45-67890';
+    const linksStr = sec.footerLinksText || '개인정보처리방침   이용약관';
+    const links = linksStr;
+    const copyright = sec.footerCopyright || `Copyright © ${company || 'Corporate Inc.'}. All rights reserved.`;
     const showBadge = sec.footerShowChannelBadge !== false;
+
+    // Helper to render interactive page links for policy & terms
+    const renderInteractiveLinks = () => {
+      const linkItems = linksStr.split(/\s{2,}|\s*\|\s*/).filter(Boolean);
+      if (linkItems.length === 0) return <span>{linksStr}</span>;
+
+      return linkItems.map((item, idx) => {
+        const trimmed = item.trim();
+        const isPrivacy = trimmed.includes('개인정보');
+        const isTerms = trimmed.includes('약관') || trimmed.includes('이용약관');
+        const targetPageId = isTerms || isPrivacy ? 'terms' : undefined;
+
+        return (
+          <React.Fragment key={idx}>
+            {idx > 0 && <span style={{ opacity: 0.4, margin: '0 8px' }}>|</span>}
+            <a
+              href={isPrivacy ? 'terms.html#privacy' : isTerms ? 'terms.html' : '#'}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                if (targetPageId && onNavigatePage) {
+                  onNavigatePage(targetPageId);
+                }
+              }}
+              style={{
+                color: textColor,
+                textDecoration: 'none',
+                fontWeight: isPrivacy || isTerms ? 700 : 600,
+                cursor: 'pointer',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+              onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
+              title={targetPageId ? `'${trimmed}' 페이지로 이동` : undefined}
+            >
+              {trimmed}
+            </a>
+          </React.Fragment>
+        );
+      });
+    };
 
     if (layout === 'left-corporate') {
       return (
@@ -466,7 +507,9 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         >
           {/* Row 1: Links & Channel Badge */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '13px', color: textColor }}>
-            <span style={{ fontWeight: 700, letterSpacing: '-0.2px' }}>{links}</span>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              {renderInteractiveLinks()}
+            </div>
             {showBadge && (
               <span
                 style={{

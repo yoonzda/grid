@@ -910,19 +910,34 @@ ${fontLinksHtml}
       }
 
       if (sec.sharedType === 'footer') {
-        const links = sec.footerLinksText || '개인정보처리방침   직원로그인';
-        const rep = sec.footerRepresentative || '이중선';
-        const addr = sec.footerAddress || '인천광역시 미추홀구 인주대로 147, 2~3층(용현동)';
-        const tel = sec.footerTel || '032-751-1199';
-        const bizNum = sec.footerBizNum || '346-85-02027';
-        const copyright = sec.footerCopyright || 'Copyright © Macum Dream Center. All rights reserved.';
+        const linksStr = sec.footerLinksText || '개인정보처리방침   이용약관';
+        const company = sec.footerCompany || '(주) 코퍼레이트';
+        const rep = sec.footerRepresentative || '홍길동';
+        const addr = sec.footerAddress || '서울특별시 강남구 테헤란로 501, 15층 (삼성동, 코퍼레이트타워)';
+        const tel = sec.footerTel || '1588-0000';
+        const bizNum = sec.footerBizNum || '123-45-67890';
+        const copyright = sec.footerCopyright || `Copyright © ${company || 'Corporate Inc.'}. All rights reserved.`;
         const showBadge = sec.footerShowChannelBadge !== false;
+
+        const linkItems = linksStr.split(/\s{2,}|\s*\|\s*/).filter(Boolean);
+        let linksHtml = '';
+        if (linkItems.length > 0) {
+          linksHtml = linkItems.map((item) => {
+            const trimmed = item.trim();
+            const isPrivacy = trimmed.includes('개인정보');
+            const isTerms = trimmed.includes('약관') || trimmed.includes('이용약관');
+            const href = isPrivacy ? 'terms.html#privacy' : isTerms ? 'terms.html' : '#';
+            return `<a href="${href}" style="color: inherit; text-decoration: none;">${trimmed}</a>`;
+          }).join(' &nbsp;|&nbsp; ');
+        } else {
+          linksHtml = linksStr;
+        }
 
         indexHtml += `    <!-- Footer Start -->\n`;
         indexHtml += `    <footer class="section section-${sec.id}">\n`;
         indexHtml += `      <div class="footer-wrapper">\n`;
         indexHtml += `        <div class="footer-links-row">\n`;
-        indexHtml += `          <span>${links}</span>\n`;
+        indexHtml += `          <span>${linksHtml}</span>\n`;
         if (showBadge) {
           indexHtml += `          <span class="channel-badge" title="카카오톡 채널">Ch</span>\n`;
         }

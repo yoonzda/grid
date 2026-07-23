@@ -830,13 +830,13 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
     }
 
     if (section.sharedType === 'footer') {
-      const company = section.footerCompany || '(주) 널리아이 / 마춤드림센터';
-      const representative = section.footerRepresentative || '이중선';
-      const address = section.footerAddress || '인천광역시 미추홀구 인주대로 147, 2~3층(용현동)';
-      const tel = section.footerTel || '032-751-1199';
-      const bizNum = section.footerBizNum || '346-85-02027';
-      const links = section.footerLinksText || '개인정보처리방침   직원로그인';
-      const copyright = section.footerCopyright || 'Copyright © Macum Dream Center. All rights reserved.';
+      const company = section.footerCompany || '(주) 코퍼레이트';
+      const representative = section.footerRepresentative || '홍길동';
+      const address = section.footerAddress || '서울특별시 강남구 테헤란로 501, 15층 (삼성동, 코퍼레이트타워)';
+      const tel = section.footerTel || '1588-0000';
+      const bizNum = section.footerBizNum || '123-45-67890';
+      const links = section.footerLinksText || '개인정보처리방침   이용약관';
+      const copyright = section.footerCopyright || 'Copyright © Corporate Inc. All rights reserved.';
       const layout = section.footerLayout || 'left-corporate';
       const showBadge = section.footerShowChannelBadge !== false;
 
