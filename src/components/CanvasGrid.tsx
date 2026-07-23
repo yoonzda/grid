@@ -559,7 +559,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             id={`section-${sec.id}`}
             className={`canvas-section-node section-${sec.id} relative w-full ${isFocused ? 'active-section' : ''}`}
             style={{
-              minHeight: sec.sharedType === 'header' ? 'auto' : sec.heightMode === 'auto' ? 'auto' : `${sec.height}${sec.heightUnit || 'px'}`,
+              minHeight: (sec.sharedType === 'header' || sec.sharedType === 'footer' || sec.heightMode === 'auto') ? 'auto' : `${sec.height}${sec.heightUnit || 'px'}`,
               height: 'auto', // dynamic height flow
               backgroundColor: sec.backgroundColor,
               backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',

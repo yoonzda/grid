@@ -49,26 +49,28 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
         flexDirection: sec.flexDirection || 'vertical',
         flexGap: sec.flexGap !== undefined ? sec.flexGap : 16,
         flexAlign: sec.flexAlign || 'center',
-        heightMode: sec.heightMode || (isHeaderOrFooter ? 'auto' : 'fixed'),
-        paddingTop: sec.paddingTop !== undefined ? sec.paddingTop : (isHeaderOrFooter ? 0 : 40),
-        paddingBottom: sec.paddingBottom !== undefined ? sec.paddingBottom : (isHeaderOrFooter ? 0 : 40),
+        heightMode: isHeaderOrFooter ? 'auto' : (sec.heightMode || 'fixed'),
+        paddingTop: sec.paddingTop !== undefined ? sec.paddingTop : (isHeaderOrFooter ? 16 : 40),
+        paddingBottom: sec.paddingBottom !== undefined ? sec.paddingBottom : (isHeaderOrFooter ? 16 : 40),
         verticalAlign: sec.verticalAlign || 'center',
         elements: isShared ? mappedElements : compactSectionElements(mappedElements)
       };
     })
   }));
 
-  if (!processed.some((p: Page) => p.id === 'sitemap')) {
-    processed.push({
+  let sitemapPage = processed.find((p: Page) => p.id === 'sitemap');
+  if (!sitemapPage) {
+    sitemapPage = {
       id: 'sitemap',
       name: '사이트맵',
       fileName: 'siteMap.html',
       isSystem: true,
       sections: []
-    });
+    };
   }
 
-  return processed;
+  const otherPages = processed.filter((p: Page) => p.id !== 'sitemap');
+  return [sitemapPage, ...otherPages];
 };
 
 function App() {
