@@ -1102,29 +1102,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
       );
     }
 
-    const deleteSection = () => {
-      if (sections.length <= 1) {
-        alert('최소 하나의 섹션은 존재해야 합니다.');
-        return;
-      }
-      setSections(prev => prev.filter(s => s.id !== activeSectionId));
-      setActiveSectionId(null);
-    };
-
-    const moveSection = (direction: 'up' | 'down') => {
-      const index = sections.findIndex(s => s.id === activeSectionId);
-      if (index === -1) return;
-      const targetIndex = direction === 'up' ? index - 1 : index + 1;
-      if (targetIndex < 0 || targetIndex >= sections.length) return;
-      setSections(prev => {
-        const updated = [...prev];
-        const temp = updated[index];
-        updated[index] = updated[targetIndex];
-        updated[targetIndex] = temp;
-        return updated;
-      });
-    };
-
     let currentSectionTitle = '섹션';
     if (section.sharedType === 'header') currentSectionTitle = '공통 헤더 컴포넌트';
     else if (section.sharedType === 'footer') currentSectionTitle = '공통 푸터 컴포넌트';
@@ -1659,42 +1636,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </>
           )}
-
-          {/* Section Ordering Operations */}
-          <div className="property-group flex flex-col gap-2">
-            <label className="group-title">섹션 위치 순서 변경</label>
-            <div className="flex gap-2">
-              <button
-                className="align-btn"
-                style={{ fontSize: '12px', padding: '8px' }}
-                disabled={sections.findIndex(s => s.id === activeSectionId) === 0}
-                onClick={() => moveSection('up')}
-              >
-                위로 이동
-              </button>
-              <button
-                className="align-btn"
-                style={{ fontSize: '12px', padding: '8px' }}
-                disabled={sections.findIndex(s => s.id === activeSectionId) === sections.length - 1}
-                onClick={() => moveSection('down')}
-              >
-                아래로 이동
-              </button>
-            </div>
-          </div>
-
-          {/* Full-width Section Delete Button */}
-          <div className="pt-4 mt-2 border-t border-red-100 flex flex-col">
-            <button
-              type="button"
-              className="w-full py-3 px-4 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-sm flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-              onClick={deleteSection}
-              title="현재 선택된 섹션을 삭제합니다"
-            >
-              <Trash2 size={16} />
-              <span>해당 섹션 삭제하기</span>
-            </button>
-          </div>
         </div>
       </div>
     );
