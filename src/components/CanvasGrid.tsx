@@ -443,7 +443,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     const tel = sec.footerTel || '1588-0000';
     const bizNum = sec.footerBizNum || '123-45-67890';
     const linksStr = sec.footerLinksText || '개인정보처리방침   이용약관';
-    const links = linksStr;
     const copyright = sec.footerCopyright || `Copyright © ${company || 'Corporate Inc.'}. All rights reserved.`;
 
     // Helper to render interactive page links for policy & terms
@@ -486,6 +485,48 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       });
     };
 
+    // Helper for business info row (Rep, Address, Tel, BizNum)
+    const renderBizInfoRow = (align: 'left' | 'center' | 'right' = 'left') => (
+      <div
+        style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          alignItems: 'center',
+          justifyContent: align === 'center' ? 'center' : align === 'right' ? 'flex-end' : 'flex-start',
+          columnGap: '20px',
+          rowGap: '6px',
+          fontSize: '12px',
+          color: subTextColor,
+          lineHeight: 1.6,
+        }}
+      >
+        {rep && (
+          <span>
+            <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>대표자</strong>
+            {rep}
+          </span>
+        )}
+        {addr && (
+          <span>
+            <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>주소</strong>
+            {addr}
+          </span>
+        )}
+        {tel && (
+          <span>
+            <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>TEL</strong>
+            {tel}
+          </span>
+        )}
+        {bizNum && (
+          <span>
+            <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>사업자번호</strong>
+            {bizNum}
+          </span>
+        )}
+      </div>
+    );
+
     if (layout === 'left-corporate') {
       return (
         <div
@@ -512,43 +553,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           </div>
 
           {/* Row 2: Rep, Address, Tel, BizNum */}
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              alignItems: 'center',
-              columnGap: '20px',
-              rowGap: '6px',
-              fontSize: '12px',
-              color: subTextColor,
-              lineHeight: 1.6,
-            }}
-          >
-            {rep && (
-              <span>
-                <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>대표자</strong>
-                {rep}
-              </span>
-            )}
-            {addr && (
-              <span>
-                <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>주소</strong>
-                {addr}
-              </span>
-            )}
-            {tel && (
-              <span>
-                <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>TEL</strong>
-                {tel}
-              </span>
-            )}
-            {bizNum && (
-              <span>
-                <strong style={{ fontWeight: 700, color: textColor, marginRight: '6px' }}>사업자번호</strong>
-                {bizNum}
-              </span>
-            )}
-          </div>
+          {renderBizInfoRow('left')}
 
           {/* Row 3: Copyright */}
           <div style={{ fontSize: '12px', color: subTextColor, marginTop: '2px' }}>
@@ -580,13 +585,11 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             <div style={{ fontSize: '15px', fontWeight: 700, color: textColor, letterSpacing: '-0.2px' }}>
               {company}
             </div>
-            <div style={{ fontSize: '12px', color: subTextColor, lineHeight: 1.6 }}>
-              {addr ? `주소: ${addr} | 대표자: ${rep} | TEL: ${tel} | 사업자번호: ${bizNum}` : sec.footerAddress}
-            </div>
+            {renderBizInfoRow('left')}
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end', textAlign: 'right' }}>
             <div style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>
-              {links}
+              {renderInteractiveLinks()}
             </div>
             <div style={{ fontSize: '12px', color: subTextColor }}>
               {copyright}
@@ -617,7 +620,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           }}
         >
           <div style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>
-            {links}
+            {renderInteractiveLinks()}
           </div>
           <div style={{ fontSize: '12px', color: subTextColor }}>
             {copyright}
@@ -649,11 +652,9 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         <div style={{ fontSize: '16px', fontWeight: 700, color: textColor, letterSpacing: '-0.2px' }}>
           {company}
         </div>
-        <div style={{ fontSize: '12px', color: subTextColor, lineHeight: 1.6, maxWidth: '850px' }}>
-          {rep ? `대표자: ${rep}  |  주소: ${addr}  |  TEL: ${tel}  |  사업자번호: ${bizNum}` : sec.footerAddress}
-        </div>
+        {renderBizInfoRow('center')}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', fontWeight: 600, color: textColor, marginTop: '4px' }}>
-          {links}
+          {renderInteractiveLinks()}
         </div>
         <div style={{ fontSize: '12px', color: subTextColor, marginTop: '2px' }}>
           {copyright}

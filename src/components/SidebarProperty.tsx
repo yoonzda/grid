@@ -865,28 +865,49 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             {/* 1. Layout Style Preset */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">레이아웃 스타일</label>
+            <div className="property-group flex flex-col gap-2.5">
+              <div className="flex items-center justify-between">
+                <label className="group-title">레이아웃 스타일</label>
+                <span className="text-[11px] font-semibold text-sky-600 bg-sky-50 px-2 py-0.5 rounded-full border border-sky-200">
+                  {layout === 'left-corporate' && '기업 좌측형'}
+                  {layout === 'stacked-center' && '중앙 정렬형'}
+                  {layout === 'split-between' && '양분 분할형'}
+                  {layout === 'simple-center' && '심플 한줄형'}
+                </span>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { key: 'left-corporate', label: '기업 좌측형 (추천)' },
-                  { key: 'stacked-center', label: '중앙 정렬형' },
-                  { key: 'split-between', label: '양분 분할형' },
-                  { key: 'simple-center', label: '심플 한줄형' },
-                ].map((item) => (
-                  <button
-                    key={item.key}
-                    type="button"
-                    className={`py-2 px-2 rounded text-xs border font-medium transition-all ${
-                      layout === item.key
-                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc] font-bold shadow-sm'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
-                    onClick={() => updateSection({ footerLayout: item.key as any })}
-                  >
-                    {item.label}
-                  </button>
-                ))}
+                  { key: 'left-corporate', title: '기업 좌측형', desc: '한국 기업 표준 (추천)' },
+                  { key: 'stacked-center', title: '중앙 정렬형', desc: '4단 중앙 블록형' },
+                  { key: 'split-between', title: '양분 분할형', desc: '좌/우 양분 분할' },
+                  { key: 'simple-center', title: '심플 한줄형', desc: '약관 + 카피라이트' },
+                ].map((item) => {
+                  const isActive = layout === item.key;
+                  return (
+                    <button
+                      key={item.key}
+                      type="button"
+                      className={`flex flex-col items-start p-2.5 rounded-lg border text-left transition-all relative cursor-pointer ${
+                        isActive
+                          ? 'bg-sky-50/90 border-sky-500 text-sky-900 shadow-sm ring-2 ring-sky-500/20 font-bold'
+                          : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 hover:border-slate-300 font-medium'
+                      }`}
+                      onClick={() => updateSection({ footerLayout: item.key as any })}
+                    >
+                      <div className="flex items-center justify-between w-full mb-0.5">
+                        <span className={`text-xs ${isActive ? 'text-sky-900 font-bold' : 'text-slate-800'}`}>
+                          {item.title}
+                        </span>
+                        {isActive && (
+                          <span className="w-2 h-2 rounded-full bg-sky-500 shadow-sm"></span>
+                        )}
+                      </div>
+                      <span className={`text-[10px] ${isActive ? 'text-sky-700' : 'text-slate-400'}`}>
+                        {item.desc}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -913,7 +934,67 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 3. Links */}
+            {/* 3. Company Name (Only shown for layouts that render Company Name) */}
+            {(layout === 'stacked-center' || layout === 'split-between') && (
+              <div className="property-group flex flex-col gap-2">
+                <label className="group-title">회사명 / 브랜드 상호</label>
+                <input
+                  type="text"
+                  value={company}
+                  onChange={(e) => updateSection({ footerCompany: e.target.value })}
+                  placeholder="(주) 코퍼레이트"
+                />
+              </div>
+            )}
+
+            {/* 4. Business Info (Only shown for layouts that render Representative, Tel, Address, BizNum) */}
+            {layout !== 'simple-center' && (
+              <>
+                <div className="property-group flex flex-col gap-2">
+                  <label className="group-title">대표자 & 연락처 (TEL)</label>
+                  <div className="grid-inputs-row">
+                    <div className="grid-input-item">
+                      <span className="input-label">대표자명</span>
+                      <input
+                        type="text"
+                        value={representative}
+                        onChange={(e) => updateSection({ footerRepresentative: e.target.value })}
+                        placeholder="홍길동"
+                      />
+                    </div>
+                    <div className="grid-input-item">
+                      <span className="input-label">전화번호 (TEL)</span>
+                      <input
+                        type="text"
+                        value={tel}
+                        onChange={(e) => updateSection({ footerTel: e.target.value })}
+                        placeholder="1588-0000"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="property-group flex flex-col gap-2">
+                  <label className="group-title">주소 & 사업자등록번호</label>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="text"
+                      value={address}
+                      onChange={(e) => updateSection({ footerAddress: e.target.value })}
+                      placeholder="서울특별시 강남구 테헤란로 501..."
+                    />
+                    <input
+                      type="text"
+                      value={bizNum}
+                      onChange={(e) => updateSection({ footerBizNum: e.target.value })}
+                      placeholder="123-45-67890"
+                    />
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* 5. Policy & Links (Shown for all layouts) */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">상단 약관 & 퀵 링크 문구</label>
               <input
@@ -924,69 +1005,14 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               />
             </div>
 
-            {/* 4. Representative & Tel */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">대표자 & 연락처 (TEL)</label>
-              <div className="grid-inputs-row">
-                <div className="grid-input-item">
-                  <span className="input-label">대표자명</span>
-                  <input
-                    type="text"
-                    value={representative}
-                    onChange={(e) => updateSection({ footerRepresentative: e.target.value })}
-                    placeholder="이중선"
-                  />
-                </div>
-                <div className="grid-input-item">
-                  <span className="input-label">전화번호 (TEL)</span>
-                  <input
-                    type="text"
-                    value={tel}
-                    onChange={(e) => updateSection({ footerTel: e.target.value })}
-                    placeholder="032-751-1199"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 5. Address & BizNum */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">주소 & 사업자등록번호</label>
-              <div className="flex flex-col gap-2">
-                <input
-                  type="text"
-                  value={address}
-                  onChange={(e) => updateSection({ footerAddress: e.target.value })}
-                  placeholder="인천광역시 미추홀구 인주대로 147, 2~3층(용현동)"
-                />
-                <input
-                  type="text"
-                  value={bizNum}
-                  onChange={(e) => updateSection({ footerBizNum: e.target.value })}
-                  placeholder="사업자번호: 346-85-02027"
-                />
-              </div>
-            </div>
-
-            {/* 6. Company Name */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">회사명 / 브랜드 상호</label>
-              <input
-                type="text"
-                value={company}
-                onChange={(e) => updateSection({ footerCompany: e.target.value })}
-                placeholder="(주) 널리아이 / 마춤드림센터"
-              />
-            </div>
-
-            {/* 7. Copyright */}
+            {/* 6. Copyright (Shown for all layouts) */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">카피라이트 (Copyright)</label>
               <input
                 type="text"
                 value={copyright}
                 onChange={(e) => updateSection({ footerCopyright: e.target.value })}
-                placeholder="Copyright © Macum Dream Center. All rights reserved."
+                placeholder="Copyright © Corporate Inc. All rights reserved."
               />
             </div>
 
