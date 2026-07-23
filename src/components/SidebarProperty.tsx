@@ -925,23 +925,22 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             {/* 2. Guideline Width */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">가로폭</label>
-              <div className="flex gap-2">
-                {(['100%', '80%', '60%'] as const).map((width) => (
-                  <button
-                    key={width}
-                    type="button"
-                    className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                      (section.guidelineWidth || '100%') === width
-                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
-                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                    }`}
-                    onClick={() => updateSection({ guidelineWidth: width })}
-                    onMouseEnter={() => setHoveredGuidelineWidth?.(width)}
-                    onMouseLeave={() => setHoveredGuidelineWidth?.(null)}
-                  >
-                    {width}
-                  </button>
-                ))}
+              <div className="align-buttons-row">
+                {(['100%', '80%', '60%'] as const).map((width) => {
+                  const isActive = (section.guidelineWidth || '100%') === width;
+                  return (
+                    <button
+                      key={width}
+                      type="button"
+                      className={`align-btn ${isActive ? 'active' : ''}`}
+                      onClick={() => updateSection({ guidelineWidth: width })}
+                      onMouseEnter={() => setHoveredGuidelineWidth?.(width)}
+                      onMouseLeave={() => setHoveredGuidelineWidth?.(null)}
+                    >
+                      {width}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
