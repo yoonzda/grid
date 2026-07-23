@@ -20,7 +20,7 @@ const compactSectionElements = (elements: EditorElement[]): EditorElement[] => {
 };
 
 const ensurePresets = (pagesList: Page[]): Page[] => {
-  const processed: Page[] = pagesList.map(p => ({
+  let processed: Page[] = pagesList.map(p => ({
     ...p,
     sections: p.sections.map(sec => {
       const isHeaderOrFooter = sec.sharedType === 'header' || sec.sharedType === 'footer';
@@ -78,6 +78,23 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
       };
     })
   }));
+
+  // Ensure privacy page exists if not present
+  let hasPrivacy = processed.some((p: Page) => p.id === 'privacy');
+  if (!hasPrivacy) {
+    const defaultPrivacy = BUSINESS_TEMPLATE.find(p => p.id === 'privacy');
+    if (defaultPrivacy) {
+      processed.push(defaultPrivacy);
+    }
+  }
+
+  // Ensure terms page name is updated to 이용약관
+  processed = processed.map(p => {
+    if (p.id === 'terms' && p.name === '약관') {
+      return { ...p, name: '이용약관' };
+    }
+    return p;
+  });
 
   let sitemapPage = processed.find((p: Page) => p.id === 'sitemap');
   if (!sitemapPage) {

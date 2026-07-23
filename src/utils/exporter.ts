@@ -913,7 +913,7 @@ ${fontLinksHtml}
             const trimmed = item.trim();
             const isPrivacy = trimmed.includes('개인정보');
             const isTerms = trimmed.includes('약관') || trimmed.includes('이용약관');
-            const href = isPrivacy ? 'terms.html#privacy' : isTerms ? 'terms.html' : '#';
+            const href = isPrivacy ? 'privacy.html' : isTerms ? 'terms.html' : '#';
             return `<a href="${href}" style="color: inherit; text-decoration: none;">${trimmed}</a>`;
           }).join(' &nbsp;|&nbsp; ');
         } else {

@@ -605,13 +605,13 @@ export const BUSINESS_TEMPLATE: Page[] = [
   // Page 6: Terms (terms.html)
   {
     id: 'terms',
-    name: '약관',
+    name: '이용약관',
     fileName: 'terms.html',
     sections: [
       getBusinessHeader(),
       {
         id: 'sec-terms-body',
-        height: 450,
+        height: 480,
         backgroundColor: '#ffffff',
         elements: [
           {
@@ -621,7 +621,7 @@ export const BUSINESS_TEMPLATE: Page[] = [
             gridW: 10,
             gridY: 1,
             gridH: 1,
-            content: '이용약관 및 정책 가이드',
+            content: '서비스 이용약관',
             color: 'var(--theme-primary)',
             fontSize: '22px',
             fontFamily: 'Inter',
@@ -634,10 +634,55 @@ export const BUSINESS_TEMPLATE: Page[] = [
             gridX: 1,
             gridW: 10,
             gridY: 3,
-            gridH: 6,
-            content: '제 1 조 (목적)\n본 약관은 주식회사 누리아이(이하 "회사"라 함)가 제공하는 그리드 사이트 빌더 에디터 서비스의 가이드 시스템 이용에 관한 의무 사항 규정을 목적으로 합니다.\n\n제 2 조 (효력 및 변경)\n1. 본 약관은 서비스 웹사이트 상에 공시함으로써 효력이 발생합니다.\n2. 회사는 타당한 사유가 발생할 경우 본 약관을 임의로 변경할 권리를 가지며, 변경사항은 공지사항에 기재되어 동일하게 고지됩니다.',
+            gridH: 8,
+            content: '제 1 조 (목적)\n본 약관은 (주) 코퍼레이트(이하 "회사"라 함)가 제공하는 인터넷 디지털 웹 플랫폼 서비스의 이용조건 및 절차, 회원과 회사 간의 권리, 의무 및 책임사항 규정을 목적으로 합니다.\n\n제 2 조 (용어의 정의)\n1. "서비스"라 함은 회사가 회원에게 제공하는 정보제공, 컨텐츠 생성 및 제반 디바이스용 웹 플랫폼 일체를 말합니다.\n2. "회원"이라 함은 회사의 서비스에 접속하여 본 약관에 동의하고 이용계약을 체결한 고객을 말합니다.\n\n제 3 조 (약관의 개정 및 고지)\n1. 회사는 관련 법률을 위배하지 않는 범위에서 본 약관을 개정할 수 있습니다.\n2. 약관이 개정되는 경우 회사는 적용일자 및 개정사유를 명시하여 서비스 화면에 사전 공지합니다.',
             color: 'var(--theme-text)',
-            fontSize: '12px',
+            fontSize: '13px',
+            fontFamily: 'Inter',
+            align: 'left',
+            widthMode: 'stretch',
+          }
+        ]
+      },
+      getBusinessFooter()
+    ]
+  },
+  // Page 7: Privacy Policy (privacy.html)
+  {
+    id: 'privacy',
+    name: '개인정보처리방침',
+    fileName: 'privacy.html',
+    sections: [
+      getBusinessHeader(),
+      {
+        id: 'sec-privacy-body',
+        height: 480,
+        backgroundColor: '#ffffff',
+        elements: [
+          {
+            id: 'el-privacy-title',
+            type: 'title',
+            gridX: 1,
+            gridW: 10,
+            gridY: 1,
+            gridH: 1,
+            content: '개인정보 처리방침',
+            color: 'var(--theme-primary)',
+            fontSize: '22px',
+            fontFamily: 'Inter',
+            align: 'left',
+            widthMode: 'fit-content',
+          },
+          {
+            id: 'el-privacy-content',
+            type: 'text',
+            gridX: 1,
+            gridW: 10,
+            gridY: 3,
+            gridH: 8,
+            content: '제 1 조 (개인정보의 수집 및 이용 목적)\n(주) 코퍼레이트(이하 "회사"라 함)는 다음의 목적을 위하여 최소한의 개인정보를 수집 및 처리합니다.\n1. 회원가입 및 관리: 회원 가입의사 확인, 본인 식별 및 서비스 이용자격 유지\n2. 서비스 제공 및 민원 처리: 웹 서비스 제공, 맞춤형 컨텐츠 제공, 기술지원 및 서비스 관련 고지사항 전달\n\n제 2 조 (수집하는 개인정보 항목)\n- 필수항목: 성명, 이메일 주소, 연락처(전화번호), 접속 IP, 서비스 이용 기록\n\n제 3 조 (개인정보의 보유 및 파기)\n1. 회사는 개인정보 수집 및 이용목적이 달성된 후에는 해당 정보를 지체 없이 파기합니다.\n2. 관계법령의 규정에 의하여 보존할 필요가 있는 경우 법령에서 정한 기간 동안 개인정보를 보관합니다.',
+            color: 'var(--theme-text)',
+            fontSize: '13px',
             fontFamily: 'Inter',
             align: 'left',
             widthMode: 'stretch',

@@ -454,13 +454,13 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         const trimmed = item.trim();
         const isPrivacy = trimmed.includes('개인정보');
         const isTerms = trimmed.includes('약관') || trimmed.includes('이용약관');
-        const targetPageId = isTerms || isPrivacy ? 'terms' : undefined;
+        const targetPageId = isPrivacy ? 'privacy' : isTerms ? 'terms' : undefined;
 
         return (
           <React.Fragment key={idx}>
             {idx > 0 && <span style={{ opacity: 0.4, margin: '0 8px' }}>|</span>}
             <a
-              href={isPrivacy ? 'terms.html#privacy' : isTerms ? 'terms.html' : '#'}
+              href={isPrivacy ? 'privacy.html' : isTerms ? 'terms.html' : '#'}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
