@@ -1181,24 +1181,30 @@ ${fontLinksHtml}
           indexHtml += `                <ul class="legal-article-list">\n`;
           
           articles.forEach((art) => {
+            const clausesList = (art.clauses && art.clauses.length > 0)
+              ? art.clauses
+              : [{ id: `${art.id}-c0`, num: art.num || '', content: art.content || '', subItems: art.subItems }];
+
             indexHtml += `                  <li class="legal-article-item" style="margin-bottom: 20px;">\n`;
             indexHtml += `                    <h5 class="legal-article-title">${art.title}</h5>\n`;
             
             indexHtml += `                    <ol class="legal-clause-list">\n`;
-            indexHtml += `                      <li class="legal-clause-item">\n`;
-            if (art.num) indexHtml += `                        <span class="legal-clause-num">${art.num}</span>\n`;
-            indexHtml += `                        <div class="legal-clause-body">${art.content.replace(/\n/g, '<br/>')}`;
-            
-            if (art.subItems && art.subItems.length > 0) {
-              indexHtml += `\n                          <ol class="legal-subclause-list">\n`;
-              art.subItems.forEach((sub) => {
-                indexHtml += `                            <li class="legal-subclause-item"><span class="legal-subclause-num">${sub.num}</span><div class="legal-subclause-body">${sub.content}</div></li>\n`;
-              });
-              indexHtml += `                          </ol>\n                        `;
-            }
-            
-            indexHtml += `</div>\n`;
-            indexHtml += `                      </li>\n`;
+            clausesList.forEach((clause) => {
+              indexHtml += `                      <li class="legal-clause-item" style="display: flex; gap: 12px; margin-bottom: 8px;">\n`;
+              if (clause.num) indexHtml += `                        <span class="legal-clause-num">${clause.num}</span>\n`;
+              indexHtml += `                        <div class="legal-clause-body">${(clause.content || '').replace(/\n/g, '<br/>')}`;
+              
+              if (clause.subItems && clause.subItems.length > 0) {
+                indexHtml += `\n                          <ol class="legal-subclause-list">\n`;
+                clause.subItems.forEach((sub) => {
+                  indexHtml += `                            <li class="legal-subclause-item"><span class="legal-subclause-num">${sub.num}</span><div class="legal-subclause-body">${sub.content}</div></li>\n`;
+                });
+                indexHtml += `                          </ol>\n                        `;
+              }
+              
+              indexHtml += `</div>\n`;
+              indexHtml += `                      </li>\n`;
+            });
             indexHtml += `                    </ol>\n`;
             indexHtml += `                  </li>\n`;
           });

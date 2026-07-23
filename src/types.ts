@@ -11,13 +11,21 @@ export interface LegalSubclauseItem {
   content: string;
 }
 
-export interface LegalArticleItem {
+export interface LegalClauseItem {
   id: string;
   num: string;
-  title: string;
   content: string;
-  isOpen?: boolean;
   subItems?: LegalSubclauseItem[];
+}
+
+export interface LegalArticleItem {
+  id: string;
+  title: string;
+  num?: string;
+  content?: string;
+  clauses?: LegalClauseItem[];
+  subItems?: LegalSubclauseItem[];
+  isOpen?: boolean;
 }
 
 export interface EditorElement {

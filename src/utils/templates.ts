@@ -644,10 +644,24 @@ export const BUSINESS_TEMPLATE: Page[] = [
             legalArticles: [
               {
                 id: 'art-terms-1',
-                num: '1.1',
                 title: 'Article 1. Rules and Institution (목적 및 총칙)',
-                content: '본 약관은 (주) 코퍼레이트(이하 "회사"라 함)가 제공하는 디지털 웹 플랫폼 서비스의 이용조건 및 절차, 회원과 회사 간의 권리, 의무 및 책임사항 규정을 목적으로 합니다.',
-                isOpen: true,
+                clauses: [
+                  {
+                    id: 'c-terms-1-1',
+                    num: '1.1',
+                    content: '본 약관은 (주) 코퍼레이트(이하 "회사"라 함)가 제공하는 디지털 웹 플랫폼 서비스의 이용조건 및 절차 규정을 목적으로 합니다.',
+                  },
+                  {
+                    id: 'c-terms-1-2',
+                    num: '1.2',
+                    content: '“중재재판소”라 함은 본 규칙에 따라 구성된 하나 이상의 중재인으로 구성된 중재판정부를 의미합니다.',
+                  },
+                  {
+                    id: 'c-terms-1-3',
+                    num: '1.3',
+                    content: '사무국은 KCAB International 의 이사회 및 정관 지휘 아래 독립적으로 본 관리 절차 업무를 수행합니다.',
+                  }
+                ]
               },
               {
                 id: 'art-terms-2',

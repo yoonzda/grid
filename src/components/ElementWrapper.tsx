@@ -379,39 +379,47 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
                 </h4>
               )}
               <ul className="legal-article-list" style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                {articles.map((art, idx) => (
-                  <li key={art.id || idx} className="legal-article-item" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
-                    <div className="legal-article-title-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <h5 className="legal-article-title" style={{ color: headerColor, margin: 0, fontSize: '15px', fontWeight: 700 }}>
-                        {art.title}
-                      </h5>
-                    </div>
+                {articles.map((art, idx) => {
+                  const clausesList = (art.clauses && art.clauses.length > 0)
+                    ? art.clauses
+                    : [{ id: `${art.id}-c0`, num: art.num || '', content: art.content || '', subItems: art.subItems }];
 
-                    <ol className="legal-clause-list" style={{ listStyle: 'none', padding: 0, margin: '12px 0 0 0', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                      <li className="legal-clause-item" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-                        {art.num && (
-                          <span className="legal-clause-num" style={{ color: numberColor, fontWeight: 700, minWidth: '28px', flexShrink: 0 }}>
-                            {art.num}
-                          </span>
-                        )}
-                        <div className="legal-clause-body" style={{ flex: 1, fontSize: '13.5px', color: '#334155', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
-                          {art.content}
+                  return (
+                    <li key={art.id || idx} className="legal-article-item" style={{ borderBottom: '1px solid #f1f5f9', paddingBottom: '16px' }}>
+                      <div className="legal-article-title-row" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <h5 className="legal-article-title" style={{ color: headerColor, margin: 0, fontSize: '15px', fontWeight: 700 }}>
+                          {art.title}
+                        </h5>
+                      </div>
 
-                          {art.subItems && art.subItems.length > 0 && (
-                            <ol className="legal-subclause-list" style={{ listStyle: 'none', padding: 0, margin: '10px 0 0 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                              {art.subItems.map((sub, sIdx) => (
-                                <li key={sub.id || sIdx} className="legal-subclause-item" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#475569' }}>
-                                  <span className="legal-subclause-num" style={{ fontWeight: 600, color: '#64748b', minWidth: '20px', flexShrink: 0 }}>{sub.num}</span>
-                                  <div className="legal-subclause-body" style={{ flex: 1 }}>{sub.content}</div>
-                                </li>
-                              ))}
-                            </ol>
-                          )}
-                        </div>
-                      </li>
-                    </ol>
-                  </li>
-                ))}
+                      <ol className="legal-clause-list" style={{ listStyle: 'none', padding: 0, margin: '12px 0 0 0', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                        {clausesList.map((clause, cIdx) => (
+                          <li key={clause.id || cIdx} className="legal-clause-item" style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
+                            {clause.num && (
+                              <span className="legal-clause-num" style={{ color: numberColor, fontWeight: 700, minWidth: '28px', flexShrink: 0 }}>
+                                {clause.num}
+                              </span>
+                            )}
+                            <div className="legal-clause-body" style={{ flex: 1, fontSize: '13.5px', color: '#334155', lineHeight: 1.7, whiteSpace: 'pre-line' }}>
+                              {clause.content}
+
+                              {clause.subItems && clause.subItems.length > 0 && (
+                                <ol className="legal-subclause-list" style={{ listStyle: 'none', padding: 0, margin: '10px 0 0 0', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                                  {clause.subItems.map((sub, sIdx) => (
+                                    <li key={sub.id || sIdx} className="legal-subclause-item" style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px', color: '#475569' }}>
+                                      <span className="legal-subclause-num" style={{ fontWeight: 600, color: '#64748b', minWidth: '20px', flexShrink: 0 }}>{sub.num}</span>
+                                      <div className="legal-subclause-body" style={{ flex: 1 }}>{sub.content}</div>
+                                    </li>
+                                  ))}
+                                </ol>
+                              )}
+                            </div>
+                          </li>
+                        ))}
+                      </ol>
+                    </li>
+                  );
+                })}
               </ul>
             </li>
           </ul>
