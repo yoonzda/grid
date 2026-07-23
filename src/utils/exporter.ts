@@ -812,8 +812,8 @@ body {
   }
 }
 
-/* Legal Document Styles */
-.scrollRightBox {
+/* Legal Document Styles (BEM Standard) */
+.legal-doc-container {
   width: 100%;
   max-width: 1000px;
   margin: 0 auto;
@@ -823,7 +823,7 @@ body {
   text-align: left;
 }
 
-.listType8 {
+.legal-chapter-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -832,7 +832,8 @@ body {
   gap: 36px;
 }
 
-.listType8 > li > h4 {
+.legal-chapter-title,
+.legal-chapter-list > li > h4 {
   font-size: 18px;
   font-weight: 800;
   color: var(--theme-primary, #0284c7);
@@ -842,7 +843,8 @@ body {
   border-bottom: 2px solid #e2e8f0;
 }
 
-.listType8 > li > ul {
+.legal-article-list,
+.legal-chapter-list > li > ul {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -851,14 +853,15 @@ body {
   gap: 28px;
 }
 
-.listType8 h5 {
+.legal-article-title,
+.legal-chapter-list h5 {
   font-size: 15px;
   font-weight: 700;
   color: #0f172a;
   margin: 0 0 12px 0;
 }
 
-.rulesList_dep1 {
+.legal-clause-list {
   list-style: none;
   padding: 0;
   margin: 0;
@@ -867,7 +870,8 @@ body {
   gap: 14px;
 }
 
-.rulesList_dep1 > li {
+.legal-clause-item,
+.legal-clause-list > li {
   display: flex;
   align-items: flex-start;
   gap: 12px;
@@ -875,18 +879,20 @@ body {
   color: #334155;
 }
 
-.rulesList_dep1 > li > span {
+.legal-clause-num,
+.legal-clause-list > li > span {
   font-weight: 700;
   color: var(--theme-primary, #0284c7);
   min-width: 32px;
   flex-shrink: 0;
 }
 
-.rulesList_dep1 > li > div {
+.legal-clause-body,
+.legal-clause-list > li > div {
   flex: 1;
 }
 
-.rulesList_dep2 {
+.legal-subclause-list {
   list-style: none;
   padding: 0;
   margin-top: 10px;
@@ -895,7 +901,8 @@ body {
   gap: 8px;
 }
 
-.rulesList_dep2 > li {
+.legal-subclause-item,
+.legal-subclause-list > li {
   display: flex;
   align-items: flex-start;
   gap: 10px;
@@ -903,14 +910,16 @@ body {
   color: #475569;
 }
 
-.rulesList_dep2 > li > span {
+.legal-subclause-num,
+.legal-subclause-list > li > span {
   font-weight: 600;
   color: #64748b;
   min-width: 20px;
   flex-shrink: 0;
 }
 
-.rulesList_dep2 > li > div {
+.legal-subclause-body,
+.legal-subclause-list > li > div {
   flex: 1;
 }
 `;
