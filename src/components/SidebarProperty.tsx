@@ -927,7 +927,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               <label className="group-title">가로폭</label>
               <div className="align-buttons-row">
                 {(['100%', '80%', '60%'] as const).map((width) => {
-                  const isActive = (section.guidelineWidth || '100%') === width;
+                  const isActive = (section.guidelineWidth || '80%') === width;
                   return (
                     <button
                       key={width}

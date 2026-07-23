@@ -452,7 +452,7 @@ body {
       if (sec.sharedType === 'footer') {
         styleCss += `\n/* Footer Component: ${sec.id} */\n`;
         styleCss += `.section-${sec.id} {\n`;
-        styleCss += `  --content-width: ${sec.guidelineWidth || '100%'};\n`;
+        styleCss += `  --content-width: ${sec.guidelineWidth || '80%'};\n`;
         styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
         styleCss += `  padding-top: var(--footer-${sec.id}-padding-y);\n`;
         styleCss += `  padding-bottom: var(--footer-${sec.id}-padding-y);\n`;

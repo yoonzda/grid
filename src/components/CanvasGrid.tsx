@@ -776,7 +776,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         const isDraggingInThisSection = dragState?.sectionId === sec.id;
         const isSelected = activeSectionId === sec.id;
         const isHoveringGuideline = isSelected && hoveredGuidelineWidth !== null && hoveredGuidelineWidth !== undefined;
-        const gWidth = isHoveringGuideline ? hoveredGuidelineWidth : (sec.guidelineWidth || '100%');
+        const gWidth = isHoveringGuideline ? hoveredGuidelineWidth : (sec.guidelineWidth || '80%');
 
         const isHoveredFromList = hoveredSectionId === sec.id;
         const isFocused = hoveredSectionId ? isHoveredFromList : isSelected;

@@ -46,7 +46,7 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
       if (sec.sharedType === 'footer') {
         return {
           ...sec,
-          guidelineWidth: sec.guidelineWidth || '100%',
+          guidelineWidth: sec.guidelineWidth || '80%',
           heightMode: 'auto',
           footerLayout: sec.footerLayout || 'left-corporate',
           footerCompany: sec.footerCompany || '(주) 코퍼레이트',
