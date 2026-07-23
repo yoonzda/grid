@@ -2955,11 +2955,20 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     <span className="input-label font-bold text-slate-800">조항 목록 관리</span>
                     <button
                       type="button"
-                      className="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-xs font-semibold border border-sky-200 transition-all"
+                      className="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-xs font-semibold border border-sky-200 transition-all flex items-center gap-1"
                       onClick={() => {
                         const current = element.legalArticles || [];
                         const nextId = `art-${Date.now()}`;
-                        const nextNum = `${current.length + 1}.1`;
+                        let nextNum = `${current.length + 1}.1`;
+                        if (current.length > 0) {
+                          const lastNum = current[current.length - 1].num;
+                          const parts = lastNum.split('.');
+                          if (parts.length === 2 && !isNaN(parseInt(parts[0])) && !isNaN(parseInt(parts[1]))) {
+                            nextNum = `${parts[0]}.${parseInt(parts[1]) + 1}`;
+                          } else if (!isNaN(parseInt(lastNum))) {
+                            nextNum = `${parseInt(lastNum) + 1}.1`;
+                          }
+                        }
                         const newArticle: any = {
                           id: nextId,
                           num: nextNum,
@@ -2971,11 +2980,12 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                         setExpandedArticleId(nextId);
                       }}
                     >
-                      + 조항 추가
+                      <Plus size={13} />
+                      <span>조항 추가</span>
                     </button>
                   </div>
 
-                  <div className="articles-list flex flex-col gap-2.5 max-h-[420px] overflow-y-auto pr-1">
+                  <div className="articles-list flex flex-col gap-2.5 max-h-[460px] overflow-y-auto pr-1">
                     {(element.legalArticles || []).map((art, idx) => {
                       const isExpanded = expandedArticleId === art.id || (expandedArticleId === null && idx === 0);
 
@@ -3060,9 +3070,9 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                               </div>
 
                               <div className="input-block">
-                                <span className="input-label">조항 상세 내용</span>
+                                <span className="input-label">조항 본문 내용</span>
                                 <textarea
-                                  rows={4}
+                                  rows={3}
                                   value={art.content || ''}
                                   onChange={(e) => {
                                     const updated = (element.legalArticles || []).map(a => a.id === art.id ? { ...a, content: e.target.value } : a);
@@ -3071,6 +3081,87 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                                   className="w-full p-2 rounded border border-slate-200 text-xs bg-white focus:outline-none focus:border-sky-500 leading-relaxed"
                                   placeholder="조항 상세 내용을 입력하세요."
                                 />
+                              </div>
+
+                              {/* Sub-items (하위 세부 호/목록) Editor */}
+                              <div className="subitems-block mt-1 pt-2 border-t border-slate-100 flex flex-col gap-2">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-[11px] font-bold text-slate-700">하위 세부 항목 (호/목록)</span>
+                                  <button
+                                    type="button"
+                                    className="px-1.5 py-0.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded text-[11px] font-semibold transition-all flex items-center gap-1 border border-slate-200"
+                                    onClick={() => {
+                                      const currentSubs = art.subItems || [];
+                                      const romanNums = ['i.', 'ii.', 'iii.', 'iv.', 'v.', 'vi.', 'vii.'];
+                                      const nextSubNum = romanNums[currentSubs.length] || `${currentSubs.length + 1}.`;
+                                      const newSub = {
+                                        id: `sub-${Date.now()}`,
+                                        num: nextSubNum,
+                                        content: '하위 세부 내용을 입력하세요.',
+                                      };
+                                      const updatedArticles = (element.legalArticles || []).map(a => 
+                                        a.id === art.id ? { ...a, subItems: [...currentSubs, newSub] } : a
+                                      );
+                                      updateElement({ legalArticles: updatedArticles });
+                                    }}
+                                  >
+                                    <Plus size={11} />
+                                    <span>하위 항목 추가</span>
+                                  </button>
+                                </div>
+
+                                {(art.subItems || []).length > 0 && (
+                                  <div className="flex flex-col gap-2 bg-slate-50 p-2 rounded border border-slate-200/80">
+                                    {(art.subItems || []).map((sub, sIdx) => (
+                                      <div key={sub.id || sIdx} className="flex items-center gap-1.5">
+                                        <input
+                                          type="text"
+                                          value={sub.num || ''}
+                                          onChange={(e) => {
+                                            const updatedSubs = (art.subItems || []).map((s, i) => 
+                                              i === sIdx ? { ...s, num: e.target.value } : s
+                                            );
+                                            const updatedArticles = (element.legalArticles || []).map(a => 
+                                              a.id === art.id ? { ...a, subItems: updatedSubs } : a
+                                            );
+                                            updateElement({ legalArticles: updatedArticles });
+                                          }}
+                                          className="w-12 p-1 rounded border border-slate-200 text-xs bg-white text-center font-bold text-slate-600 shrink-0"
+                                          placeholder="i."
+                                        />
+                                        <input
+                                          type="text"
+                                          value={sub.content || ''}
+                                          onChange={(e) => {
+                                            const updatedSubs = (art.subItems || []).map((s, i) => 
+                                              i === sIdx ? { ...s, content: e.target.value } : s
+                                            );
+                                            const updatedArticles = (element.legalArticles || []).map(a => 
+                                              a.id === art.id ? { ...a, subItems: updatedSubs } : a
+                                            );
+                                            updateElement({ legalArticles: updatedArticles });
+                                          }}
+                                          className="flex-1 p-1 px-2 rounded border border-slate-200 text-xs bg-white text-slate-700 min-w-0"
+                                          placeholder="세부 내용 입력"
+                                        />
+                                        <button
+                                          type="button"
+                                          className="p-1 text-red-400 hover:text-red-600 rounded transition-all shrink-0"
+                                          onClick={() => {
+                                            const updatedSubs = (art.subItems || []).filter((_, i) => i !== sIdx);
+                                            const updatedArticles = (element.legalArticles || []).map(a => 
+                                              a.id === art.id ? { ...a, subItems: updatedSubs } : a
+                                            );
+                                            updateElement({ legalArticles: updatedArticles });
+                                          }}
+                                          title="하위 항목 삭제"
+                                        >
+                                          <X size={13} />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
