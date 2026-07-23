@@ -55,7 +55,6 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
           footerBizNum: sec.footerBizNum || '123-45-67890',
           footerLinksText: sec.footerLinksText || '개인정보처리방침   이용약관',
           footerCopyright: sec.footerCopyright || 'Copyright © Corporate Inc. All rights reserved.',
-          footerShowChannelBadge: sec.footerShowChannelBadge !== undefined ? sec.footerShowChannelBadge : true,
           footerTextColor: sec.footerTextColor || '#0f172a',
           footerSubTextColor: sec.footerSubTextColor || '#475569',
           footerTextFont: sec.footerTextFont || 'Inter',

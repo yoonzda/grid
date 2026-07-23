@@ -838,7 +838,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
       const links = section.footerLinksText || '개인정보처리방침   이용약관';
       const copyright = section.footerCopyright || 'Copyright © Corporate Inc. All rights reserved.';
       const layout = section.footerLayout || 'left-corporate';
-      const showBadge = section.footerShowChannelBadge !== false;
 
       const textColor = section.footerTextColor || '#0f172a';
       const subTextColor = section.footerSubTextColor || '#475569';
@@ -914,24 +913,15 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 3. Links & Channel Badge */}
+            {/* 3. Links */}
             <div className="property-group flex flex-col gap-2">
-              <label className="group-title">상단 약관 / 퀵 링크 & 채널 뱃지</label>
+              <label className="group-title">상단 약관 & 퀵 링크 문구</label>
               <input
                 type="text"
                 value={links}
                 onChange={(e) => updateSection({ footerLinksText: e.target.value })}
-                placeholder="개인정보처리방침   직원로그인"
+                placeholder="개인정보처리방침   이용약관"
               />
-              <label className="flex items-center gap-2 mt-1 cursor-pointer text-xs text-slate-700">
-                <input
-                  type="checkbox"
-                  checked={showBadge}
-                  onChange={(e) => updateSection({ footerShowChannelBadge: e.target.checked })}
-                  className="rounded border-gray-300 text-sky-600 focus:ring-sky-500"
-                />
-                <span className="font-semibold text-slate-800">🟡 카카오/채널 뱃지 (Ch) 표출</span>
-              </label>
             </div>
 
             {/* 4. Representative & Tel */}

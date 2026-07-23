@@ -145,7 +145,6 @@ export interface Section {
   footerBizNum?: string;
   footerLinksText?: string;
   footerCopyright?: string;
-  footerShowChannelBadge?: boolean;
   footerLayout?: 'left-corporate' | 'stacked-center' | 'split-between' | 'simple-center';
   footerText?: string;
   footerTextColor?: string;

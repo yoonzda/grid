@@ -473,18 +473,6 @@ body {
         styleCss += `  font-size: 13px;\n`;
         styleCss += `  font-weight: 700;\n`;
         styleCss += `}\n`;
-        styleCss += `.section-${sec.id} .channel-badge {\n`;
-        styleCss += `  display: inline-flex;\n`;
-        styleCss += `  align-items: center;\n`;
-        styleCss += `  justify-content: center;\n`;
-        styleCss += `  width: 20px;\n`;
-        styleCss += `  height: 20px;\n`;
-        styleCss += `  border-radius: 50%;\n`;
-        styleCss += `  background-color: #fee500;\n`;
-        styleCss += `  color: #3c1e1e;\n`;
-        styleCss += `  font-weight: 900;\n`;
-        styleCss += `  font-size: 11px;\n`;
-        styleCss += `}\n`;
         styleCss += `.section-${sec.id} .footer-info-row {\n`;
         styleCss += `  display: flex;\n`;
         styleCss += `  flex-wrap: wrap;\n`;
@@ -917,7 +905,6 @@ ${fontLinksHtml}
         const tel = sec.footerTel || '1588-0000';
         const bizNum = sec.footerBizNum || '123-45-67890';
         const copyright = sec.footerCopyright || `Copyright © ${company || 'Corporate Inc.'}. All rights reserved.`;
-        const showBadge = sec.footerShowChannelBadge !== false;
 
         const linkItems = linksStr.split(/\s{2,}|\s*\|\s*/).filter(Boolean);
         let linksHtml = '';
@@ -938,9 +925,6 @@ ${fontLinksHtml}
         indexHtml += `      <div class="footer-wrapper">\n`;
         indexHtml += `        <div class="footer-links-row">\n`;
         indexHtml += `          <span>${linksHtml}</span>\n`;
-        if (showBadge) {
-          indexHtml += `          <span class="channel-badge" title="카카오톡 채널">Ch</span>\n`;
-        }
         indexHtml += `        </div>\n`;
         indexHtml += `        <div class="footer-info-row">\n`;
         if (rep) indexHtml += `          <span><strong>대표자</strong>${rep}</span>\n`;

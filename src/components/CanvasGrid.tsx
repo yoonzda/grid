@@ -445,7 +445,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     const linksStr = sec.footerLinksText || '개인정보처리방침   이용약관';
     const links = linksStr;
     const copyright = sec.footerCopyright || `Copyright © ${company || 'Corporate Inc.'}. All rights reserved.`;
-    const showBadge = sec.footerShowChannelBadge !== false;
 
     // Helper to render interactive page links for policy & terms
     const renderInteractiveLinks = () => {
@@ -505,31 +504,11 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             pointerEvents: 'auto',
           }}
         >
-          {/* Row 1: Links & Channel Badge */}
+          {/* Row 1: Links */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px', fontSize: '13px', color: textColor }}>
             <div style={{ display: 'flex', alignItems: 'center' }}>
               {renderInteractiveLinks()}
             </div>
-            {showBadge && (
-              <span
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  width: '20px',
-                  height: '20px',
-                  borderRadius: '50%',
-                  backgroundColor: '#fee500',
-                  color: '#3c1e1e',
-                  fontWeight: 900,
-                  fontSize: '11px',
-                  boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
-                }}
-                title="카카오톡 채널"
-              >
-                Ch
-              </span>
-            )}
           </div>
 
           {/* Row 2: Rep, Address, Tel, BizNum */}
