@@ -138,8 +138,14 @@ export interface Section {
   headerPaddingY?: number;
 
   // Footer Component fields
+  footerCompany?: string;
+  footerAddress?: string;
+  footerLinksText?: string;
+  footerCopyright?: string;
+  footerLayout?: 'stacked-center' | 'split-between' | 'simple-center';
   footerText?: string;
   footerTextColor?: string;
+  footerSubTextColor?: string;
   footerTextSize?: string;
   footerTextFont?: string;
   footerAlign?: 'left' | 'center' | 'right';

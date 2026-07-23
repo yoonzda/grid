@@ -432,30 +432,116 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   const renderFooterComponent = (sec: Section) => {
     const textFont = sec.footerTextFont || 'Inter';
     const fontStyle = getFontFamilyByFamilyName(textFont);
-    const align = sec.footerAlign || 'center';
-    const textColor = sec.footerTextColor || '#9ca3af';
-    const textSize = sec.footerTextSize || '12px';
-    const paddingY = sec.footerPaddingY !== undefined ? sec.footerPaddingY : 20;
-    const contentText = sec.footerText || '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침';
+    const textColor = sec.footerTextColor || '#ffffff';
+    const subTextColor = sec.footerSubTextColor || '#9ca3af';
+    const paddingY = sec.footerPaddingY !== undefined ? sec.footerPaddingY : 36;
+    const layout = sec.footerLayout || 'stacked-center';
 
+    const company = sec.footerCompany || '(주) 코퍼레이트 글로벌  |  CORPORATE Inc.';
+    const address = sec.footerAddress || '대표이사: 홍길동  |  사업자등록번호: 123-45-67890  |  주소: 서울특별시 강남구 테헤란로 501  |  고객센터: 1588-0000';
+    const links = sec.footerLinksText || '이용약관   |   개인정보처리방침   |   사업자정보확인   |   고객센터';
+    const copyright = sec.footerCopyright || '© 2026 Corporate Inc. All rights reserved.';
+
+    if (layout === 'split-between') {
+      return (
+        <div
+          className="footer-flex-wrapper split-between"
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            gap: '32px',
+            width: '100%',
+            margin: '0 auto',
+            paddingTop: `${paddingY}px`,
+            paddingBottom: `${paddingY}px`,
+            fontFamily: fontStyle,
+            boxSizing: 'border-box',
+            pointerEvents: 'auto',
+          }}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxWidth: '60%' }}>
+            <div style={{ fontSize: '15px', fontWeight: 700, color: textColor, letterSpacing: '-0.2px' }}>
+              {company}
+            </div>
+            <div style={{ fontSize: '12px', color: subTextColor, lineHeight: 1.6 }}>
+              {address}
+            </div>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'flex-end', textAlign: 'right' }}>
+            <div style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>
+              {links}
+            </div>
+            <div style={{ fontSize: '12px', color: subTextColor }}>
+              {copyright}
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    if (layout === 'simple-center') {
+      return (
+        <div
+          className="footer-flex-wrapper simple-center"
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '8px',
+            width: '100%',
+            margin: '0 auto',
+            paddingTop: `${paddingY}px`,
+            paddingBottom: `${paddingY}px`,
+            textAlign: 'center',
+            fontFamily: fontStyle,
+            boxSizing: 'border-box',
+            pointerEvents: 'auto',
+          }}
+        >
+          <div style={{ fontSize: '13px', fontWeight: 600, color: textColor }}>
+            {links}
+          </div>
+          <div style={{ fontSize: '12px', color: subTextColor }}>
+            {copyright}
+          </div>
+        </div>
+      );
+    }
+
+    // Default: 'stacked-center'
     return (
       <div
-        className="footer-flex-wrapper"
+        className="footer-flex-wrapper stacked-center"
         style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '12px',
           width: '100%',
           margin: '0 auto',
           paddingTop: `${paddingY}px`,
           paddingBottom: `${paddingY}px`,
-          textAlign: align,
-          color: textColor,
-          fontSize: textSize,
+          textAlign: 'center',
           fontFamily: fontStyle,
-          lineHeight: 1.5,
           boxSizing: 'border-box',
           pointerEvents: 'auto',
         }}
       >
-        {contentText}
+        <div style={{ fontSize: '16px', fontWeight: 700, color: textColor, letterSpacing: '-0.2px' }}>
+          {company}
+        </div>
+        <div style={{ fontSize: '12px', color: subTextColor, lineHeight: 1.6, maxWidth: '850px' }}>
+          {address}
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '13px', fontWeight: 600, color: textColor, marginTop: '4px' }}>
+          {links}
+        </div>
+        <div style={{ fontSize: '12px', color: subTextColor, marginTop: '2px' }}>
+          {copyright}
+        </div>
       </div>
     );
   };

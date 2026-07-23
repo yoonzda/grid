@@ -44,19 +44,18 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
       });
 
       if (sec.sharedType === 'footer') {
-        let textContent = sec.footerText;
-        if (!textContent && sec.elements && sec.elements.length > 0) {
-          textContent = sec.elements[0].content;
-        }
         return {
           ...sec,
           heightMode: 'auto',
-          footerText: textContent || '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침',
-          footerTextColor: sec.footerTextColor || sec.elements?.[0]?.color || '#9ca3af',
-          footerTextSize: sec.footerTextSize || sec.elements?.[0]?.fontSize || '12px',
-          footerTextFont: sec.footerTextFont || sec.elements?.[0]?.fontFamily || 'Inter',
-          footerAlign: sec.footerAlign || sec.elements?.[0]?.align || 'center',
-          footerPaddingY: sec.footerPaddingY !== undefined ? sec.footerPaddingY : 20,
+          footerLayout: sec.footerLayout || 'stacked-center',
+          footerCompany: sec.footerCompany || '(주) 코퍼레이트 글로벌  |  CORPORATE Inc.',
+          footerAddress: sec.footerAddress || '대표이사: 홍길동  |  사업자등록번호: 123-45-67890  |  주소: 서울특별시 강남구 테헤란로 501  |  고객센터: 1588-0000',
+          footerLinksText: sec.footerLinksText || '이용약관   |   개인정보처리방침   |   사업자정보확인   |   고객센터',
+          footerCopyright: sec.footerCopyright || '© 2026 Corporate Inc. All rights reserved.',
+          footerTextColor: sec.footerTextColor || '#ffffff',
+          footerSubTextColor: sec.footerSubTextColor || '#9ca3af',
+          footerTextFont: sec.footerTextFont || 'Inter',
+          footerPaddingY: sec.footerPaddingY !== undefined ? sec.footerPaddingY : 36,
           elements: [],
         };
       }

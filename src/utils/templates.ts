@@ -70,17 +70,20 @@ const getBusinessHeader = (): Section => ({
 
 const getBusinessFooter = (): Section => ({
   id: 'sec-footer',
-  height: 80,
+  height: 180,
   backgroundColor: '#111827', // Dark Gray
   isShared: true,
   sharedType: 'footer',
   heightMode: 'auto',
-  footerText: '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침',
-  footerTextColor: '#9ca3af',
-  footerTextSize: '12px',
+  footerLayout: 'stacked-center',
+  footerCompany: '(주) 코퍼레이트 글로벌  |  CORPORATE Inc.',
+  footerAddress: '대표이사: 홍길동  |  사업자등록번호: 123-45-67890  |  주소: 서울특별시 강남구 테헤란로 501  |  고객센터: 1588-0000 (support@corporate.com)',
+  footerLinksText: '이용약관   |   개인정보처리방침   |   사업자정보확인   |   고객센터',
+  footerCopyright: '© 2026 Corporate Inc. All rights reserved.',
+  footerTextColor: '#ffffff',
+  footerSubTextColor: '#9ca3af',
   footerTextFont: 'Inter',
-  footerAlign: 'center',
-  footerPaddingY: 20,
+  footerPaddingY: 36,
   elements: []
 });
 
@@ -721,17 +724,20 @@ const getModernHeader = (): Section => ({
 // Common Modern Footer
 const getModernFooter = (): Section => ({
   id: 'sec-footer',
-  height: 80,
-  backgroundColor: 'var(--theme-secondary)',
+  height: 180,
+  backgroundColor: '#18181b', // Zinc Dark
   isShared: true,
   sharedType: 'footer',
   heightMode: 'auto',
-  footerText: 'M O D E R N  S T U D I O  /  All rights Reserved  /  Privacy Policy',
-  footerTextColor: '#9ca3af',
-  footerTextSize: '11px',
+  footerLayout: 'split-between',
+  footerCompany: 'M O D E R N  S T U D I O',
+  footerAddress: 'CEO: Yoon ZDA  |  Reg.No: 987-65-43210  |  Studio: Seoul, Gangnam-gu, Dosan-daero 88  |  Contact: hello@modernstudio.design',
+  footerLinksText: 'Terms of Service   /   Privacy Policy   /   Brand Guidelines',
+  footerCopyright: '© 2026 MODERN STUDIO. All rights reserved.',
+  footerTextColor: '#ffffff',
+  footerSubTextColor: '#a1a1aa',
   footerTextFont: 'Outfit',
-  footerAlign: 'center',
-  footerPaddingY: 20,
+  footerPaddingY: 36,
   elements: []
 });
 

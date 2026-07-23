@@ -830,12 +830,16 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
     }
 
     if (section.sharedType === 'footer') {
-      const footerText = section.footerText || '© 2026 Corporate Inc. All rights reserved.  |  이용약관  |  개인정보처리방침';
-      const textColor = section.footerTextColor || '#9ca3af';
-      const textSize = section.footerTextSize || '12px';
+      const company = section.footerCompany || '(주) 코퍼레이트 글로벌  |  CORPORATE Inc.';
+      const address = section.footerAddress || '대표이사: 홍길동  |  사업자등록번호: 123-45-67890  |  주소: 서울특별시 강남구 테헤란로 501  |  고객센터: 1588-0000';
+      const links = section.footerLinksText || '이용약관   |   개인정보처리방침   |   사업자정보확인   |   고객센터';
+      const copyright = section.footerCopyright || '© 2026 Corporate Inc. All rights reserved.';
+      const layout = section.footerLayout || 'stacked-center';
+
+      const textColor = section.footerTextColor || '#ffffff';
+      const subTextColor = section.footerSubTextColor || '#9ca3af';
       const textFont = section.footerTextFont || 'Inter';
-      const align = section.footerAlign || 'center';
-      const paddingY = section.footerPaddingY !== undefined ? section.footerPaddingY : 20;
+      const paddingY = section.footerPaddingY !== undefined ? section.footerPaddingY : 36;
 
       return (
         <div className="properties-panel">
@@ -857,7 +861,32 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           </div>
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
-            {/* 1. Guideline Width */}
+            {/* 1. Layout Style Preset */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">레이아웃 스타일</label>
+              <div className="flex gap-2">
+                {[
+                  { key: 'stacked-center', label: '중앙 정렬형' },
+                  { key: 'split-between', label: '양분 분할형' },
+                  { key: 'simple-center', label: '심플 한줄형' },
+                ].map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    className={`flex-1 py-1.5 px-2 rounded text-xs border font-medium transition-all ${
+                      layout === item.key
+                        ? 'bg-[#e0f2fe] text-[#0369a1] border-[#7dd3fc]'
+                        : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                    }`}
+                    onClick={() => updateSection({ footerLayout: item.key as any })}
+                  >
+                    {item.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. Guideline Width */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">가로폭</label>
               <div className="flex gap-2">
@@ -880,35 +909,60 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 2. Footer Text Content */}
+            {/* 3. Company Info */}
             <div className="property-group flex flex-col gap-2">
-              <label className="group-title">푸터 문구 & 카피라이트</label>
+              <label className="group-title">회사명 & 상호</label>
+              <input
+                type="text"
+                value={company}
+                onChange={(e) => updateSection({ footerCompany: e.target.value })}
+                placeholder="(주) 코퍼레이트 글로벌"
+              />
+            </div>
+
+            {/* 4. Address & Business Info */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">사업자 / 주소 / 연락처 정보</label>
               <textarea
                 rows={3}
-                value={footerText}
-                onChange={(e) => updateSection({ footerText: e.target.value })}
+                value={address}
+                onChange={(e) => updateSection({ footerAddress: e.target.value })}
+                placeholder="대표이사: 홍길동 | 사업자등록번호: 123-45-67890 | 주소: 서울특별시..."
+              />
+            </div>
+
+            {/* 5. Policy & Links */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">약관 & 퀵 링크 문구</label>
+              <input
+                type="text"
+                value={links}
+                onChange={(e) => updateSection({ footerLinksText: e.target.value })}
+                placeholder="이용약관 | 개인정보처리방침 | 고객센터"
+              />
+            </div>
+
+            {/* 6. Copyright */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">카피라이트 (Copyright)</label>
+              <input
+                type="text"
+                value={copyright}
+                onChange={(e) => updateSection({ footerCopyright: e.target.value })}
                 placeholder="© 2026 Corporate Inc. All rights reserved."
               />
             </div>
 
-            {/* 3. Footer Text Styling */}
+            {/* 7. Color & Typography Styling */}
             <div className="property-group flex flex-col gap-3">
-              <label className="group-title">텍스트 스타일</label>
+              <label className="group-title">텍스트 & 색상 스타일</label>
               <div className="grid-inputs-row">
                 <div className="grid-input-item">
-                  <span className="input-label">글자 크기</span>
-                  <input
-                    type="text"
-                    value={textSize}
-                    onChange={(e) => updateSection({ footerTextSize: e.target.value })}
-                  />
-                </div>
-                <div className="grid-input-item">
-                  <span className="input-label">글자 색상</span>
+                  <span className="input-label">주 글자색</span>
                   <div className="color-picker-wrapper">
                     <input
                       type="color"
-                      value={textColor.startsWith('#') ? textColor : '#9ca3af'}
+                      value={textColor.startsWith('#') ? textColor : '#ffffff'}
                       onChange={(e) => updateSection({ footerTextColor: e.target.value })}
                     />
                     <input
@@ -918,33 +972,21 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* Footer Text Alignment */}
-              <div className="flex flex-col gap-1.5">
-                <span className="input-label">텍스트 정렬</span>
-                <div className="align-buttons-row">
-                  <button
-                    type="button"
-                    className={`align-btn ${align === 'left' ? 'active' : ''}`}
-                    onClick={() => updateSection({ footerAlign: 'left' })}
-                  >
-                    좌측
-                  </button>
-                  <button
-                    type="button"
-                    className={`align-btn ${align === 'center' ? 'active' : ''}`}
-                    onClick={() => updateSection({ footerAlign: 'center' })}
-                  >
-                    중앙
-                  </button>
-                  <button
-                    type="button"
-                    className={`align-btn ${align === 'right' ? 'active' : ''}`}
-                    onClick={() => updateSection({ footerAlign: 'right' })}
-                  >
-                    우측
-                  </button>
+                <div className="grid-input-item">
+                  <span className="input-label">보조 글자색</span>
+                  <div className="color-picker-wrapper">
+                    <input
+                      type="color"
+                      value={subTextColor.startsWith('#') ? subTextColor : '#9ca3af'}
+                      onChange={(e) => updateSection({ footerSubTextColor: e.target.value })}
+                    />
+                    <input
+                      type="text"
+                      value={subTextColor}
+                      onChange={(e) => updateSection({ footerSubTextColor: e.target.value })}
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -959,7 +1001,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 4. Footer Section Base Settings (Padding & Background) */}
+            {/* 8. Footer Section Base Settings (Padding & Background) */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">섹션 스타일</label>
               <div className="grid-inputs-row">
@@ -967,11 +1009,11 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   <span className="input-label">상하 여백 (Padding Y): {paddingY}px</span>
                   <input
                     type="range"
-                    min="0"
-                    max="80"
+                    min="12"
+                    max="100"
                     step="2"
                     value={paddingY}
-                    onChange={(e) => updateSection({ footerPaddingY: parseInt(e.target.value) || 0 })}
+                    onChange={(e) => updateSection({ footerPaddingY: parseInt(e.target.value) || 12 })}
                   />
                 </div>
                 
