@@ -818,12 +818,12 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             {/* 2. Centered Content Grid Container */}
             <div
               className="section-grid-container"
-              style={sec.sharedType === 'header' ? { 
+              style={(sec.sharedType === 'header' || sec.sharedType === 'footer') ? { 
                 width: getContentPercent(gWidth), 
                 height: 'auto',
                 minHeight: 'auto',
-                paddingTop: `${sec.headerPaddingY ?? 16}px`,
-                paddingBottom: `${sec.headerPaddingY ?? 16}px`,
+                paddingTop: sec.sharedType === 'header' ? `${sec.headerPaddingY ?? 16}px` : 0,
+                paddingBottom: sec.sharedType === 'header' ? `${sec.headerPaddingY ?? 16}px` : 0,
               } : {
                 width: getContentPercent(gWidth), 
                 height: 'auto',
@@ -841,7 +841,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               {/* Elements container utilizing real CSS Grid for placement layout */}
               <div 
                 className="elements-box" 
-                style={sec.sharedType === 'header' ? { 
+                style={(sec.sharedType === 'header' || sec.sharedType === 'footer') ? { 
                   display: 'block',
                   width: '100%', 
                   height: '100%', 
