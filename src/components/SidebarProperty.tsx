@@ -2914,17 +2914,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               <div className="property-group flex flex-col gap-4">
                 <label className="group-title">약관 문서 설정</label>
 
-                {/* Chapter Title input */}
-                <div className="input-block">
-                  <span className="input-label font-bold text-slate-800">장 / 챕터 제목 (선택)</span>
-                  <input
-                    type="text"
-                    value={element.legalChapterTitle || ''}
-                    onChange={(e) => updateElement({ legalChapterTitle: e.target.value })}
-                    placeholder="예: CHAPTER 1. INTRODUCTORY RULES"
-                  />
-                </div>
-
                 {/* Color pickers */}
                 <div className="grid-inputs-row">
                   <div className="grid-input-item">
@@ -2969,23 +2958,18 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                       className="px-2 py-1 bg-sky-50 text-sky-700 hover:bg-sky-100 rounded text-xs font-semibold border border-sky-200 transition-all flex items-center gap-1"
                       onClick={() => {
                         const current = element.legalArticles || [];
+                        const nextArtNum = current.length + 1;
                         const nextId = `art-${Date.now()}`;
-                        let nextNum = `${current.length + 1}.1`;
-                        if (current.length > 0) {
-                          const lastNum = current[current.length - 1].num || '';
-                          const parts = lastNum.split('.');
-                          if (parts.length === 2 && !isNaN(parseInt(parts[0])) && !isNaN(parseInt(parts[1]))) {
-                            nextNum = `${parts[0]}.${parseInt(parts[1]) + 1}`;
-                          } else if (lastNum && !isNaN(parseInt(lastNum))) {
-                            nextNum = `${parseInt(lastNum) + 1}.1`;
-                          }
-                        }
                         const newArticle: any = {
                           id: nextId,
-                          num: nextNum,
-                          title: `Article ${current.length + 1}. 새로운 조항 제목`,
-                          content: '새로운 조항에 들어갈 상세 내용을 입력하세요.',
-                          isOpen: true,
+                          title: `Article ${nextArtNum}. 새로운 조항 제목`,
+                          clauses: [
+                            {
+                              id: `c-${Date.now()}-1`,
+                              num: `${nextArtNum}.1`,
+                              content: '새로운 조항에 들어갈 상세 내용을 입력하세요.',
+                            }
+                          ]
                         };
                         updateElement({ legalArticles: [...current, newArticle] });
                         setExpandedArticleId(nextId);
