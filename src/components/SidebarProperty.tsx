@@ -114,7 +114,8 @@ const ToggleSwitch: React.FC<{
 const FontCustomSelect: React.FC<{
   currentFontName: string;
   onSelectFont: (fontName: string) => void;
-}> = ({ currentFontName, onSelectFont }) => {
+  onHoverFont?: (fontName: string | null) => void;
+}> = ({ currentFontName, onSelectFont, onHoverFont }) => {
   const [isOpen, setIsOpen] = useState(false);
   const initialFontRef = useRef(currentFontName);
   const selectedFont = findSupportedFont(currentFontName);
@@ -254,6 +255,7 @@ const FontCustomSelect: React.FC<{
                 onMouseEnter={() => {
                   setHighlightedIndex(idx);
                   previewFont(f.name);
+                  onHoverFont?.(f.name);
                 }}
                 style={{
                   padding: '8px 12px',
@@ -298,7 +300,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   setHoveredGuidelineWidth,
   previewHeaderLayout: _previewHeaderLayout,
   setPreviewHeaderLayout: _setPreviewHeaderLayout,
-  previewFlexAlign,
+  previewFlexAlign: _previewFlexAlign,
   setPreviewFlexAlign,
   previewHeaderLogoFont: _previewHeaderLogoFont,
   setPreviewHeaderLogoFont,
@@ -2010,8 +2012,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
       }
     }
 
-    const activeSlideIdx = section.activeSlideIndex || 0;
-    const isSlideContentActive = activeElement?.sectionId === section.id && (activeElement?.elementId === 'slide-content' || activeElement?.elementId?.startsWith('slide'));
     const isMainSlide = section.sectionPresetType === 'main-slide' || section.id === 'sec-main-slide';
 
     return (
@@ -2751,7 +2751,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
             if (elementsCount > 0) {
               const maxElHeight = Math.max(...section.elements.map(el => {
-                const elHeightStr = el.height || '40px';
+                const elHeightStr = (el as any).height || '40px';
                 const parsedH = parseInt(elHeightStr, 10) || 40;
                 return parsedH;
               }));
@@ -2760,7 +2760,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 computedLimit = pTop + pBottom + maxElHeight + 20;
               } else {
                 const totalElementsH = section.elements.reduce((acc, el) => {
-                  const parsedH = parseInt(el.height || '40px', 10) || 40;
+                  const parsedH = parseInt((el as any).height || '40px', 10) || 40;
                   return acc + parsedH;
                 }, 0);
                 const totalGaps = (elementsCount - 1) * gap;
@@ -2779,7 +2779,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
             const isMain = section.sectionPresetType === 'main-slide' || section.id === 'sec-main-slide';
             const isDvhUnit = hUnit === 'dvh' || hUnit === 'vh';
-            const isFullDvh = isDvhUnit && boundedVal === 100;
 
             return (
               <>

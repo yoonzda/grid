@@ -213,7 +213,6 @@ export const BUSINESS_TEMPLATE: Page[] = [
       {
         id: 'sec-promo-banner',
         sectionPresetType: 'promo-banner',
-        sectionTitle: '고정 배경 배너',
         height: 360,
         heightMode: 'fixed',
         backgroundColor: '#0b192c',

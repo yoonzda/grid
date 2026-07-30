@@ -53,7 +53,7 @@ const MainSlideSectionNode: React.FC<{
   setActiveSectionId?: (val: string | null) => void;
   setContextMenu?: (val: { x: number; y: number; type: 'section' | 'element'; sectionId: string; elementId?: string } | null) => void;
   themeSettings?: ThemeSettings;
-}> = ({ sec, onNavigatePage, onUpdateSection, activeElement, setActiveElement, activeSectionId, setActiveSectionId, setContextMenu, themeSettings }) => {
+}> = ({ sec, onNavigatePage: _onNavigatePage, onUpdateSection, activeElement, setActiveElement, activeSectionId: _activeSectionId, setActiveSectionId, setContextMenu, themeSettings }) => {
   const slides = sec.slideItems || [];
   const [internalSlideIndex, setInternalSlideIndex] = useState(0);
 
@@ -61,8 +61,6 @@ const MainSlideSectionNode: React.FC<{
     ? (sec.activeSlideIndex % Math.max(1, slides.length)) 
     : (internalSlideIndex % Math.max(1, slides.length));
 
-  const autoPlay = sec.autoPlay !== false;
-  const autoPlayInterval = sec.autoPlayInterval || 4000;
   const loop = sec.loop !== false;
   const enableDrag = sec.enableDrag !== false;
 
