@@ -1,5 +1,6 @@
+// App root component for GRID design system builder (v1.1.5)
 import { useState, useEffect } from 'react';
-import { Section, Page, ThemeSettings, ExportFileName, GeneratedFiles, EditorElement } from './types';
+import { Section, Page, ThemeSettings, ExportFileName, GeneratedFiles, EditorElement, SpacingPreset } from './types';
 import { EditorContainer } from './components/EditorContainer';
 import { CodeViewerContainer } from './components/CodeViewerContainer';
 import { StyleViewerContainer } from './components/StyleViewerContainer';
@@ -8,6 +9,15 @@ import { BUSINESS_TEMPLATE, BUSINESS_THEME, MODERN_TEMPLATE, MODERN_THEME } from
 import './App.css';
 import JSZip from 'jszip';
 import { updateGoogleFontsInDOM } from './utils/fontManager';
+
+export const DEFAULT_SPACING_PRESETS: SpacingPreset[] = [
+  { id: 'space-xs', name: 'XS (8px)', value: 8, description: '최소 간격' },
+  { id: 'space-sm', name: 'S (12px)', value: 12, description: '소형 간격' },
+  { id: 'space-md', name: 'M (16px)', value: 16, description: '중형 (타이틀 하단 여백 기본)' },
+  { id: 'space-lg', name: 'L (20px)', value: 20, description: '대형 간격' },
+  { id: 'space-xl', name: 'XL (28px)', value: 28, description: '특대형 (설명 문구 하단 여백 기본)' },
+  { id: 'space-2xl', name: 'XXL (48px)', value: 48, description: '최대 간격' },
+];
 
 // App root component for GRID design system builder
 const compactSectionElements = (elements: EditorElement[]): EditorElement[] => {
@@ -64,15 +74,22 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
         };
       }
 
+      const isMainSlide = sec.sectionPresetType === 'main-slide' || sec.id === 'sec-main-slide';
       return {
         ...sec,
+        guidelineWidth: isMainSlide ? '100%' : (sec.guidelineWidth || '80%'),
         layoutMode: 'flex',
         flexDirection: sec.flexDirection || 'vertical',
         flexGap: sec.flexGap !== undefined ? sec.flexGap : 16,
-        flexAlign: sec.flexAlign || 'center',
-        heightMode: isHeaderOrFooter ? 'auto' : (sec.heightMode || 'fixed'),
-        paddingTop: sec.paddingTop !== undefined ? sec.paddingTop : (isHeaderOrFooter ? 16 : 40),
-        paddingBottom: sec.paddingBottom !== undefined ? sec.paddingBottom : (isHeaderOrFooter ? 16 : 40),
+        flexAlign: sec.flexAlign || (isMainSlide ? 'start' : 'center'),
+        heightMode: isHeaderOrFooter ? 'auto' : 'fixed',
+        heightUnit: isMainSlide ? (sec.heightUnit || 'dvh') : (sec.heightUnit || 'px'),
+        height: isMainSlide ? (sec.heightUnit === 'px' ? (sec.height || 680) : (sec.height || 100)) : (sec.height || 400),
+        paddingTop: isMainSlide ? 0 : (sec.paddingTop !== undefined ? sec.paddingTop : (isHeaderOrFooter ? 16 : 40)),
+        paddingBottom: isMainSlide ? 0 : (sec.paddingBottom !== undefined ? sec.paddingBottom : (isHeaderOrFooter ? 16 : 40)),
+        slideTitleMarginVarId: isMainSlide ? (sec.slideTitleMarginVarId !== undefined ? sec.slideTitleMarginVarId : 'space-md') : sec.slideTitleMarginVarId,
+        slideDescMarginVarId: isMainSlide ? (sec.slideDescMarginVarId !== undefined ? sec.slideDescMarginVarId : 'space-xl') : sec.slideDescMarginVarId,
+        backgroundColor: isMainSlide ? (sec.backgroundColor && sec.backgroundColor !== '#ffffff' ? sec.backgroundColor : '#0f172a') : (sec.backgroundColor || '#ffffff'),
         verticalAlign: sec.verticalAlign || 'center',
         elements: isShared ? mappedElements : compactSectionElements(mappedElements)
       };

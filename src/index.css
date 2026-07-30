@@ -111,8 +111,8 @@ select {
   transition: border-color 0.2s ease, box-shadow 0.2s ease !important;
 }
 
-/* Button and Input Font Inheritance rules to let fontPresets work inside button elements */
-button, .canvas-btn-inner, .btn-element {
+/* Button and Input Font Inheritance rules to let fontPresets work inside canvas button elements */
+.canvas-btn-inner, .btn-element {
   font-family: inherit !important;
   font-size: inherit !important;
   font-weight: inherit !important;

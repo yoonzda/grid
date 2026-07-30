@@ -307,12 +307,29 @@ body {
         styleCss += `\n/* Header Component: ${sec.id} */\n`;
         styleCss += `.section-${sec.id} {\n`;
         styleCss += `  --content-width: ${sec.guidelineWidth || '80%'};\n`;
-        styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
+        if (sec.headerTransparentAtTop || sec.headerIsFixed) {
+          styleCss += `  position: fixed;\n`;
+          styleCss += `  top: 0;\n`;
+          styleCss += `  left: 0;\n`;
+          styleCss += `  right: 0;\n`;
+          styleCss += `  z-index: 1000;\n`;
+          styleCss += `  transition: background-color 0.3s ease, box-shadow 0.3s ease;\n`;
+          styleCss += `  background-color: ${sec.headerTransparentAtTop ? 'transparent' : 'var(--sec-' + sec.id + '-bg-color)'};\n`;
+        } else {
+          styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
+        }
         styleCss += `  padding-top: var(--header-${sec.id}-padding-y);\n`;
         styleCss += `  padding-bottom: var(--header-${sec.id}-padding-y);\n`;
         styleCss += `  display: flex;\n`;
         styleCss += `  align-items: center;\n`;
         styleCss += `}\n`;
+        
+        if (sec.headerTransparentAtTop) {
+          styleCss += `.section-${sec.id}.scrolled {\n`;
+          styleCss += `  background-color: ${sec.headerScrollBgColor || '#1e3a8a'} !important;\n`;
+          styleCss += `  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);\n`;
+          styleCss += `}\n`;
+        }
         
         styleCss += `.section-${sec.id} .header-flex-wrapper {\n`;
         styleCss += `  display: flex;\n`;
@@ -498,22 +515,66 @@ body {
 
       styleCss += `\n/* Section: ${sec.id} */\n`;
       styleCss += `.section-${sec.id} {\n`;
-      styleCss += `  --content-width: ${sec.guidelineWidth || '80%'};\n`;
+      const mainSlideWidth = (sec.sectionPresetType === 'main-slide' || sec.id === 'sec-main-slide')
+        ? (sec.contentWidth || (sec.guidelineWidth === '100%' ? '80%' : sec.guidelineWidth || '80%'))
+        : (sec.guidelineWidth || '80%');
+      styleCss += `  --content-width: ${mainSlideWidth};\n`;
       styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
       styleCss += `  background-image: var(--sec-${sec.id}-bg-image);\n`;
       if (sec.backgroundImage) {
         styleCss += `  background-position: var(--sec-${sec.id}-bg-pos);\n`;
-        styleCss += `  background-size: var(--sec-${sec.id}-bg-size);\n`;
+          styleCss += `  background-size: var(--sec-${sec.id}-bg-size);\n`;
         styleCss += `  background-repeat: var(--sec-${sec.id}-bg-repeat);\n`;
       }
       
       const isAuto = sec.heightMode === 'auto';
+      const vertAlign = isAuto ? 'flex-start' : (sec.verticalAlign === 'start' ? 'flex-start' : sec.verticalAlign === 'end' ? 'flex-end' : 'center');
       styleCss += `  min-height: ${isAuto ? 'auto' : `var(--sec-${sec.id}-height)`};\n`;
       styleCss += `  display: flex;\n`;
       styleCss += `  flex-direction: column;\n`;
-      const vertAlign = isAuto ? 'flex-start' : (sec.verticalAlign === 'start' ? 'flex-start' : sec.verticalAlign === 'end' ? 'flex-end' : 'center');
       styleCss += `  justify-content: ${vertAlign};\n`;
+      styleCss += `  box-sizing: border-box;\n`;
+      styleCss += `  padding-top: ${sec.paddingTop !== undefined ? `${sec.paddingTop}px` : '0px'};\n`;
+      styleCss += `  padding-bottom: ${sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : '0px'};\n`;
       styleCss += `}\n`;
+
+      if (sec.sectionPresetType === 'main-slide' || sec.id === 'sec-main-slide') {
+        const cWidth = sec.contentWidth || (sec.guidelineWidth === '100%' ? '80%' : sec.guidelineWidth || '80%');
+        const titleMarginVar = theme.spacingPresets?.find(sp => sp.id === sec.slideTitleMarginVarId);
+        const titleMB = titleMarginVar ? titleMarginVar.value : (sec.slideTitleMarginBottom !== undefined ? sec.slideTitleMarginBottom : 16);
+
+        const descMarginVar = theme.spacingPresets?.find(sp => sp.id === sec.slideDescMarginVarId);
+        const descMB = descMarginVar ? descMarginVar.value : (sec.slideDescMarginBottom !== undefined ? sec.slideDescMarginBottom : 28);
+        const slideAlign = sec.flexAlign || 'left';
+        const textAlignVal = slideAlign === 'center' ? 'center' : slideAlign === 'end' ? 'right' : 'left';
+        const flexAlignItems = slideAlign === 'center' ? 'center' : slideAlign === 'end' ? 'flex-end' : 'flex-start';
+        const descMargin = slideAlign === 'center' ? `0 auto ${descMB}px auto` : slideAlign === 'end' ? `0 0 ${descMB}px auto` : `0 0 ${descMB}px 0`;
+
+        styleCss += `.section-${sec.id} .slide-content,\n`;
+        styleCss += `.section-${sec.id} .main-slide-content-box {\n`;
+        styleCss += `  width: ${cWidth};\n`;
+        styleCss += `  margin: 0 auto;\n`;
+        styleCss += `  padding: 0;\n`;
+        styleCss += `  box-sizing: border-box;\n`;
+        styleCss += `  display: flex;\n`;
+        styleCss += `  flex-direction: column;\n`;
+        styleCss += `  align-items: ${flexAlignItems};\n`;
+        styleCss += `  text-align: ${textAlignVal};\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .slide-title {\n`;
+        styleCss += `  width: 100%;\n`;
+        styleCss += `  text-align: ${textAlignVal};\n`;
+        styleCss += `  margin: 0 0 ${titleMB}px 0;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .slide-desc {\n`;
+        styleCss += `  width: 100%;\n`;
+        styleCss += `  text-align: ${textAlignVal};\n`;
+        styleCss += `  margin: ${descMargin};\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .slide-btn {\n`;
+        styleCss += `  align-self: ${flexAlignItems};\n`;
+        styleCss += `}\n`;
+      }
 
       if (sec.layoutMode === 'flex') {
         const align = sec.flexAlign === 'start' ? 'flex-start' : sec.flexAlign === 'end' ? 'flex-end' : sec.flexAlign === 'space-between' ? 'space-between' : 'center';
@@ -922,6 +983,65 @@ body {
 .legal-subclause-list > li > div {
   flex: 1;
 }
+
+/* --- Preset Sections CSS --- */
+.section-preset-main-slide { position: relative; width: 100%; min-height: 100vh; height: 100vh; overflow: hidden; }
+.main-slide-container { position: relative; width: 100%; min-height: 100vh; height: 100vh; display: flex; align-items: center; justify-content: center; }
+.main-slide-container .slide-item { position: absolute; inset: 0; opacity: 0; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; }
+
+.main-slide-container.effect-fade .slide-item { opacity: 0; transition: opacity 0.7s ease; }
+.main-slide-container.effect-fade .slide-item.active { opacity: 1; z-index: 1; }
+
+.main-slide-container.effect-slide .slide-item { opacity: 0; transform: translateX(100%); transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease; }
+.main-slide-container.effect-slide .slide-item.active { opacity: 1; transform: translateX(0); z-index: 1; }
+
+.main-slide-container.effect-zoom .slide-item { opacity: 0; transform: scale(1.12); transition: transform 1.2s ease-out, opacity 0.7s ease; }
+.main-slide-container.effect-zoom .slide-item.active { opacity: 1; transform: scale(1); z-index: 1; }
+.slide-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.55); z-index: 2; }
+.slide-content { position: relative; z-index: 10; width: var(--content-width, 80%); margin: 0 auto; text-align: left; color: #ffffff; box-sizing: border-box; }
+.slide-title { font-size: 46px; font-weight: 800; margin: 0 0 16px 0; line-height: 1.2; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
+.slide-desc { font-size: 18px; color: #f1f5f9; margin: 0 0 28px 0; line-height: 1.6; max-width: 640px; text-shadow: 0 1px 5px rgba(0,0,0,0.5); }
+.slide-btn { display: inline-block; padding: 14px 32px; background-color: var(--theme-primary, #1e3a8a); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.slide-arrow { position: absolute; top: 50%; transform: translateY(-50%); z-index: 15; background: rgba(0,0,0,0.45); color: #ffffff; border: none; border-radius: 50%; width: 44px; height: 44px; cursor: pointer; font-size: 22px; display: flex; align-items: center; justify-content: center; }
+.slide-arrow.prev { left: 20px; }
+.slide-arrow.next { right: 20px; }
+.slide-dots { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 15; display: flex; gap: 8px; }
+.slide-dots .dot { width: 8px; height: 8px; border-radius: 4px; background: rgba(255,255,255,0.4); cursor: pointer; transition: all 0.3s ease; }
+.slide-dots .dot.active { width: 24px; background: #ffffff; }
+
+.section-preset-features-grid { padding: 60px 0; background-color: #ffffff; width: 100%; box-sizing: border-box; }
+.features-grid-container { width: var(--content-width, 80%); margin: 0 auto; display: flex; flex-direction: column; gap: 60px; padding: 0; box-sizing: border-box; }
+.feature-row { display: flex; flex-direction: row; gap: 40px; align-items: center; flex-wrap: wrap; }
+.feature-row.reverse { flex-direction: row-reverse; }
+.feature-text-col { flex: 1 1 300px; display: flex; flex-direction: column; justify-content: center; padding: 10px; }
+.feature-title { font-size: 26px; font-weight: 800; color: var(--theme-primary, #1e3a8a); margin: 0 0 16px 0; letter-spacing: -0.5px; }
+.feature-desc { font-size: 15px; color: #475569; line-height: 1.7; margin: 0 0 24px 0; }
+.feature-btn { font-size: 14px; font-weight: 700; color: var(--theme-primary, #1e3a8a); text-decoration: none; display: inline-flex; align-items: center; gap: 4px; }
+.feature-img-col { flex: 1 1 300px; display: flex; align-items: center; justify-content: center; overflow: hidden; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); }
+.feature-img-col img { width: 100%; height: 300px; object-fit: cover; display: block; }
+
+.section-preset-promo-banner { position: relative; width: 100%; min-height: 340px; display: flex; align-items: center; justify-content: center; background-size: cover; background-position: center; padding: 60px 0; box-sizing: border-box; }
+.promo-banner-overlay { position: absolute; inset: 0; background-color: rgba(11, 25, 44, 0.75); z-index: 1; }
+.promo-banner-content { position: relative; z-index: 10; width: var(--content-width, 80%); margin: 0 auto; text-align: center; color: #ffffff; }
+.promo-subtitle { font-size: 13px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #38bdf8; margin-bottom: 12px; display: block; }
+.promo-title { font-size: 30px; font-weight: 800; margin: 0 0 24px 0; line-height: 1.4; word-break: keep-all; }
+.promo-cta-btn { display: inline-block; padding: 12px 28px; border: 1.5px solid #ffffff; color: #ffffff; border-radius: 4px; text-decoration: none; font-weight: 600; font-size: 14px; transition: all 0.2s ease; }
+
+.section-preset-card-slider { padding: 60px 0; background-color: #f8fafc; width: 100%; box-sizing: border-box; }
+.card-slider-header { width: var(--content-width, 80%); margin: 0 auto 28px auto; padding: 0; display: flex; align-items: center; justify-content: space-between; box-sizing: border-box; }
+.card-slider-title { font-size: 26px; font-weight: 800; color: #0f172a; margin: 0; letter-spacing: -0.5px; }
+.title-underline { width: 40px; height: 3px; background-color: var(--theme-primary, #1e3a8a); margin-top: 8px; }
+.card-slider-nav { display: flex; gap: 8px; }
+.card-arrow { width: 38px; height: 38px; border-radius: 50%; border: 1px solid #cbd5e1; background-color: #ffffff; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 18px; color: #475569; }
+.card-slider-grid { width: var(--content-width, 80%); margin: 0 auto; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 24px; box-sizing: border-box; }
+.card-item { background-color: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.04); border: 1px solid #e2e8f0; display: flex; flex-direction: column; transition: transform 0.2s ease, box-shadow 0.2s ease; cursor: pointer; }
+.card-img-box { height: 180px; overflow: hidden; }
+.card-img-box img { width: 100%; height: 100%; object-fit: cover; }
+.card-body { padding: 20px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+.card-tag { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 4px; background-color: #e0f2fe; color: #0284c7; text-transform: uppercase; display: inline-block; margin-bottom: 10px; }
+.card-item-title { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0; line-height: 1.4; }
+.card-desc { font-size: 13px; color: #64748b; margin: 0 0 14px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.card-date { font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 10px; }
 `;
 
   // 3. Generate HTML code for EACH page
@@ -931,6 +1051,70 @@ body {
   };
 
   pages.forEach(p => {
+    if (p.id === 'sitemap' || p.fileName === 'siteMap.html') {
+      const validPages = pages.filter(pl => pl.fileName !== 'siteMap.html' && pl.id !== 'sitemap');
+      let sitemapHtml = `<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>사이트맵 (Site Map)</title>
+${fontLinksHtml}
+  <link rel="stylesheet" href="variables.css">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body { background-color: #f8fafc; font-family: var(--font-default, 'Inter', sans-serif); margin: 0; padding: 0; color: #0f172a; }
+    .sitemap-hero { background: linear-gradient(135deg, #1e3a8a 0%, #0f172a 100%); color: #ffffff; padding: 60px 24px; text-align: center; }
+    .sitemap-hero h1 { font-size: 36px; font-weight: 800; margin: 0 0 12px 0; letter-spacing: -0.5px; }
+    .sitemap-hero p { font-size: 16px; color: #cbd5e1; margin: 0; }
+    .sitemap-container { max-width: 1080px; margin: -30px auto 60px auto; padding: 0 24px; position: relative; z-index: 10; }
+    .sitemap-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; list-style: none; padding: 0; margin: 0; }
+    .sitemap-card { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 24px; box-shadow: 0 4px 20px rgba(0,0,0,0.04); transition: transform 0.25s ease, box-shadow 0.25s ease; display: flex; flex-direction: column; justify-content: space-between; }
+    .sitemap-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0,0,0,0.1); border-color: var(--theme-primary, #1e3a8a); }
+    .sitemap-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px; }
+    .sitemap-card-title { font-size: 20px; font-weight: 800; color: #0f172a; text-decoration: none; }
+    .sitemap-card-badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: #e0f2fe; color: #0284c7; text-transform: uppercase; }
+    .sitemap-card-file { font-size: 13px; color: #64748b; font-family: monospace; margin-bottom: 16px; background: #f8fafc; padding: 6px 10px; border-radius: 4px; display: inline-block; width: fit-content; }
+    .sitemap-section-list { list-style: none; padding: 0; margin: 0 0 20px 0; display: flex; flex-direction: column; gap: 8px; }
+    .sitemap-section-item { font-size: 13px; color: #475569; display: flex; align-items: center; gap: 6px; }
+    .sitemap-section-item::before { content: "•"; color: var(--theme-primary, #1e3a8a); font-weight: bold; }
+    .sitemap-link-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 10px 18px; background: var(--theme-primary, #1e3a8a); color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 13px; transition: opacity 0.2s ease; text-align: center; }
+    .sitemap-link-btn:hover { opacity: 0.9; }
+  </style>
+</head>
+<body>
+  <div class="sitemap-hero">
+    <h1>사이트맵 (Site Map)</h1>
+    <p>전체 웹사이트 구조 및 페이지 바로가기 안내</p>
+  </div>
+  <div class="sitemap-container">
+    <div class="sitemap-grid">
+      ${validPages.map((pageLink) => {
+        const sectionsList = pageLink.sections.map(s => s.sectionTitle || (s.sharedType === 'header' ? '공통 헤더' : s.sharedType === 'footer' ? '공통 푸터' : '콘텐츠 섹션')).filter(Boolean);
+        return `
+      <div class="sitemap-card">
+        <div>
+          <div class="sitemap-card-header">
+            <a href="${pageLink.fileName}" class="sitemap-card-title">${pageLink.name}</a>
+            <span class="sitemap-card-badge">PAGE</span>
+          </div>
+          <div class="sitemap-card-file">${pageLink.fileName}</div>
+          <ul class="sitemap-section-list">
+            ${sectionsList.slice(0, 4).map(st => `<li class="sitemap-section-item">${st}</li>`).join('')}
+          </ul>
+        </div>
+        <a href="${pageLink.fileName}" class="sitemap-link-btn">페이지 방문하기 →</a>
+      </div>
+        `;
+      }).join('')}
+    </div>
+  </div>
+</body>
+</html>`;
+      files[p.fileName] = sitemapHtml;
+      return;
+    }
+
     let indexHtml = `<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -1047,6 +1231,148 @@ ${fontLinksHtml}
         indexHtml += `      </div>\n`;
         indexHtml += `    </footer>\n`;
         indexHtml += `    <!-- Footer End -->\n\n`;
+        return;
+      }
+
+      if (sec.sectionPresetType === 'main-slide') {
+        const effect = sec.slideEffectType || 'zoom';
+        const autoPlay = sec.autoPlay !== false;
+        const autoPlayInterval = sec.autoPlayInterval || 4000;
+        const loop = sec.loop !== false;
+        const enableDrag = sec.enableDrag !== false;
+        const slideAutoPlayMode = sec.slideAutoPlayMode || 'fixed';
+        indexHtml += `    <!-- Section: Main Slide Start -->\n`;
+        indexHtml += `    <section class="section section-preset-main-slide section-${sec.id}">\n`;
+        indexHtml += `      <div class="main-slide-container effect-${effect}" id="mainSlideContainer-${sec.id}" data-autoplay="${autoPlay}" data-interval="${autoPlayInterval}" data-autoplaymode="${slideAutoPlayMode}" data-loop="${loop}" data-drag="${enableDrag}">\n`;
+        (sec.slideItems || []).forEach((slide, idx) => {
+          const mType = slide.mediaType || 'image';
+          const defaultOverlay = (mType === 'video' || mType === 'youtube') ? 45 : 0;
+          const overlayOpacity = slide.overlayOpacity !== undefined ? slide.overlayOpacity : defaultOverlay;
+          const brightnessVal = 1 - (overlayOpacity / 100);
+
+          if (mType === 'video' && slide.videoSrc) {
+            indexHtml += `        <div class="slide-item ${idx === 0 ? 'active' : ''}">\n`;
+            indexHtml += `          <video class="slide-bg-video" autoplay loop muted playsinline preload="auto" oncanplay="this.play()" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; filter: brightness(${brightnessVal});">\n`;
+            indexHtml += `            <source src="${slide.videoSrc}" type="video/mp4">\n`;
+            indexHtml += `          </video>\n`;
+          } else if (mType === 'youtube' && (slide.youtubeUrl || slide.youtubeId)) {
+            const extractYt = (url?: string) => {
+              if (!url) return 'dQU4R_37R4s';
+              const m = url.match(/^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/);
+              return (m && m[2].length === 11) ? m[2] : 'dQU4R_37R4s';
+            };
+            const ytId = extractYt(slide.youtubeUrl) || slide.youtubeId || 'dQU4R_37R4s';
+            indexHtml += `        <div class="slide-item ${idx === 0 ? 'active' : ''}" style="overflow: hidden;">\n`;
+            indexHtml += `          <iframe style="position: absolute; top: 50%; left: 50%; width: 100vw; height: 56.25vw; min-height: 100vh; min-width: 177.77vh; transform: translate(-50%, -50%); border: none; pointer-events: none; filter: brightness(${brightnessVal});" src="https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&showinfo=0&rel=0&modestbranding=1&enablejsapi=1" allow="autoplay; encrypted-media"></iframe>\n`;
+          } else {
+            const bgStyle = overlayOpacity > 0 ? `background-image: url('${slide.imageSrc}'); filter: brightness(${brightnessVal});` : `background-image: url('${slide.imageSrc}');`;
+            indexHtml += `        <div class="slide-item ${idx === 0 ? 'active' : ''}" style="${bgStyle}">\n`;
+          }
+
+          indexHtml += `          <div class="slide-content">\n`;
+          indexHtml += `            <h1 class="slide-title">${slide.title}</h1>\n`;
+          indexHtml += `            <p class="slide-desc">${slide.description}</p>\n`;
+          if (slide.btnText) {
+            let targetAttr = slide.linkTarget ? ` target="${slide.linkTarget}"` : '';
+            indexHtml += `            <a href="${slide.linkUrl || '#'}" class="slide-btn"${targetAttr}>${slide.btnText}</a>\n`;
+          }
+          indexHtml += `          </div>\n`;
+          indexHtml += `        </div>\n`;
+        });
+
+        if ((sec.slideItems || []).length > 1) {
+          indexHtml += `        <button type="button" class="slide-arrow prev" onclick="moveMainSlide('${sec.id}', -1)">‹</button>\n`;
+          indexHtml += `        <button type="button" class="slide-arrow next" onclick="moveMainSlide('${sec.id}', 1)">›</button>\n`;
+          indexHtml += `        <div class="slide-dots">\n`;
+          (sec.slideItems || []).forEach((_, idx) => {
+            indexHtml += `          <span class="dot ${idx === 0 ? 'active' : ''}" onclick="setMainSlide('${sec.id}', ${idx})"></span>\n`;
+          });
+          indexHtml += `        </div>\n`;
+        }
+        indexHtml += `      </div>\n`;
+        indexHtml += `    </section>\n`;
+        indexHtml += `    <!-- Section: Main Slide End -->\n\n`;
+        return;
+      }
+
+      if (sec.sectionPresetType === 'features-grid') {
+        indexHtml += `    <!-- Section: Features Grid Start -->\n`;
+        indexHtml += `    <section class="section section-preset-features-grid section-${sec.id}">\n`;
+        indexHtml += `      <div class="features-grid-container">\n`;
+        (sec.featureItems || []).forEach((item, idx) => {
+          const isEven = idx % 2 === 1;
+          indexHtml += `        <div class="feature-row ${isEven ? 'reverse' : ''}">\n`;
+          indexHtml += `          <div class="feature-text-col">\n`;
+          indexHtml += `            <h3 class="feature-title">${item.title}</h3>\n`;
+          indexHtml += `            <p class="feature-desc">${item.description}</p>\n`;
+          if (item.btnText) {
+            indexHtml += `            <a href="${item.linkUrl || '#'}" class="feature-btn">${item.btnText}</a>\n`;
+          }
+          indexHtml += `          </div>\n`;
+          indexHtml += `          <div class="feature-img-col">\n`;
+          indexHtml += `            <img src="${item.imageSrc}" alt="${item.title}">\n`;
+          indexHtml += `          </div>\n`;
+          indexHtml += `        </div>\n`;
+        });
+        indexHtml += `      </div>\n`;
+        indexHtml += `    </section>\n`;
+        indexHtml += `    <!-- Section: Features Grid End -->\n\n`;
+        return;
+      }
+
+      if (sec.sectionPresetType === 'promo-banner') {
+        indexHtml += `    <!-- Section: Promo Banner Start -->\n`;
+        const bgAttr = sec.backgroundImage ? `style="background-image: url('${sec.backgroundImage}'); background-attachment: ${sec.backgroundAttachment || 'fixed'};"` : '';
+        indexHtml += `    <section class="section section-preset-promo-banner section-${sec.id}" ${bgAttr}>\n`;
+        indexHtml += `      <div class="promo-banner-overlay"></div>\n`;
+        indexHtml += `      <div class="promo-banner-content">\n`;
+        if (sec.sectionSubTitle) {
+          indexHtml += `        <span class="promo-subtitle">${sec.sectionSubTitle}</span>\n`;
+        }
+        indexHtml += `        <h2 class="promo-title">${sec.sectionTitle || '지속 가능한 성장과 함께하는 혁신, 우리는 미래를 준비합니다.'}</h2>\n`;
+        if (sec.ctaBtnText) {
+          indexHtml += `        <a href="${sec.ctaLinkUrl || '#'}" class="promo-cta-btn">${sec.ctaBtnText}</a>\n`;
+        }
+        indexHtml += `      </div>\n`;
+        indexHtml += `    </section>\n`;
+        indexHtml += `    <!-- Section: Promo Banner End -->\n\n`;
+        return;
+      }
+
+      if (sec.sectionPresetType === 'card-slider') {
+        indexHtml += `    <!-- Section: Card Slider Start -->\n`;
+        indexHtml += `    <section class="section section-preset-card-slider section-${sec.id}">\n`;
+        indexHtml += `      <div class="card-slider-header">\n`;
+        indexHtml += `        <div>\n`;
+        indexHtml += `          <h2 class="card-slider-title">${sec.sectionSubTitle || 'Our Latest News'}</h2>\n`;
+        indexHtml += `          <div class="title-underline"></div>\n`;
+        indexHtml += `        </div>\n`;
+        if ((sec.cardItems || []).length > 3) {
+          indexHtml += `        <div class="card-slider-nav">\n`;
+          indexHtml += `          <button type="button" class="card-arrow prev" onclick="moveCardSlider('${sec.id}', -1)">‹</button>\n`;
+          indexHtml += `          <button type="button" class="card-arrow next" onclick="moveCardSlider('${sec.id}', 1)">›</button>\n`;
+          indexHtml += `        </div>\n`;
+        }
+        indexHtml += `      </div>\n`;
+        indexHtml += `      <div class="card-slider-grid" id="cardSliderGrid-${sec.id}">\n`;
+        (sec.cardItems || []).forEach((card, idx) => {
+          indexHtml += `        <div class="card-item" data-card-index="${idx}" style="${idx < 3 ? 'display: flex;' : 'display: none;'}">\n`;
+          indexHtml += `          <div class="card-img-box">\n`;
+          indexHtml += `            <img src="${card.imageSrc}" alt="${card.title}">\n`;
+          indexHtml += `          </div>\n`;
+          indexHtml += `          <div class="card-body">\n`;
+          indexHtml += `            <span class="card-tag">${card.tag || 'NEWS'}</span>\n`;
+          indexHtml += `            <h4 class="card-item-title">${card.title}</h4>\n`;
+          if (card.description) {
+            indexHtml += `            <p class="card-desc">${card.description}</p>\n`;
+          }
+          indexHtml += `            <div class="card-date">${card.date}</div>\n`;
+          indexHtml += `          </div>\n`;
+          indexHtml += `        </div>\n`;
+        });
+        indexHtml += `      </div>\n`;
+        indexHtml += `    </section>\n`;
+        indexHtml += `    <!-- Section: Card Slider End -->\n\n`;
         return;
       }
 
@@ -1219,7 +1545,145 @@ ${fontLinksHtml}
       indexHtml += `    </section>\n`;
       indexHtml += `    <!-- Section End -->\n\n`;
     });
+    indexHtml += `  <script>\n`;
+    indexHtml += `    // Header scroll background effect\n`;
+    indexHtml += `    window.addEventListener('scroll', function() {\n`;
+    indexHtml += `      const headers = document.querySelectorAll('[class*="section-sec-header"], [class*="section-header"]');\n`;
+    indexHtml += `      headers.forEach(function(header) {\n`;
+    indexHtml += `        if (window.scrollY > 0) {\n`;
+    indexHtml += `          header.classList.add('scrolled');\n`;
+    indexHtml += `        } else {\n`;
+    indexHtml += `          header.classList.remove('scrolled');\n`;
+    indexHtml += `        }\n`;
+    indexHtml += `      });\n`;
+    indexHtml += `    });\n\n`;
 
+    indexHtml += `    // Main Slide Timer & Navigation Management\n`;
+    indexHtml += `    var mainSlideTimers = {};\n\n`;
+
+    indexHtml += `    function startMainSlideTimer(secId) {\n`;
+    indexHtml += `      const container = document.getElementById('mainSlideContainer-' + secId);\n`;
+    indexHtml += `      if (!container) return;\n`;
+    indexHtml += `      const autoPlay = container.dataset.autoplay === 'true';\n`;
+    indexHtml += `      const interval = parseInt(container.dataset.interval || '4000', 10);\n`;
+    indexHtml += `      const autoPlayMode = container.dataset.autoplaymode || 'fixed';\n`;
+    indexHtml += `      const loop = container.dataset.loop === 'true';\n\n`;
+    indexHtml += `      if (mainSlideTimers[secId]) {\n`;
+    indexHtml += `        clearInterval(mainSlideTimers[secId]);\n`;
+    indexHtml += `        mainSlideTimers[secId] = null;\n`;
+    indexHtml += `      }\n\n`;
+    indexHtml += `      if (autoPlay && autoPlayMode !== 'video-end') {\n`;
+    indexHtml += `        mainSlideTimers[secId] = setInterval(function() {\n`;
+    indexHtml += `          let curr = parseInt(container.dataset.currentIndex || '0', 10);\n`;
+    indexHtml += `          const slides = container.querySelectorAll('.slide-item');\n`;
+    indexHtml += `          if (!loop && curr >= slides.length - 1) return;\n`;
+    indexHtml += `          moveMainSlide(secId, 1, false);\n`;
+    indexHtml += `        }, interval);\n`;
+    indexHtml += `      }\n`;
+    indexHtml += `    }\n\n`;
+
+    indexHtml += `    function setMainSlide(secId, index, resetTimer) {\n`;
+    indexHtml += `      const container = document.getElementById('mainSlideContainer-' + secId);\n`;
+    indexHtml += `      if (!container) return;\n`;
+    indexHtml += `      const slides = container.querySelectorAll('.slide-item');\n`;
+    indexHtml += `      const dots = container.querySelectorAll('.slide-dots .dot');\n`;
+    indexHtml += `      slides.forEach(function(s, idx) { s.classList.toggle('active', idx === index); });\n`;
+    indexHtml += `      dots.forEach(function(d, idx) { d.classList.toggle('active', idx === index); });\n`;
+    indexHtml += `      container.dataset.currentIndex = index;\n\n`;
+    indexHtml += `      const activeSlide = slides[index];\n`;
+    indexHtml += `      if (activeSlide) {\n`;
+    indexHtml += `        const vid = activeSlide.querySelector('video');\n`;
+    indexHtml += `        if (vid) {\n`;
+    indexHtml += `          vid.currentTime = 0;\n`;
+    indexHtml += `          var p = vid.play();\n`;
+    indexHtml += `          if (p !== undefined) { p.catch(function() {}); }\n`;
+    indexHtml += `        }\n`;
+    indexHtml += `      }\n\n`;
+    indexHtml += `      if (resetTimer !== false) {\n`;
+    indexHtml += `        startMainSlideTimer(secId);\n`;
+    indexHtml += `      }\n`;
+    indexHtml += `    }\n\n`;
+
+    indexHtml += `    function moveMainSlide(secId, direction, resetTimer) {\n`;
+    indexHtml += `      const container = document.getElementById('mainSlideContainer-' + secId);\n`;
+    indexHtml += `      if (!container) return;\n`;
+    indexHtml += `      const slides = container.querySelectorAll('.slide-item');\n`;
+    indexHtml += `      if (!slides.length) return;\n`;
+    indexHtml += `      let curr = parseInt(container.dataset.currentIndex || '0', 10);\n`;
+    indexHtml += `      curr = (curr + direction + slides.length) % slides.length;\n`;
+    indexHtml += `      setMainSlide(secId, curr, resetTimer);\n`;
+    indexHtml += `    }\n\n`;
+
+    indexHtml += `    // Card Slider functionality\n`;
+    indexHtml += `    function moveCardSlider(secId, direction) {\n`;
+    indexHtml += `      const grid = document.getElementById('cardSliderGrid-' + secId);\n`;
+    indexHtml += `      if (!grid) return;\n`;
+    indexHtml += `      const cards = Array.from(grid.querySelectorAll('.card-item'));\n`;
+    indexHtml += `      if (cards.length <= 3) return;\n`;
+    indexHtml += `      let startIdx = parseInt(grid.dataset.startIndex || '0', 10);\n`;
+    indexHtml += `      startIdx = (startIdx + direction + cards.length) % cards.length;\n`;
+    indexHtml += `      grid.dataset.startIndex = startIdx;\n`;
+    indexHtml += `      cards.forEach(function(card, idx) {\n`;
+    indexHtml += `        const visible = (idx >= startIdx && idx < startIdx + 3) || (startIdx + 3 > cards.length && idx < (startIdx + 3) % cards.length);\n`;
+    indexHtml += `        card.style.display = visible ? 'flex' : 'none';\n`;
+    indexHtml += `      });\n`;
+    indexHtml += `    }\n\n`;
+
+    indexHtml += `    // Autoplay & Drag/Swipe Event Listeners\n`;
+    indexHtml += `    document.addEventListener('DOMContentLoaded', function() {\n`;
+    indexHtml += `      const startAllVideos = function() {\n`;
+    indexHtml += `        document.querySelectorAll('video.slide-bg-video').forEach(function(v) {\n`;
+    indexHtml += `          v.muted = true;\n`;
+    indexHtml += `          var p = v.play();\n`;
+    indexHtml += `          if (p !== undefined) { p.catch(function() {}); }\n`;
+    indexHtml += `        });\n`;
+    indexHtml += `      };\n`;
+    indexHtml += `      startAllVideos();\n`;
+    indexHtml += `      window.addEventListener('load', startAllVideos);\n`;
+    indexHtml += `      document.addEventListener('click', startAllVideos, { once: true });\n\n`;
+
+    indexHtml += `      const slideContainers = document.querySelectorAll('.main-slide-container');\n`;
+    indexHtml += `      slideContainers.forEach(function(container) {\n`;
+    indexHtml += `        const secId = container.id.replace('mainSlideContainer-', '');\n`;
+    indexHtml += `        const autoPlayMode = container.dataset.autoplaymode || 'fixed';\n`;
+    indexHtml += `        const enableDrag = container.dataset.drag === 'true';\n\n`;
+
+    indexHtml += `        startMainSlideTimer(secId);\n\n`;
+
+    indexHtml += `        if (autoPlayMode === 'video-end') {\n`;
+    indexHtml += `          container.querySelectorAll('.slide-item').forEach(function(item) {\n`;
+    indexHtml += `            const vid = item.querySelector('video');\n`;
+    indexHtml += `            if (vid) {\n`;
+    indexHtml += `              vid.loop = false;\n`;
+    indexHtml += `              vid.addEventListener('ended', function() { moveMainSlide(secId, 1); });\n`;
+    indexHtml += `            }\n`;
+    indexHtml += `          });\n`;
+    indexHtml += `        }\n\n`;
+
+    indexHtml += `        if (enableDrag) {\n`;
+    indexHtml += `          let startX = null;\n`;
+    indexHtml += `          container.addEventListener('mousedown', function(e) { startX = e.clientX; });\n`;
+    indexHtml += `          container.addEventListener('mouseup', function(e) {\n`;
+    indexHtml += `            if (startX === null) return;\n`;
+    indexHtml += `            const diff = e.clientX - startX;\n`;
+    indexHtml += `            if (Math.abs(diff) > 40) {\n`;
+    indexHtml += `              if (diff < 0) moveMainSlide(secId, 1); else moveMainSlide(secId, -1);\n`;
+    indexHtml += `            }\n`;
+    indexHtml += `            startX = null;\n`;
+    indexHtml += `          });\n`;
+    indexHtml += `          container.addEventListener('touchstart', function(e) { startX = e.touches[0].clientX; }, { passive: true });\n`;
+    indexHtml += `          container.addEventListener('touchend', function(e) {\n`;
+    indexHtml += `            if (startX === null) return;\n`;
+    indexHtml += `            const diff = e.changedTouches[0].clientX - startX;\n`;
+    indexHtml += `            if (Math.abs(diff) > 40) {\n`;
+    indexHtml += `              if (diff < 0) moveMainSlide(secId, 1); else moveMainSlide(secId, -1);\n`;
+    indexHtml += `            }\n`;
+    indexHtml += `            startX = null;\n`;
+    indexHtml += `          }, { passive: true });\n`;
+    indexHtml += `        }\n`;
+    indexHtml += `      });\n`;
+    indexHtml += `    });\n`;
+    indexHtml += `  </script>\n`;
     indexHtml += `  </div>\n</body>\n</html>\n`;
     files[p.fileName] = indexHtml;
   });

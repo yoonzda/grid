@@ -1,9 +1,44 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Section, EditorElement, ThemeSettings, Page, GuidelineWidth } from '../types';
-import { SUPPORTED_FONTS, findSupportedFont } from '../utils/fontManager';
+import { SUPPORTED_FONTS, findSupportedFont, updateGoogleFontsInDOM } from '../utils/fontManager';
 import { ICON_TEMPLATES } from '../utils/iconTemplates';
-import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, Trash2, X, Grid, ExternalLink, ArrowRight, ChevronLeft, Plus, Check, ChevronDown, ChevronUp } from 'lucide-react';
+import { DEFAULT_SPACING_PRESETS } from '../utils/templates';
+import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, Trash2, X, Grid, ExternalLink, ArrowRight, ChevronLeft, ChevronRight, Plus, Check, ChevronDown, ChevronUp, Link } from 'lucide-react';
 import { resolveCollisions } from '../utils/collision';
+
+export const SLIDE_IMAGE_PRESETS = [
+  { name: 'example1.jpg', url: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example2.jpg', url: 'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example3.jpg', url: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example4.jpg', url: 'https://images.unsplash.com/photo-1504384308090-c894fdcc538d?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example5.jpg', url: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example6.jpg', url: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example7.jpg', url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example8.jpg', url: 'https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example9.jpg', url: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?w=1600&auto=format&fit=crop&q=80' },
+  { name: 'example10.jpg', url: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1600&auto=format&fit=crop&q=80' },
+];
+
+export const SLIDE_VIDEO_PRESETS = [
+  { name: 'sample1_ocean.mp4', url: 'https://vjs.zencdn.net/v/oceans.mp4' },
+  { name: 'sample2_flower.mp4', url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4' },
+  { name: 'sample3_city_hd.mp4', url: 'https://files.testfile.org/video-mp4-hd.mp4' },
+  { name: 'sample4_people_hd.mp4', url: 'https://cdn.jsdelivr.net/gh/intel-iot-devkit/sample-videos@master/head-pose-face-detection-female.mp4' },
+];
+
+export const extractYouTubeId = (url?: string): string | null => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
+export const getDisplayImageName = (slide: { imageSrc?: string; imageName?: string }, defaultIdx: number) => {
+  if (slide.imageName) return slide.imageName;
+  const match = SLIDE_IMAGE_PRESETS.find(p => p.url === slide.imageSrc);
+  if (match) return match.name;
+  return `example${(defaultIdx % 10) + 1}.jpg`;
+};
 
 interface SidebarPropertyProps {
   activeElement: { sectionId: string; elementId: string } | null;
@@ -37,12 +72,51 @@ interface SidebarPropertyProps {
   setPreviewHeaderLogoFont?: (font: string | null) => void;
 }
 
+const ToggleSwitch: React.FC<{
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  disabled?: boolean;
+}> = ({ checked, onChange, disabled }) => {
+  return (
+    <div 
+      style={{
+        position: 'relative',
+        width: '36px',
+        height: '20px',
+        borderRadius: '9999px',
+        backgroundColor: disabled ? '#e2e8f0' : (checked ? '#0284c7' : '#cbd5e1'),
+        padding: '2px',
+        transition: 'background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+        cursor: disabled ? 'not-allowed' : 'pointer',
+        opacity: disabled ? 0.5 : 1,
+        boxSizing: 'border-box'
+      }}
+      onClick={(e) => {
+        e.stopPropagation();
+        if (!disabled) onChange(!checked);
+      }}
+    >
+      <div 
+        style={{
+          width: '16px',
+          height: '16px',
+          borderRadius: '50%',
+          backgroundColor: '#ffffff',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.25)',
+          transform: checked ? 'translateX(16px)' : 'translateX(0px)',
+          transition: 'transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)'
+        }}
+      />
+    </div>
+  );
+};
+
 const FontCustomSelect: React.FC<{
   currentFontName: string;
   onSelectFont: (fontName: string) => void;
-  onHoverFont: (fontName: string | null) => void;
-}> = ({ currentFontName, onSelectFont, onHoverFont }) => {
+}> = ({ currentFontName, onSelectFont }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const initialFontRef = useRef(currentFontName);
   const selectedFont = findSupportedFont(currentFontName);
 
   const [highlightedIndex, setHighlightedIndex] = useState<number>(() => {
@@ -56,18 +130,22 @@ const FontCustomSelect: React.FC<{
   useEffect(() => {
     const idx = SUPPORTED_FONTS.findIndex(f => f.name === selectedFont.name || f.family === selectedFont.family);
     if (idx >= 0) setHighlightedIndex(idx);
-  }, [currentFontName, isOpen, selectedFont]);
+  }, [currentFontName, selectedFont]);
+
+  const handleOpen = () => {
+    initialFontRef.current = currentFontName;
+    setIsOpen(!isOpen);
+  };
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setIsOpen(false);
-        onHoverFont(null);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, [onHoverFont]);
+  }, []);
 
   useEffect(() => {
     if (isOpen && listRef.current) {
@@ -78,10 +156,16 @@ const FontCustomSelect: React.FC<{
     }
   }, [highlightedIndex, isOpen]);
 
+  const previewFont = (fontName: string) => {
+    updateGoogleFontsInDOM([fontName]);
+    onSelectFont(fontName);
+  };
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isOpen) {
       if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
         e.preventDefault();
+        initialFontRef.current = currentFontName;
         setIsOpen(true);
       }
       return;
@@ -91,23 +175,26 @@ const FontCustomSelect: React.FC<{
       e.preventDefault();
       const nextIndex = Math.min(highlightedIndex + 1, SUPPORTED_FONTS.length - 1);
       setHighlightedIndex(nextIndex);
-      onHoverFont(SUPPORTED_FONTS[nextIndex].name);
+      if (SUPPORTED_FONTS[nextIndex]) {
+        previewFont(SUPPORTED_FONTS[nextIndex].name);
+      }
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       const prevIndex = Math.max(highlightedIndex - 1, 0);
       setHighlightedIndex(prevIndex);
-      onHoverFont(SUPPORTED_FONTS[prevIndex].name);
+      if (SUPPORTED_FONTS[prevIndex]) {
+        previewFont(SUPPORTED_FONTS[prevIndex].name);
+      }
     } else if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       if (SUPPORTED_FONTS[highlightedIndex]) {
-        onSelectFont(SUPPORTED_FONTS[highlightedIndex].name);
+        previewFont(SUPPORTED_FONTS[highlightedIndex].name);
         setIsOpen(false);
-        onHoverFont(null);
       }
     } else if (e.key === 'Escape') {
       e.preventDefault();
+      previewFont(initialFontRef.current);
       setIsOpen(false);
-      onHoverFont(null);
     }
   };
 
@@ -120,7 +207,7 @@ const FontCustomSelect: React.FC<{
     >
       <div
         className={`custom-select-trigger ${isOpen ? 'active' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleOpen}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -139,7 +226,6 @@ const FontCustomSelect: React.FC<{
       {isOpen && (
         <div
           ref={listRef}
-          onMouseLeave={() => onHoverFont(null)}
           style={{
             position: 'absolute',
             top: 'calc(100% + 4px)',
@@ -162,12 +248,12 @@ const FontCustomSelect: React.FC<{
               <div
                 key={f.name}
                 onClick={() => {
-                  onSelectFont(f.name);
+                  previewFont(f.name);
                   setIsOpen(false);
                 }}
                 onMouseEnter={() => {
                   setHighlightedIndex(idx);
-                  onHoverFont(f.name);
+                  previewFont(f.name);
                 }}
                 style={{
                   padding: '8px 12px',
@@ -184,7 +270,7 @@ const FontCustomSelect: React.FC<{
                 }}
               >
                 <span>{f.name}</span>
-                {isSelected && <Check size={14} strokeWidth={2.5} style={{ color: '#0284c7' }} />}
+                {isSelected && <Check size={14} style={{ color: '#0284c7' }} />}
               </div>
             );
           })}
@@ -219,12 +305,761 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 }) => {
   const [showSectionDetail, setShowSectionDetail] = useState<boolean>(true);
   const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null);
+  const [openPresetAccordionIndex, setOpenPresetAccordionIndex] = useState<number | null>(0);
 
   useEffect(() => {
     if (activeSectionId && !activeElement) {
       setShowSectionDetail(true);
     }
   }, [activeSectionId]);
+
+  // Always reset sidebar scroll to top whenever active section, element, page, or detail state changes
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const bodies = document.querySelectorAll('.properties-body');
+      bodies.forEach(b => {
+        b.scrollTop = 0;
+      });
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [activeSectionId, activeElement?.elementId, activeElement?.sectionId, showSectionDetail, activePageId]);
+
+  if (activeElement?.elementId === 'slide-content') {
+    const section = sections.find(s => s.id === activeElement.sectionId) || sections.find(s => s.sectionPresetType === 'main-slide');
+    if (!section) return null;
+
+    const updateSection = (fields: Partial<Section>) => {
+      setSections(prev =>
+        prev.map(s => (s.id === section.id ? { ...s, ...fields } : s))
+      );
+    };
+
+    const slides = section.slideItems || [];
+    const activeSlideIdx = section.activeSlideIndex || 0;
+
+    return (
+      <div className="properties-panel">
+        <div className="panel-header flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', color: '#0f172a', display: 'flex', alignItems: 'center' }}
+              onClick={() => setActiveElement(null)}
+              title="상위 섹션 설정으로 돌아가기"
+            >
+              <ChevronLeft size={22} />
+            </button>
+            <span className="font-bold text-base text-slate-900">속성 설정 (슬라이드 컨텐츠)</span>
+          </div>
+        </div>
+
+        <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
+          {/* 1. Full-width + 슬라이드 추가 Button at the VERY TOP (Above 컨텐츠 가로폭) */}
+          <button
+            type="button"
+            style={{
+              width: '100%',
+              height: '38px',
+              minHeight: '38px',
+              flexShrink: 0,
+              fontSize: '13px',
+              fontWeight: 700,
+              backgroundColor: '#0284c7',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              boxShadow: '0 1px 2px rgba(2, 132, 199, 0.2)',
+            }}
+            className="hover:bg-sky-700 transition-colors active:scale-[0.995]"
+            onClick={() => {
+              const presetIdx = slides.length % 10;
+              const preset = SLIDE_IMAGE_PRESETS[presetIdx];
+              const newSlide = {
+                id: `slide_${Date.now()}`,
+                title: `새 슬라이드 #${slides.length + 1}`,
+                description: '새로운 슬라이드 설명을 입력하세요.',
+                imageSrc: preset.url,
+                imageName: preset.name,
+                btnText: '자세히 보기',
+                linkType: 'url' as const,
+                linkUrl: '',
+              };
+              updateSection({ slideItems: [...slides, newSlide], activeSlideIndex: slides.length });
+            }}
+          >
+            <Plus size={15} className="stroke-[2.5]" />
+            <span>슬라이드 추가</span>
+          </button>
+
+          {/* 2. 컨텐츠 가로폭 */}
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">컨텐츠 가로폭</label>
+            <div className="align-buttons-row">
+              {(['100%', '80%', '60%'] as const).map((width) => {
+                const currentContentW = section.contentWidth || '80%';
+                const isActive = currentContentW === width;
+                return (
+                  <button
+                    key={width}
+                    type="button"
+                    className={`align-btn ${isActive ? 'active' : ''}`}
+                    onClick={() => updateSection({ contentWidth: width })}
+                  >
+                    {width}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Slide Title & Switcher Controls */}
+          <div className="property-group flex flex-col gap-3">
+            <div className="flex items-center justify-between pt-0.5">
+              {/* Slide Title & Delete Icon */}
+              <div className="flex items-center gap-2">
+                <span style={{ fontSize: '16px', fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
+                  Slide {String(activeSlideIdx + 1).padStart(2, '0')}
+                </span>
+
+                {slides.length > 1 && (
+                  <button
+                    type="button"
+                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', padding: '3px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                    className="text-slate-400 hover:text-red-500 transition-colors"
+                    onClick={() => {
+                      const updated = slides.filter((_, sIdx) => sIdx !== activeSlideIdx);
+                      const nextActive = Math.min(activeSlideIdx, updated.length - 1);
+                      updateSection({ slideItems: updated, activeSlideIndex: Math.max(0, nextActive) });
+                    }}
+                    title="현재 슬라이드 삭제"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                )}
+              </div>
+
+              {/* < 1 / 3 > Pill Switcher */}
+              <div style={{ display: 'flex', alignItems: 'center', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', padding: '2px', height: '38px' }}>
+                <button
+                  type="button"
+                  disabled={activeSlideIdx <= 0}
+                  style={{ width: '30px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', border: 'none', background: 'transparent', cursor: activeSlideIdx <= 0 ? 'not-allowed' : 'pointer', color: activeSlideIdx <= 0 ? '#cbd5e1' : '#334155' }}
+                  onClick={() => {
+                    const prevIdx = Math.max(0, activeSlideIdx - 1);
+                    updateSection({ activeSlideIndex: prevIdx });
+                  }}
+                  title="이전 슬라이드"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <span style={{ fontSize: '12.5px', fontWeight: 800, color: '#0f172a', padding: '0 6px', minWidth: '40px', textAlign: 'center', fontFamily: 'monospace', userSelect: 'none' }}>
+                  {slides.length > 0 ? `${activeSlideIdx + 1} / ${slides.length}` : '0 / 0'}
+                </span>
+                <button
+                  type="button"
+                  disabled={activeSlideIdx >= slides.length - 1}
+                  style={{ width: '30px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '4px', border: 'none', background: 'transparent', cursor: activeSlideIdx >= slides.length - 1 ? 'not-allowed' : 'pointer', color: activeSlideIdx >= slides.length - 1 ? '#cbd5e1' : '#334155' }}
+                  onClick={() => {
+                    const nextIdx = Math.min(slides.length - 1, activeSlideIdx + 1);
+                    updateSection({ activeSlideIndex: nextIdx });
+                  }}
+                  title="다음 슬라이드"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Current Active Slide Form Fields */}
+          {slides[activeSlideIdx] && (() => {
+            const slide = slides[activeSlideIdx];
+            const idx = activeSlideIdx;
+            const slideNum = idx + 1;
+
+            return (
+              <>
+                {/* X-1. 타이틀 설정 Group */}
+                <div className="property-group flex flex-col gap-3.5">
+                  <label className="group-title">{slideNum}-1. 타이틀 설정</label>
+                  
+                  <div className="input-block">
+                    <label className="input-label" style={{ display: 'block', fontSize: '13.5px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                      슬라이드 제목
+                    </label>
+                    <input
+                      type="text"
+                      style={{ height: '40px', fontSize: '13.5px', fontWeight: 500 }}
+                      className="w-full border border-slate-300 rounded px-3 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
+                      value={slide.title || ''}
+                      onChange={(e) => {
+                        const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, title: e.target.value } : item);
+                        updateSection({ slideItems: updated });
+                      }}
+                      placeholder="슬라이드 제목"
+                    />
+                  </div>
+
+                  {/* 타이틀 하단 여백 */}
+                  {(() => {
+                    const titleVarId = section.slideTitleMarginVarId;
+                    const presets = (themeSettings?.spacingPresets && themeSettings.spacingPresets.length > 0) ? themeSettings.spacingPresets : DEFAULT_SPACING_PRESETS;
+                    const activePreset = presets.find(p => p.id === titleVarId);
+                    const resolvedVal = activePreset ? activePreset.value : (section.slideTitleMarginBottom ?? 16);
+                    const isLinked = !!activePreset;
+
+                    return (
+                      <div className="flex items-center justify-between py-1">
+                        {/* Left Side: Label + Pure Blue/Gray Link Icon (No bg, No border) */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }} className="select-none">
+                            타이틀 하단 여백
+                          </span>
+
+                          <button
+                            type="button"
+                            style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            onClick={() => {
+                              if (isLinked) {
+                                updateSection({ slideTitleMarginVarId: undefined, slideTitleMarginBottom: resolvedVal });
+                              } else {
+                                const currentPx = section.slideTitleMarginBottom ?? 16;
+                                const matched = presets.find(p => p.value === currentPx) || presets.find(p => p.id === 'space-md') || presets[0];
+                                if (matched) {
+                                  updateSection({ slideTitleMarginVarId: matched.id, slideTitleMarginBottom: matched.value });
+                                }
+                              }
+                            }}
+                            title={isLinked ? `테마 간격 변수 연동 중 (${activePreset?.name.split(' ')[0]} ${resolvedVal}px) - 클릭하여 해제` : '개별 픽셀 고정 모드 - 클릭하여 테마 변수 연동'}
+                          >
+                            <Link size={16} style={{ color: isLinked ? '#0284c7' : '#94a3b8', strokeWidth: isLinked ? 2.5 : 2 }} />
+                          </button>
+                        </div>
+
+                        {/* Right Side: Clean Standard Input or Select */}
+                        <div>
+                          {isLinked ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <select
+                                style={{ width: '100px', height: '40px', textAlign: 'center', fontSize: '13.5px', fontWeight: 600, color: '#0f172a' }}
+                                className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
+                                value={titleVarId}
+                                onChange={(e) => {
+                                  const found = presets.find(p => p.id === e.target.value);
+                                  if (found) {
+                                    updateSection({ slideTitleMarginVarId: found.id, slideTitleMarginBottom: found.value });
+                                  }
+                                }}
+                                title="테마 간격 변수 선택 (XS 8, S 12, M 16, L 20, XL 28, XXL 48)"
+                              >
+                                {presets.map(p => {
+                                  const shortName = p.name.split(' ')[0] || p.name;
+                                  return (
+                                    <option key={p.id} value={p.id}>
+                                      {shortName} {p.value}
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                              <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '24px', textAlign: 'right' }}>
+                                px
+                              </span>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <input
+                                type="number"
+                                min={0}
+                                max={200}
+                                step={2}
+                                style={{ width: '100px', height: '40px', textAlign: 'right', fontSize: '13.5px', fontWeight: 600 }}
+                                className="border border-slate-300 rounded px-2.5 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
+                                value={section.slideTitleMarginBottom ?? 16}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value);
+                                  if (!isNaN(val)) {
+                                    updateSection({ slideTitleMarginVarId: undefined, slideTitleMarginBottom: Math.max(0, val) });
+                                  }
+                                }}
+                              />
+                              <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '24px', textAlign: 'right' }}>
+                                px
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* X-2. 설명 문구 설정 Group */}
+                <div className="property-group flex flex-col gap-3.5">
+                  <label className="group-title">{slideNum}-2. 설명 문구 설정</label>
+
+                  <div className="input-block">
+                    <label className="input-label" style={{ display: 'block', fontSize: '13.5px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                      설명 문구
+                    </label>
+                    <textarea
+                      style={{ fontSize: '13.5px', fontWeight: 500 }}
+                      className="p-3 rounded border border-slate-300 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none resize-y min-h-[64px]"
+                      value={slide.description || ''}
+                      onChange={(e) => {
+                        const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, description: e.target.value } : item);
+                        updateSection({ slideItems: updated });
+                      }}
+                      placeholder="슬라이드 설명 문구"
+                    />
+                  </div>
+
+                  {/* 설명문구 하단 여백 */}
+                  {(() => {
+                    const descVarId = section.slideDescMarginVarId;
+                    const presets = (themeSettings?.spacingPresets && themeSettings.spacingPresets.length > 0) ? themeSettings.spacingPresets : DEFAULT_SPACING_PRESETS;
+                    const activePreset = presets.find(p => p.id === descVarId);
+                    const resolvedVal = activePreset ? activePreset.value : (section.slideDescMarginBottom ?? 28);
+                    const isLinked = !!activePreset;
+
+                    return (
+                      <div className="flex items-center justify-between py-1">
+                        {/* Left Side: Label + Pure Blue/Gray Link Icon (No bg, No border) */}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }} className="select-none">
+                            설명문구 하단 여백
+                          </span>
+
+                          <button
+                            type="button"
+                            style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                            onClick={() => {
+                              if (isLinked) {
+                                updateSection({ slideDescMarginVarId: undefined, slideDescMarginBottom: resolvedVal });
+                              } else {
+                                const currentPx = section.slideDescMarginBottom ?? 28;
+                                const matched = presets.find(p => p.value === currentPx) || presets.find(p => p.id === 'space-xl') || presets[0];
+                                if (matched) {
+                                  updateSection({ slideDescMarginVarId: matched.id, slideDescMarginBottom: matched.value });
+                                }
+                              }
+                            }}
+                            title={isLinked ? `테마 간격 변수 연동 중 (${activePreset?.name.split(' ')[0]} ${resolvedVal}px) - 클릭하여 해제` : '개별 픽셀 고정 모드 - 클릭하여 테마 변수 연동'}
+                          >
+                            <Link size={16} style={{ color: isLinked ? '#0284c7' : '#94a3b8', strokeWidth: isLinked ? 2.5 : 2 }} />
+                          </button>
+                        </div>
+
+                        {/* Right Side: Clean Standard Input or Select */}
+                        <div>
+                          {isLinked ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <select
+                                style={{ width: '100px', height: '40px', textAlign: 'center', fontSize: '13.5px', fontWeight: 600, color: '#0f172a' }}
+                                className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
+                                value={descVarId}
+                                onChange={(e) => {
+                                  const found = presets.find(p => p.id === e.target.value);
+                                  if (found) {
+                                    updateSection({ slideDescMarginVarId: found.id, slideDescMarginBottom: found.value });
+                                  }
+                                }}
+                                title="테마 간격 변수 선택 (XS 8, S 12, M 16, L 20, XL 28, XXL 48)"
+                              >
+                                {presets.map(p => {
+                                  const shortName = p.name.split(' ')[0] || p.name;
+                                  return (
+                                    <option key={p.id} value={p.id}>
+                                      {shortName} {p.value}
+                                    </option>
+                                  );
+                                })}
+                              </select>
+                              <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '24px', textAlign: 'right' }}>
+                                px
+                              </span>
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                              <input
+                                type="number"
+                                min={0}
+                                max={200}
+                                step={2}
+                                style={{ width: '100px', height: '40px', textAlign: 'right', fontSize: '13.5px', fontWeight: 600 }}
+                                className="border border-slate-300 rounded px-2.5 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
+                                value={section.slideDescMarginBottom ?? 28}
+                                onChange={(e) => {
+                                  const val = parseInt(e.target.value);
+                                  if (!isNaN(val)) {
+                                    updateSection({ slideDescMarginVarId: undefined, slideDescMarginBottom: Math.max(0, val) });
+                                  }
+                                }}
+                              />
+                              <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '24px', textAlign: 'right' }}>
+                                px
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </div>
+
+                {/* X-3. 버튼 및 이동 링크 설정 Group */}
+                <div className="property-group flex flex-col gap-3.5">
+                  <label className="group-title">{slideNum}-3. 버튼 및 이동 링크 설정</label>
+
+                  {/* 버튼 텍스트 */}
+                  <div className="flex items-center justify-between gap-3">
+                    <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }} className="select-none min-w-[90px]">
+                      버튼 텍스트
+                    </span>
+                    <input
+                      type="text"
+                      style={{ height: '40px', fontSize: '13.5px', fontWeight: 500, width: '180px' }}
+                      className="border border-slate-300 rounded px-3 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
+                      value={slide.btnText || ''}
+                      onChange={(e) => {
+                        const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, btnText: e.target.value } : item);
+                        updateSection({ slideItems: updated });
+                      }}
+                      placeholder="자세히 보기"
+                    />
+                  </div>
+
+                  {/* 연결 링크 방식 */}
+                  <div className="flex items-center justify-between gap-3">
+                    <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }} className="select-none min-w-[90px]">
+                      연결 링크 방식
+                    </span>
+                    <select
+                      style={{ height: '40px', fontSize: '13.5px', fontWeight: 500, width: '180px' }}
+                      className="border border-slate-300 rounded px-2.5 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
+                      value={slide.linkType || 'url'}
+                      onChange={(e) => {
+                        const val = e.target.value as 'url' | 'page';
+                        const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, linkType: val } : item);
+                        updateSection({ slideItems: updated });
+                      }}
+                    >
+                      <option value="url">외부 URL 이동</option>
+                      {pages && pages.length > 0 && <option value="page">내부 페이지 이동</option>}
+                    </select>
+                  </div>
+
+                  {/* 이동할 페이지 */}
+                  {slide.linkType === 'page' && pages && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }} className="select-none min-w-[90px]">
+                        이동할 페이지
+                      </span>
+                      <select
+                        style={{ height: '40px', fontSize: '13.5px', fontWeight: 500, width: '180px' }}
+                        className="border border-slate-300 rounded px-2.5 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
+                        value={slide.linkPageId || ''}
+                        onChange={(e) => {
+                          const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, linkPageId: e.target.value } : item);
+                          updateSection({ slideItems: updated });
+                        }}
+                      >
+                        <option value="">페이지 선택...</option>
+                        {pages.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} ({p.fileName})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+
+                  {/* 이동할 URL */}
+                  {slide.linkType === 'url' && (
+                    <div className="flex items-center justify-between gap-3">
+                      <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }} className="select-none min-w-[90px]">
+                        이동할 URL
+                      </span>
+                      <input
+                        type="text"
+                        style={{ height: '40px', fontSize: '13.5px', fontWeight: 500, width: '180px' }}
+                        className="border border-slate-300 rounded px-3 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none"
+                        value={slide.linkUrl === '#' ? '' : (slide.linkUrl || '')}
+                        onChange={(e) => {
+                          const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, linkUrl: e.target.value } : item);
+                          updateSection({ slideItems: updated });
+                        }}
+                        placeholder="https://example.com"
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* X-4. 배경 미디어 설정 Group */}
+                <div className="property-group flex flex-col gap-3">
+                  <span className="group-title">{slideNum}-4. 배경 미디어 설정</span>
+
+                  {/* Media Type Tabs */}
+                  <div className="align-buttons-row">
+                    <button
+                      type="button"
+                      className={`align-btn ${(!slide.mediaType || slide.mediaType === 'image') ? 'active' : ''}`}
+                      onClick={() => {
+                        const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, mediaType: 'image' as const } : item);
+                        updateSection({ slideItems: updated });
+                      }}
+                    >
+                      이미지
+                    </button>
+                    <button
+                      type="button"
+                      className={`align-btn ${slide.mediaType === 'video' ? 'active' : ''}`}
+                      onClick={() => {
+                        const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, mediaType: 'video' as const, videoSrc: item.videoSrc || SLIDE_VIDEO_PRESETS[0].url, videoName: item.videoName || SLIDE_VIDEO_PRESETS[0].name } : item);
+                        updateSection({ slideItems: updated });
+                      }}
+                    >
+                      MP4 비디오
+                    </button>
+                    <button
+                      type="button"
+                      className={`align-btn ${slide.mediaType === 'youtube' ? 'active' : ''}`}
+                      onClick={() => {
+                        const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, mediaType: 'youtube' as const, youtubeUrl: item.youtubeUrl || 'https://www.youtube.com/watch?v=dQU4R_37R4s' } : item);
+                        updateSection({ slideItems: updated });
+                      }}
+                    >
+                      유튜브
+                    </button>
+                  </div>
+
+                    {/* IMAGE TAB CONTENT */}
+                    {(!slide.mediaType || slide.mediaType === 'image') && (
+                      <>
+                        <div className="flex gap-3 items-center">
+                          <div className="w-20 h-14 rounded-lg overflow-hidden border border-slate-300 flex-shrink-0 bg-slate-100 relative shadow-inner">
+                            <img src={slide.imageSrc} alt="Preview" className="w-full h-full object-cover" />
+                          </div>
+                          <div className="flex flex-col gap-1 flex-1 min-w-0">
+                            <span className="text-xs font-bold text-slate-800 truncate">
+                              현재 파일: {getDisplayImageName(slide, idx)}
+                            </span>
+                            <div className="flex gap-1.5 mt-0.5">
+                              <label className="px-2.5 py-1 bg-sky-600 text-white rounded text-[11px] font-bold cursor-pointer hover:bg-sky-700 transition-colors shadow-sm inline-flex items-center gap-1">
+                                이미지 업로드
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, imageSrc: reader.result as string, imageName: file.name } : item);
+                                      updateSection({ slideItems: updated });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5 border-t border-slate-100 pt-2.5">
+                          <span className="font-semibold text-slate-700 text-[11.5px]">샘플 이미지 (10종)</span>
+                          <div className="grid grid-cols-5 gap-1.5">
+                            {SLIDE_IMAGE_PRESETS.map((preset, pIdx) => {
+                              const currentName = getDisplayImageName(slide, idx);
+                              const isPresetActive = slide.imageSrc === preset.url || currentName === preset.name;
+                              return (
+                                <button
+                                  key={pIdx}
+                                  type="button"
+                                  className={`h-7 rounded border flex items-center justify-center text-[10.5px] font-bold transition-all ${
+                                    isPresetActive
+                                      ? 'border-sky-600 bg-sky-600 text-white shadow-sm ring-1 ring-sky-300'
+                                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-sky-300 hover:bg-sky-50'
+                                  }`}
+                                  onClick={() => {
+                                    const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, imageSrc: preset.url, imageName: preset.name } : item);
+                                    updateSection({ slideItems: updated });
+                                  }}
+                                  title={preset.name}
+                                >
+                                  ex{pIdx + 1}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </>
+                    )}
+
+                    {/* MP4 VIDEO TAB CONTENT */}
+                    {slide.mediaType === 'video' && (
+                      <>
+                        {/* Paused Static MP4 Video Preview (No Poster Image) */}
+                        <div className="flex gap-3 items-center pb-2 border-b border-slate-100">
+                          <div className="w-20 h-14 rounded-lg overflow-hidden border border-slate-300 flex-shrink-0 bg-slate-900 relative shadow-inner">
+                            <video
+                              key={slide.videoSrc || SLIDE_VIDEO_PRESETS[0].url}
+                              src={slide.videoSrc || SLIDE_VIDEO_PRESETS[0].url}
+                              muted
+                              playsInline
+                              preload="metadata"
+                              className="w-full h-full object-cover pointer-events-none"
+                            />
+                          </div>
+                          <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                            <span className="text-xs font-bold text-slate-800 truncate">
+                              비디오: {slide.videoName || 'sample1_ocean.mp4'}
+                            </span>
+                            <span className="text-[10.5px] text-slate-500 font-medium">
+                              MP4 비디오 정지 화면 미리보기
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <span className="font-semibold text-slate-700 text-[11.5px]">샘플 MP4 동영상 배경 (4종)</span>
+                          <div className="grid grid-cols-2 gap-1.5">
+                            {SLIDE_VIDEO_PRESETS.map((vPreset, vpIdx) => {
+                              const isVideoActive = slide.videoSrc === vPreset.url;
+                              return (
+                                <button
+                                  key={vpIdx}
+                                  type="button"
+                                  className={`p-1.5 rounded border text-left text-[11px] font-bold transition-all ${
+                                    isVideoActive
+                                      ? 'border-sky-600 bg-sky-50 text-sky-700 ring-1 ring-sky-300'
+                                      : 'border-slate-200 bg-slate-50 text-slate-700 hover:border-sky-300'
+                                  }`}
+                                  onClick={() => {
+                                    const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, videoSrc: vPreset.url, videoName: vPreset.name } : item);
+                                    updateSection({ slideItems: updated });
+                                  }}
+                                >
+                                  샘플 비디오 {vpIdx + 1}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        <div className="flex flex-col gap-1 border-t border-slate-100 pt-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-slate-700 text-[11px]">MP4 동영상 파일 업로드</span>
+                          </div>
+                          <label className="w-full py-2 bg-sky-600 text-white rounded text-xs font-bold cursor-pointer hover:bg-sky-700 transition-colors shadow-sm text-center flex items-center justify-center gap-1.5">
+                            MP4 / WebM 비디오 파일 업로드
+                            <input
+                              type="file"
+                              accept="video/mp4,video/webm"
+                              className="hidden"
+                              onChange={(e) => {
+                                const file = e.target.files?.[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, videoSrc: reader.result as string, videoName: file.name } : item);
+                                  updateSection({ slideItems: updated });
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            />
+                          </label>
+                        </div>
+                      </>
+                    )}
+
+                    {/* YOUTUBE TAB CONTENT */}
+                    {slide.mediaType === 'youtube' && (() => {
+                      const ytId = extractYouTubeId(slide.youtubeUrl) || slide.youtubeId || 'dQU4R_37R4s';
+                      return (
+                        <div className="flex flex-col gap-2.5">
+                          {/* Live YouTube Thumbnail Preview */}
+                          <div className="flex gap-3 items-center pb-1 border-b border-slate-100">
+                            <div className="w-24 h-16 rounded-lg overflow-hidden border border-red-300 flex-shrink-0 bg-slate-900 relative shadow-sm">
+                              <img
+                                src={`https://img.youtube.com/vi/${ytId}/hqdefault.jpg`}
+                                alt="YouTube Thumbnail"
+                                className="w-full h-full object-cover"
+                              />
+                              <span className="absolute bottom-1 right-1 bg-red-600 text-white text-[9px] px-1 py-0.5 rounded font-extrabold tracking-wider">
+                                YOUTUBE
+                              </span>
+                            </div>
+                            <div className="flex flex-col gap-0.5 flex-1 min-w-0">
+                              <span className="text-xs font-bold text-slate-800 truncate">
+                                유튜브 ID: {ytId}
+                              </span>
+                              <span className="text-[10.5px] text-red-600 font-medium">
+                                고화질 유튜브 썸네일 미리보기
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold text-slate-700 text-[11.5px]">유튜브(YouTube) 주소 입력</span>
+                            <span className="text-[10.5px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded border border-red-200">
+                              ID: {ytId}
+                            </span>
+                          </div>
+                          <input
+                            type="text"
+                            className="h-8 text-xs px-2.5 rounded border border-slate-300 focus:border-red-500 focus:ring-1 focus:ring-red-500 outline-none"
+                            value={slide.youtubeUrl || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              const parsedYtId = extractYouTubeId(val);
+                              const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, youtubeUrl: val, youtubeId: parsedYtId || undefined } : item);
+                              updateSection({ slideItems: updated });
+                            }}
+                            placeholder="https://www.youtube.com/watch?v=..."
+                          />
+                          <span className="text-[10.5px] text-slate-500">
+                            예시: https://www.youtube.com/watch?v=dQU4R_37R4s 또는 https://youtu.be/...
+                          </span>
+                        </div>
+                      );
+                    })()}
+
+                    {/* OVERLAY OPACITY SLIDER */}
+                    <div className="flex flex-col gap-1 border-t border-slate-100 pt-2.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-semibold text-slate-700 text-[11.5px]">배경 어둡기 (오버레이)</span>
+                        <span className="text-xs font-bold text-sky-700">
+                          {slide.overlayOpacity !== undefined ? slide.overlayOpacity : 55}%
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={90}
+                        step={5}
+                        className="accent-sky-600"
+                        value={slide.overlayOpacity !== undefined ? slide.overlayOpacity : 55}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          const updated = slides.map((item, sIdx) => sIdx === idx ? { ...item, overlayOpacity: val } : item);
+                          updateSection({ slideItems: updated });
+                        }}
+                      />
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
+          </div>
+        </div>
+      );
+    }
 
   if (!activeElement && activeSectionId && showSectionDetail) {
     const section = sections.find(s => s.id === activeSectionId);
@@ -395,7 +1230,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                       <span className="input-label">로고 이미지 등록</span>
                       <div className="flex flex-col gap-2" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         <div className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <label className="image-upload-label" style={{ flex: 1, textAlign: 'center', padding: '6px', background: 'var(--theme-primary)', color: 'white', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
+                          <label className="image-upload-label" style={{ flex: 1, textAlign: 'center', padding: '6px', background: '#0284c7', color: 'white', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
                             파일 선택
                             <input
                               type="file"
@@ -661,14 +1496,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 {/* Menu Font Selector */}
                 <div className="input-block mt-2">
                   <span className="input-label">메뉴 글꼴 (Font Family)</span>
-                  <select
-                    value={section.headerMenuFont || 'Inter'}
-                    onChange={(e) => updateSection({ headerMenuFont: e.target.value })}
-                  >
-                    {SUPPORTED_FONTS.map(f => (
-                      <option key={f.name} value={f.name}>{f.name}</option>
-                    ))}
-                  </select>
+                  <FontCustomSelect
+                    currentFontName={section.headerMenuFont || 'Inter'}
+                    onSelectFont={(fontName) => updateSection({ headerMenuFont: fontName })}
+                  />
                 </div>
               </div>
             )}
@@ -767,14 +1598,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 
                 <div className="input-block mt-2">
                   <span className="input-label">버튼 글꼴 (Font Family)</span>
-                  <select
-                    value={section.headerBtnFont || 'Inter'}
-                    onChange={(e) => updateSection({ headerBtnFont: e.target.value })}
-                  >
-                    {SUPPORTED_FONTS.map(f => (
-                      <option key={f.name} value={f.name}>{f.name}</option>
-                    ))}
-                  </select>
+                  <FontCustomSelect
+                    currentFontName={section.headerBtnFont || 'Inter'}
+                    onSelectFont={(fontName) => updateSection({ headerBtnFont: fontName })}
+                  />
                 </div>
               </div>
             )}
@@ -807,7 +1634,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 )}
                 
                 <div className="grid-input-item">
-                  <span className="input-label">배경색</span>
+                  <span className="input-label">기본 배경색</span>
                   <div className="color-picker-wrapper">
                     <input
                       type="color"
@@ -822,6 +1649,66 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   </div>
                 </div>
               </div>
+            </div>
+
+            {/* Header Overlay & Scroll Background Settings */}
+            <div className="property-group flex flex-col gap-3">
+              <label className="group-title">상단 고정 및 스크롤 배경 설정</label>
+              
+              <div 
+                onClick={() => updateSection({ headerTransparentAtTop: !section.headerTransparentAtTop })}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '10px 0',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>스크롤 전 투명 배경</span>
+                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>최상단 스크롤 시 메인 슬라이드 위에 투명하게 오버레이</span>
+                </div>
+                <div style={{
+                  width: '42px',
+                  height: '24px',
+                  borderRadius: '12px',
+                  backgroundColor: section.headerTransparentAtTop ? '#0284c7' : '#cbd5e1',
+                  position: 'relative',
+                  transition: 'background-color 0.2s ease',
+                }}>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    backgroundColor: '#ffffff',
+                    position: 'absolute',
+                    top: '2px',
+                    left: section.headerTransparentAtTop ? '20px' : '2px',
+                    transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  }} />
+                </div>
+              </div>
+
+              {section.headerTransparentAtTop && (
+                <div className="grid-input-item">
+                  <span className="input-label">스크롤 후 배경색</span>
+                  <div className="color-picker-wrapper">
+                    <input
+                      type="color"
+                      value={(section.headerScrollBgColor || '#1e3a8a').startsWith('#') ? (section.headerScrollBgColor || '#1e3a8a') : '#1e3a8a'}
+                      onChange={(e) => updateSection({ headerScrollBgColor: e.target.value })}
+                    />
+                    <input
+                      type="text"
+                      value={section.headerScrollBgColor || '#1e3a8a'}
+                      onChange={(e) => updateSection({ headerScrollBgColor: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
           </div>
@@ -1103,10 +1990,14 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
       );
     }
 
-    let currentSectionTitle = '섹션';
-    if (section.sharedType === 'header') currentSectionTitle = '공통 헤더 컴포넌트';
-    else if (section.sharedType === 'footer') currentSectionTitle = '공통 푸터 컴포넌트';
-    else {
+    let currentSectionTitle = section.sectionTitle || '섹션';
+    if (section.sharedType === 'header') currentSectionTitle = '공통 헤더';
+    else if (section.sharedType === 'footer') currentSectionTitle = '공통 푸터';
+    else if (section.sectionPresetType === 'main-slide' || section.id === 'sec-main-slide') currentSectionTitle = '메인 슬라이드';
+    else if (section.sectionPresetType === 'features-grid') currentSectionTitle = '주요 특징';
+    else if (section.sectionPresetType === 'promo-banner') currentSectionTitle = '고정 배경 배너';
+    else if (section.sectionPresetType === 'card-slider') currentSectionTitle = '카드 슬라이드';
+    else if (!section.sectionTitle) {
       let bodyCount = 0;
       for (const s of sections) {
         if (s.sharedType !== 'header' && s.sharedType !== 'footer') {
@@ -1118,6 +2009,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
         }
       }
     }
+
+    const activeSlideIdx = section.activeSlideIndex || 0;
+    const isSlideContentActive = activeElement?.sectionId === section.id && (activeElement?.elementId === 'slide-content' || activeElement?.elementId?.startsWith('slide'));
+    const isMainSlide = section.sectionPresetType === 'main-slide' || section.id === 'sec-main-slide';
 
     return (
       <div className="properties-panel">
@@ -1139,19 +2034,681 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
         </div>
 
         <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
+          
+          {/* Preset 1: main-slide Accordion Editor */}
+          {section.sectionPresetType === 'main-slide' && (
+            <div className="property-group flex flex-col gap-3">
+              <label className="group-title">슬라이드 기본 설정</label>
+
+              {/* 1. 무한 루프 */}
+              <div className="flex items-center justify-between py-0.5">
+                <span className="text-[13.5px] font-medium text-slate-700 select-none">
+                  무한 루프
+                </span>
+                <ToggleSwitch
+                  checked={section.loop !== false}
+                  onChange={(checked) => updateSection({ loop: checked })}
+                />
+              </div>
+
+              {/* 2. 드래그 전환 */}
+              <div className="flex items-center justify-between py-0.5">
+                <span className="text-[13.5px] font-medium text-slate-700 select-none">
+                  드래그 전환
+                </span>
+                <ToggleSwitch
+                  checked={section.enableDrag !== false}
+                  onChange={(checked) => updateSection({ enableDrag: checked })}
+                />
+              </div>
+
+              {/* 3. 자동 슬라이드 */}
+              <div className="flex items-center justify-between py-0.5">
+                <span className="text-[13.5px] font-medium text-slate-700 select-none">
+                  자동 슬라이드
+                </span>
+                <ToggleSwitch
+                  checked={section.autoPlay !== false}
+                  onChange={(checked) => updateSection({ autoPlay: checked })}
+                />
+              </div>
+
+              {/* 4. 자동 전환 간격 */}
+              {(section.autoPlay !== false) && (
+                <div className="flex items-center justify-between py-0.5">
+                  <span className="text-[13.5px] font-medium text-slate-700 select-none">
+                    자동 전환 간격
+                  </span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <input
+                      type="number"
+                      min={1}
+                      max={30}
+                      step={0.5}
+                      style={{ width: '88px', height: '32px', textAlign: 'right', fontSize: '13.5px', fontWeight: 600 }}
+                      value={((section.autoPlayInterval || 4000) / 1000)}
+                      onChange={(e) => {
+                        const rawVal = e.target.value;
+                        if (rawVal === '') return;
+                        const val = parseFloat(rawVal);
+                        if (!isNaN(val)) {
+                          const clamped = Math.min(30, Math.max(1, val));
+                          updateSection({ autoPlayInterval: Math.round(clamped * 1000) });
+                        }
+                      }}
+                    />
+                    <span className="text-[13.5px] font-semibold text-slate-700 w-[24px] text-right">
+                      초
+                    </span>
+                  </div>
+                </div>
+              )}
+
+              {/* 5. 동영상 배경 전환 방식 */}
+              {(section.autoPlay !== false) && (
+                <div className="flex flex-col pt-2.5 pb-1 mt-1 border-t border-slate-200/80">
+                  <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 500, color: '#334155', marginBottom: '8px', userSelect: 'none' }}>
+                    동영상 배경 전환 방식
+                  </span>
+                  <div className="align-buttons-row">
+                    <button
+                      type="button"
+                      className={`align-btn ${section.slideAutoPlayMode !== 'video-end' ? 'active' : ''}`}
+                      onClick={() => updateSection({ slideAutoPlayMode: 'fixed' })}
+                    >
+                      고정 시간 적용
+                    </button>
+                    <button
+                      type="button"
+                      className={`align-btn ${section.slideAutoPlayMode === 'video-end' ? 'active' : ''}`}
+                      onClick={() => updateSection({ slideAutoPlayMode: 'video-end' })}
+                    >
+                      동영상 완료 시 전환
+                    </button>
+                  </div>
+                  <span style={{ fontSize: '12px', color: '#64748b', marginTop: '8px', lineHeight: '1.5', fontWeight: 500, display: 'block' }}>
+                    {section.slideAutoPlayMode === 'video-end'
+                      ? '동영상 배경 슬라이드는 비디오 재생이 끝난 후 자동으로 다음 슬라이드로 전환됩니다.'
+                      : '동영상이 포함된 슬라이드도 설정된 전환 간격(초)마다 동일하게 전환됩니다.'}
+                  </span>
+                </div>
+              )}
+
+              {/* 6. 슬라이드 전환 효과 */}
+              <div className="flex flex-col pt-3 pb-1 mt-1 border-t border-slate-200/80">
+                <span style={{ display: 'block', fontSize: '13.5px', fontWeight: 500, color: '#334155', marginBottom: '10px', marginTop: '4px', userSelect: 'none' }}>
+                  슬라이드 전환 효과
+                </span>
+                <div className="align-buttons-row">
+                  {[
+                    { id: 'zoom', label: '줌' },
+                    { id: 'fade', label: '페이드' },
+                    { id: 'slide', label: '슬라이드' },
+                  ].map((eff) => {
+                    const currentEffect = section.slideEffectType || 'zoom';
+                    const isSelected = currentEffect === eff.id;
+                    return (
+                      <button
+                        key={eff.id}
+                        type="button"
+                        className={`align-btn ${isSelected ? 'active' : ''}`}
+                        onClick={() => updateSection({ slideEffectType: eff.id as any })}
+                      >
+                        {eff.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Preset 2: features-grid Accordion Editor */}
+          {section.sectionPresetType === 'features-grid' && (
+            <div className="property-group flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <label className="group-title">특징 항목 목록 (바둑판 아코디언)</label>
+                <button
+                  type="button"
+                  className="px-2 py-1 text-xs bg-sky-50 text-sky-700 border border-sky-200 rounded font-semibold flex items-center gap-1 hover:bg-sky-100"
+                  onClick={() => {
+                    const items = section.featureItems || [];
+                    const newItem = {
+                      id: `feat_${Date.now()}`,
+                      title: `신규 특징 ${items.length + 1}`,
+                      description: '특징에 대한 상세한 설명 내용을 입력해 주세요.',
+                      imageSrc: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=800&auto=format&fit=crop&q=80',
+                      btnText: '자세히 보기 >',
+                      linkType: 'url' as const,
+                      linkUrl: '#'
+                    };
+                    updateSection({ featureItems: [...items, newItem] });
+                  }}
+                >
+                  <Plus size={14} /> 특징 항목 추가
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {(section.featureItems || []).map((item, idx) => {
+                  const isOpen = openPresetAccordionIndex === idx;
+                  return (
+                    <div key={item.id || idx} className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      <div
+                        className="p-3 bg-slate-50 flex items-center justify-between cursor-pointer select-none border-b border-slate-100"
+                        onClick={() => setOpenPresetAccordionIndex(isOpen ? null : idx)}
+                      >
+                        <div className="flex items-center gap-2 font-bold text-xs text-slate-800">
+                          <span>특징 #{idx + 1}</span>
+                          <span className="text-slate-500 font-normal truncate max-w-[140px]">{item.title || '제목 없음'}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {(section.featureItems || []).length > 1 && (
+                            <button
+                              type="button"
+                              className="p-1 text-slate-400 hover:text-red-500 rounded"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updated = (section.featureItems || []).filter((_, sIdx) => sIdx !== idx);
+                                updateSection({ featureItems: updated });
+                              }}
+                              title="삭제"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                          {isOpen ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+                        </div>
+                      </div>
+
+                      {isOpen && (
+                        <div className="p-3 flex flex-col gap-3 text-xs bg-white">
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">특징 제목</span>
+                            <input
+                              type="text"
+                              value={item.title}
+                              onChange={(e) => {
+                                const updated = (section.featureItems || []).map((f, sIdx) => sIdx === idx ? { ...f, title: e.target.value } : f);
+                                updateSection({ featureItems: updated });
+                              }}
+                              className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">설명 문구</span>
+                            <textarea
+                              rows={3}
+                              value={item.description}
+                              onChange={(e) => {
+                                const updated = (section.featureItems || []).map((f, sIdx) => sIdx === idx ? { ...f, description: e.target.value } : f);
+                                updateSection({ featureItems: updated });
+                              }}
+                              className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">이미지 URL</span>
+                            <div className="flex gap-1">
+                              <input
+                                type="text"
+                                value={item.imageSrc}
+                                onChange={(e) => {
+                                  const updated = (section.featureItems || []).map((f, sIdx) => sIdx === idx ? { ...f, imageSrc: e.target.value } : f);
+                                  updateSection({ featureItems: updated });
+                                }}
+                                className="flex-1 px-2 py-1.5 border border-slate-300 rounded text-xs"
+                              />
+                              <label className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded cursor-pointer text-xs font-semibold text-slate-700">
+                                업로드
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onload = (ev) => {
+                                        if (ev.target?.result) {
+                                          const updated = (section.featureItems || []).map((f, sIdx) => sIdx === idx ? { ...f, imageSrc: ev.target!.result as string } : f);
+                                          updateSection({ featureItems: updated });
+                                        }
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">버튼 / 링크 텍스트</span>
+                            <input
+                              type="text"
+                              value={item.btnText || ''}
+                              onChange={(e) => {
+                                const updated = (section.featureItems || []).map((f, sIdx) => sIdx === idx ? { ...f, btnText: e.target.value } : f);
+                                updateSection({ featureItems: updated });
+                              }}
+                              placeholder="자세히 보기 >"
+                              className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">연결 링크 방식</span>
+                            <select
+                              value={item.linkType || 'none'}
+                              onChange={(e) => {
+                                const updated = (section.featureItems || []).map((f, sIdx) => sIdx === idx ? { ...f, linkType: e.target.value as any } : f);
+                                updateSection({ featureItems: updated });
+                              }}
+                              className="px-2 py-1.5 border border-slate-300 rounded text-xs bg-white"
+                            >
+                              <option value="none">링크 없음</option>
+                              <option value="page">내부 페이지 이동</option>
+                              <option value="url">외부 URL 이동</option>
+                            </select>
+                          </div>
+
+                          {item.linkType === 'page' && (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-slate-700">이동할 페이지</span>
+                              <select
+                                value={item.linkPageId || 'main'}
+                                onChange={(e) => {
+                                  const updated = (section.featureItems || []).map((f, sIdx) => sIdx === idx ? { ...f, linkPageId: e.target.value } : f);
+                                  updateSection({ featureItems: updated });
+                                }}
+                                className="px-2 py-1.5 border border-slate-300 rounded text-xs bg-white"
+                              >
+                                {(pages || []).map(p => (
+                                  <option key={p.id} value={p.id}>{p.name} ({p.fileName})</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {item.linkType === 'url' && (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-slate-700">이동할 URL</span>
+                              <input
+                                type="text"
+                                value={item.linkUrl || ''}
+                                onChange={(e) => {
+                                  const updated = (section.featureItems || []).map((f, sIdx) => sIdx === idx ? { ...f, linkUrl: e.target.value } : f);
+                                  updateSection({ featureItems: updated });
+                                }}
+                                placeholder="https://example.com"
+                                className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Preset 3: promo-banner Editor */}
+          {section.sectionPresetType === 'promo-banner' && (
+            <div className="property-group flex flex-col gap-3">
+              <label className="group-title">고정 배경 배너 설정</label>
+              
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-slate-700 text-xs">서브 타이틀 (태그)</span>
+                <input
+                  type="text"
+                  value={section.sectionSubTitle || ''}
+                  onChange={(e) => updateSection({ sectionSubTitle: e.target.value })}
+                  placeholder="Competitive Advantage"
+                  className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-slate-700 text-xs">메인 비전 문구</span>
+                <textarea
+                  rows={2}
+                  value={section.sectionTitle || ''}
+                  onChange={(e) => updateSection({ sectionTitle: e.target.value })}
+                  placeholder="지속 가능한 성장과 함께하는 혁신, 우리는 미래를 준비합니다."
+                  className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-slate-700 text-xs">고정 배경 이미지 URL (Parallax)</span>
+                <div className="flex gap-1">
+                  <input
+                    type="text"
+                    value={section.backgroundImage || ''}
+                    onChange={(e) => updateSection({ backgroundImage: e.target.value })}
+                    placeholder="https://images.unsplash.com/..."
+                    className="flex-1 px-2 py-1.5 border border-slate-300 rounded text-xs"
+                  />
+                  <label className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded cursor-pointer text-xs font-semibold text-slate-700">
+                    업로드
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          const reader = new FileReader();
+                          reader.onload = (ev) => {
+                            if (ev.target?.result) {
+                              updateSection({ backgroundImage: ev.target.result as string });
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-slate-700 text-xs">CTA 버튼 텍스트</span>
+                <input
+                  type="text"
+                  value={section.ctaBtnText || ''}
+                  onChange={(e) => updateSection({ ctaBtnText: e.target.value })}
+                  placeholder="자세히 보기 >"
+                  className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-slate-700 text-xs">CTA 버튼 연결 링크</span>
+                <select
+                  value={section.ctaLinkType || 'none'}
+                  onChange={(e) => updateSection({ ctaLinkType: e.target.value as any })}
+                  className="px-2 py-1.5 border border-slate-300 rounded text-xs bg-white"
+                >
+                  <option value="none">링크 없음</option>
+                  <option value="page">내부 페이지 이동</option>
+                  <option value="url">외부 URL 이동</option>
+                </select>
+              </div>
+
+              {section.ctaLinkType === 'page' && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-slate-700 text-xs">이동할 페이지</span>
+                  <select
+                    value={section.ctaLinkPageId || 'main'}
+                    onChange={(e) => updateSection({ ctaLinkPageId: e.target.value })}
+                    className="px-2 py-1.5 border border-slate-300 rounded text-xs bg-white"
+                  >
+                    {(pages || []).map(p => (
+                      <option key={p.id} value={p.id}>{p.name} ({p.fileName})</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {section.ctaLinkType === 'url' && (
+                <div className="flex flex-col gap-1">
+                  <span className="font-semibold text-slate-700 text-xs">이동할 URL</span>
+                  <input
+                    type="text"
+                    value={section.ctaLinkUrl || ''}
+                    onChange={(e) => updateSection({ ctaLinkUrl: e.target.value })}
+                    placeholder="https://example.com"
+                    className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Preset 4: card-slider Accordion Editor */}
+          {section.sectionPresetType === 'card-slider' && (
+            <div className="property-group flex flex-col gap-3">
+              <div className="flex flex-col gap-1">
+                <span className="font-semibold text-slate-700 text-xs">섹션 타이틀</span>
+                <input
+                  type="text"
+                  value={section.sectionSubTitle || ''}
+                  onChange={(e) => updateSection({ sectionSubTitle: e.target.value })}
+                  placeholder="Our Latest News"
+                  className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                />
+              </div>
+
+              <div className="flex items-center justify-between mt-1">
+                <label className="group-title">뉴스 카드 목록 (기본 5개, 최소 3개)</label>
+                <button
+                  type="button"
+                  className="px-2 py-1 text-xs bg-sky-50 text-sky-700 border border-sky-200 rounded font-semibold flex items-center gap-1 hover:bg-sky-100"
+                  onClick={() => {
+                    const cards = section.cardItems || [];
+                    const newCard = {
+                      id: `card_${Date.now()}`,
+                      tag: 'NEWS',
+                      title: `신규 뉴스 소식 ${cards.length + 1}`,
+                      date: '2026-07-27',
+                      description: '새로운 소식과 관련 정보를 입력하세요.',
+                      imageSrc: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80',
+                      linkType: 'url' as const,
+                      linkUrl: '#'
+                    };
+                    updateSection({ cardItems: [...cards, newCard] });
+                  }}
+                >
+                  <Plus size={14} /> 카드 추가
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-2">
+                {(section.cardItems || []).map((card, idx) => {
+                  const isOpen = openPresetAccordionIndex === idx;
+                  const canDelete = (section.cardItems || []).length > 3;
+
+                  return (
+                    <div key={card.id || idx} className="border border-slate-200 rounded-lg overflow-hidden bg-white">
+                      <div
+                        className="p-3 bg-slate-50 flex items-center justify-between cursor-pointer select-none border-b border-slate-100"
+                        onClick={() => setOpenPresetAccordionIndex(isOpen ? null : idx)}
+                      >
+                        <div className="flex items-center gap-2 font-bold text-xs text-slate-800">
+                          <span className="px-1.5 py-0.5 bg-sky-100 text-sky-700 rounded text-[10px]">{card.tag || 'NEWS'}</span>
+                          <span className="text-slate-500 font-normal truncate max-w-[130px]">{card.title || '제목 없음'}</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          {canDelete && (
+                            <button
+                              type="button"
+                              className="p-1 text-slate-400 hover:text-red-500 rounded"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updated = (section.cardItems || []).filter((_, sIdx) => sIdx !== idx);
+                                updateSection({ cardItems: updated });
+                              }}
+                              title="삭제"
+                            >
+                              <Trash2 size={14} />
+                            </button>
+                          )}
+                          {isOpen ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+                        </div>
+                      </div>
+
+                      {isOpen && (
+                        <div className="p-3 flex flex-col gap-3 text-xs bg-white">
+                          <div className="flex gap-2">
+                            <div className="flex-1 flex flex-col gap-1">
+                              <span className="font-semibold text-slate-700">태그</span>
+                              <input
+                                type="text"
+                                value={card.tag}
+                                onChange={(e) => {
+                                  const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, tag: e.target.value } : c);
+                                  updateSection({ cardItems: updated });
+                                }}
+                                placeholder="NEWS"
+                                className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                              />
+                            </div>
+                            <div className="flex-1 flex flex-col gap-1">
+                              <span className="font-semibold text-slate-700">날짜</span>
+                              <input
+                                type="text"
+                                value={card.date}
+                                onChange={(e) => {
+                                  const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, date: e.target.value } : c);
+                                  updateSection({ cardItems: updated });
+                                }}
+                                placeholder="2026-07-27"
+                                className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">카드 제목</span>
+                            <input
+                              type="text"
+                              value={card.title}
+                              onChange={(e) => {
+                                const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, title: e.target.value } : c);
+                                updateSection({ cardItems: updated });
+                              }}
+                              className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">요약 설명</span>
+                            <textarea
+                              rows={2}
+                              value={card.description || ''}
+                              onChange={(e) => {
+                                const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, description: e.target.value } : c);
+                                updateSection({ cardItems: updated });
+                              }}
+                              className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                            />
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">썸네일 이미지 URL</span>
+                            <div className="flex gap-1">
+                              <input
+                                type="text"
+                                value={card.imageSrc}
+                                onChange={(e) => {
+                                  const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, imageSrc: e.target.value } : c);
+                                  updateSection({ cardItems: updated });
+                                }}
+                                className="flex-1 px-2 py-1.5 border border-slate-300 rounded text-xs"
+                              />
+                              <label className="px-2 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-300 rounded cursor-pointer text-xs font-semibold text-slate-700">
+                                업로드
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  className="hidden"
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) {
+                                      const reader = new FileReader();
+                                      reader.onload = (ev) => {
+                                        if (ev.target?.result) {
+                                          const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, imageSrc: ev.target!.result as string } : c);
+                                          updateSection({ cardItems: updated });
+                                        }
+                                      };
+                                      reader.readAsDataURL(file);
+                                    }
+                                  }}
+                                />
+                              </label>
+                            </div>
+                          </div>
+
+                          <div className="flex flex-col gap-1">
+                            <span className="font-semibold text-slate-700">연결 링크 방식</span>
+                            <select
+                              value={card.linkType || 'none'}
+                              onChange={(e) => {
+                                const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, linkType: e.target.value as any } : c);
+                                updateSection({ cardItems: updated });
+                              }}
+                              className="px-2 py-1.5 border border-slate-300 rounded text-xs bg-white"
+                            >
+                              <option value="none">링크 없음</option>
+                              <option value="page">내부 페이지 이동</option>
+                              <option value="url">외부 URL 이동</option>
+                            </select>
+                          </div>
+
+                          {card.linkType === 'page' && (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-slate-700">이동할 페이지</span>
+                              <select
+                                value={card.linkPageId || 'main'}
+                                onChange={(e) => {
+                                  const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, linkPageId: e.target.value } : c);
+                                  updateSection({ cardItems: updated });
+                                }}
+                                className="px-2 py-1.5 border border-slate-300 rounded text-xs bg-white"
+                              >
+                                {(pages || []).map(p => (
+                                  <option key={p.id} value={p.id}>{p.name} ({p.fileName})</option>
+                                ))}
+                              </select>
+                            </div>
+                          )}
+
+                          {card.linkType === 'url' && (
+                            <div className="flex flex-col gap-1">
+                              <span className="font-semibold text-slate-700">이동할 URL</span>
+                              <input
+                                type="text"
+                                value={card.linkUrl || ''}
+                                onChange={(e) => {
+                                  const updated = (section.cardItems || []).map((c, sIdx) => sIdx === idx ? { ...c, linkUrl: e.target.value } : c);
+                                  updateSection({ cardItems: updated });
+                                }}
+                                placeholder="https://example.com"
+                                className="px-2 py-1.5 border border-slate-300 rounded text-xs"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Section Width (Guideline Width) */}
           <div className="property-group flex flex-col gap-2">
-            <label className="group-title">가로폭</label>
+            <label className="group-title">가로폭 (배경)</label>
             <div className="align-buttons-row">
               {(['100%', '80%', '60%'] as const).map((width) => {
-                const isActive = (section.guidelineWidth || '80%') === width;
+                const isMainSlide = section.sectionPresetType === 'main-slide' || section.id === 'sec-main-slide';
+                const defaultW = isMainSlide ? '100%' : '80%';
+                const isActive = (section.guidelineWidth || defaultW) === width;
                 return (
                   <button
                     key={width}
                     type="button"
                     className={`align-btn ${isActive ? 'active' : ''}`}
                     onClick={() => updateSection({ guidelineWidth: width })}
-                    onMouseEnter={() => setHoveredGuidelineWidth?.(width)}
+                    onMouseEnter={() => setHoveredGuidelineWidth?.(null)}
                     onMouseLeave={() => setHoveredGuidelineWidth?.(null)}
                   >
                     {width}
@@ -1163,40 +2720,18 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           {/* Section Height Mode */}
           <div className="property-group flex flex-col gap-2">
-            <label className="group-title">섹션 높이 방식 (Height Mode)</label>
-            <div className="flex gap-2">
+            <label className="group-title">섹션 높이 방식</label>
+            <div className="align-buttons-row">
               <button
                 type="button"
-                className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                  (section.heightMode || 'fixed') === 'fixed'
-                    ? ''
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-                style={(section.heightMode || 'fixed') === 'fixed' ? {
-                  backgroundColor: 'var(--theme-primary, #10b981)',
-                  color: '#ffffff',
-                  borderColor: 'var(--theme-primary, #10b981)',
-                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
-                  fontWeight: '700'
-                } : {}}
+                className={`align-btn ${section.heightMode !== 'auto' ? 'active' : ''}`}
                 onClick={() => updateSection({ heightMode: 'fixed' })}
               >
                 고정 높이 (Fixed)
               </button>
               <button
                 type="button"
-                className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                  section.heightMode === 'auto'
-                    ? ''
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-                style={section.heightMode === 'auto' ? {
-                  backgroundColor: 'var(--theme-primary, #10b981)',
-                  color: '#ffffff',
-                  borderColor: 'var(--theme-primary, #10b981)',
-                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
-                  fontWeight: '700'
-                } : {}}
+                className={`align-btn ${section.heightMode === 'auto' ? 'active' : ''}`}
                 onClick={() => updateSection({ heightMode: 'auto' })}
               >
                 자동 높이 (Auto)
@@ -1205,304 +2740,385 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
           </div>
 
           {/* Section Height & Vertical Align */}
-          {(section.heightMode || 'fixed') === 'fixed' && (() => {
-            // Calculate minimum height limit in pixels to prevent elements overflow (Flex flow based)
+          {(section.heightMode !== 'auto') && (() => {
             const pTop = section.paddingTop ?? 40;
             const pBottom = section.paddingBottom ?? 40;
             const isHorizontal = section.flexDirection === 'horizontal';
             const gap = section.flexGap !== undefined ? section.flexGap : 16;
-            
-            const getElementHeight = (el: EditorElement): number => {
-              let baseHeight = 24;
-              if (el.type === 'title') {
-                baseHeight = 36;
-              } else if (el.type === 'button') {
-                const size = el.btnSize || 'medium';
-                baseHeight = size === 'small' ? 32 : size === 'large' ? 48 : 40;
-              } else if (el.type === 'image') {
-                baseHeight = 180;
-              } else if (el.type === 'three-column') {
-                baseHeight = 160;
-              }
-              const mBottom = el.marginBottom ?? 0;
-              return baseHeight + mBottom;
-            };
 
-            let minHeightLimit = 150;
-            if (section.elements.length > 0) {
+            const elementsCount = section.elements.length;
+            let computedLimit = 120;
+
+            if (elementsCount > 0) {
+              const maxElHeight = Math.max(...section.elements.map(el => {
+                const elHeightStr = el.height || '40px';
+                const parsedH = parseInt(elHeightStr, 10) || 40;
+                return parsedH;
+              }));
+
               if (isHorizontal) {
-                const maxElHeight = section.elements.reduce((max, el) => Math.max(max, getElementHeight(el)), 0);
-                minHeightLimit = maxElHeight + pTop + pBottom;
+                computedLimit = pTop + pBottom + maxElHeight + 20;
               } else {
-                const totalElementsHeight = section.elements.reduce((sum, el) => sum + getElementHeight(el), 0);
-                const totalGaps = (section.elements.length - 1) * gap;
-                minHeightLimit = totalElementsHeight + totalGaps + pTop + pBottom;
+                const totalElementsH = section.elements.reduce((acc, el) => {
+                  const parsedH = parseInt(el.height || '40px', 10) || 40;
+                  return acc + parsedH;
+                }, 0);
+                const totalGaps = (elementsCount - 1) * gap;
+                computedLimit = pTop + pBottom + totalElementsH + totalGaps + 20;
               }
-            } else {
-              minHeightLimit = pTop + pBottom + 100;
             }
-            
+
+            const minHeightLimit = Math.max(120, computedLimit);
             const hUnit = section.heightUnit || 'px';
             const isPx = hUnit === 'px';
 
-            const minSliderVal = isPx ? Math.max(150, minHeightLimit) : 10;
-            const maxSliderVal = isPx ? 1000 : 100;
-            const sliderStep = isPx ? 10 : 1;
-            
-            const currentVal = section.height;
-            const boundedVal = isPx ? Math.max(minSliderVal, currentVal) : currentVal;
+            let boundedVal = section.height || (isPx ? 400 : 100);
+            if (isPx && boundedVal < minHeightLimit) {
+              boundedVal = minHeightLimit;
+            }
+
+            const isMain = section.sectionPresetType === 'main-slide' || section.id === 'sec-main-slide';
+            const isDvhUnit = hUnit === 'dvh' || hUnit === 'vh';
+            const isFullDvh = isDvhUnit && boundedVal === 100;
 
             return (
               <>
-                {/* Height Unit selection tabs */}
                 <div className="property-group flex flex-col gap-2">
-                  <label className="group-title">높이 단위</label>
-                  <div className="flex gap-2">
-                    {(['px', 'dvh'] as const).map((unit) => (
-                      <button
-                        key={unit}
-                        type="button"
-                        className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                          hUnit === unit
-                            ? ''
-                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                        }`}
-                        style={hUnit === unit ? {
-                          backgroundColor: 'var(--theme-primary, #10b981)',
-                          color: '#ffffff',
-                          borderColor: 'var(--theme-primary, #10b981)',
-                          boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
-                          fontWeight: '700'
-                        } : {}}
-                        onClick={() => {
-                          const defaultVal = unit === 'px' ? 400 : 80;
-                          updateSection({ heightUnit: unit, height: defaultVal });
-                        }}
-                      >
-                        {unit}
-                      </button>
-                    ))}
-                  </div>
-                </div>
+                  <label className="group-title">섹션 높이 설정</label>
 
-                <div className="property-group flex flex-col gap-2">
-                  <label className="group-title">섹션 높이</label>
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="range"
-                      min={minSliderVal}
-                      max={maxSliderVal}
-                      step={sliderStep}
-                      value={boundedVal}
-                      onChange={(e) => {
-                        const val = parseInt(e.target.value) || minSliderVal;
-                        updateSection({ height: val });
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {/* Row 1: 픽셀 고정 */}
+                    <div 
+                      className="sec-height-item"
+                      onClick={() => {
+                        if (hUnit !== 'px') {
+                          const targetPx = isMain ? 680 : 400;
+                          updateSection({ heightMode: 'fixed', heightUnit: 'px', height: targetPx });
+                        }
                       }}
-                    />
-                    <span className="text-xs font-semibold w-12 text-right">{boundedVal}{hUnit}</span>
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {hUnit === 'px' ? (
+                          <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid #0284c7', background: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ffffff' }}></span>
+                          </span>
+                        ) : (
+                          <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid #cbd5e1', background: '#ffffff', flexShrink: 0 }}></span>
+                        )}
+                        <span style={{ fontSize: '13.5px', fontWeight: hUnit === 'px' ? 700 : 500, color: hUnit === 'px' ? '#0f172a' : '#475569', userSelect: 'none' }}>
+                          픽셀 고정
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="number"
+                          min={minHeightLimit}
+                          max={2000}
+                          step={10}
+                          value={hUnit === 'px' ? boundedVal : (isMain ? 680 : 400)}
+                          disabled={hUnit !== 'px'}
+                          onChange={(e) => {
+                            const rawVal = e.target.value;
+                            if (rawVal === '') {
+                              updateSection({ heightMode: 'fixed', heightUnit: 'px', height: 0 });
+                              return;
+                            }
+                            const val = parseInt(rawVal);
+                            if (!isNaN(val)) {
+                              const clamped = Math.min(3000, Math.max(0, val));
+                              updateSection({ heightMode: 'fixed', heightUnit: 'px', height: clamped });
+                            }
+                          }}
+                          onBlur={() => {
+                            if (boundedVal < minHeightLimit) {
+                              updateSection({ heightMode: 'fixed', heightUnit: 'px', height: minHeightLimit });
+                            }
+                          }}
+                        />
+                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: hUnit === 'px' ? '#334155' : '#94a3b8', width: '26px', textAlign: 'right' }}>
+                          px
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Row 2: 화면 비율 */}
+                    <div 
+                      className="sec-height-item"
+                      onClick={() => {
+                        if (!isDvhUnit) {
+                          const targetDvh = isMain ? 100 : 80;
+                          updateSection({ heightMode: 'fixed', heightUnit: 'dvh', height: targetDvh });
+                        }
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        {isDvhUnit ? (
+                          <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid #0284c7', background: '#0284c7', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#ffffff' }}></span>
+                          </span>
+                        ) : (
+                          <span style={{ width: '16px', height: '16px', borderRadius: '50%', border: '2px solid #cbd5e1', background: '#ffffff', flexShrink: 0 }}></span>
+                        )}
+                        <span style={{ fontSize: '13.5px', fontWeight: isDvhUnit ? 700 : 500, color: isDvhUnit ? '#0f172a' : '#475569', userSelect: 'none' }}>
+                          화면 비율
+                        </span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }} onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="number"
+                          min={10}
+                          max={100}
+                          step={1}
+                          value={isDvhUnit ? boundedVal : (isMain ? 100 : 80)}
+                          disabled={!isDvhUnit}
+                          onChange={(e) => {
+                            const rawVal = e.target.value;
+                            if (rawVal === '') {
+                              updateSection({ heightMode: 'fixed', heightUnit: 'dvh', height: 0 });
+                              return;
+                            }
+                            const val = parseInt(rawVal);
+                            if (!isNaN(val)) {
+                              const clamped = Math.min(100, Math.max(0, val));
+                              updateSection({ heightMode: 'fixed', heightUnit: 'dvh', height: clamped });
+                            }
+                          }}
+                          onBlur={() => {
+                            if (boundedVal < 10) {
+                              updateSection({ heightMode: 'fixed', heightUnit: 'dvh', height: 20 });
+                            }
+                          }}
+                        />
+                        <span style={{ fontSize: '13.5px', fontWeight: 600, color: isDvhUnit ? '#334155' : '#94a3b8', width: '26px', textAlign: 'right' }}>
+                          dvh
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  {isPx && minHeightLimit > 150 && (
-                    <p className="text-[9px] text-[#0369a1] bg-[#f0f9ff] p-1.5 rounded" style={{ margin: 0 }}>
-                      ℹ️ 내부 요소 보호를 위해 최소 높이가 {minHeightLimit}px로 제한되어 있습니다.
-                    </p>
-                  )}
                 </div>
 
+                {/* 내부 요소 수직 정렬 */}
                 <div className="property-group flex flex-col gap-2">
                   <label className="group-title">내부 요소 수직 정렬</label>
-                  <select
-                    value={section.verticalAlign || 'center'}
-                    onChange={(e) => updateSection({ verticalAlign: e.target.value as any })}
-                  >
-                    <option value="start">위쪽 정렬 (Start)</option>
-                    <option value="center">가운데 정렬 (Center)</option>
-                    <option value="end">아래쪽 정렬 (End)</option>
-                  </select>
+                  <div className="align-buttons-row">
+                    {[
+                      { value: 'start', label: '위쪽' },
+                      { value: 'center', label: '가운데' },
+                      { value: 'end', label: '아래쪽' },
+                    ].map((opt) => {
+                      const currentVert = section.verticalAlign || 'center';
+                      const isSelected = currentVert === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={`align-btn ${isSelected ? 'active' : ''}`}
+                          onClick={() => updateSection({ verticalAlign: opt.value as any })}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* 내부 요소 수평 정렬 */}
+                <div className="property-group flex flex-col gap-2">
+                  <label className="group-title">{isMainSlide ? '내부 요소 수평 정렬' : '요소 배치 정렬'}</label>
+                  <div className="align-buttons-row">
+                    {[
+                      { value: 'start', label: isMainSlide ? '좌측' : '시작' },
+                      { value: 'center', label: '중앙' },
+                      { value: 'end', label: isMainSlide ? '우측' : '끝' },
+                    ].map((opt) => {
+                      const currentAlign = section.flexAlign || 'start';
+                      const isSelected = currentAlign === opt.value;
+                      return (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          className={`align-btn ${isSelected ? 'active' : ''}`}
+                          onClick={() => updateSection({ flexAlign: opt.value as any })}
+                          onMouseEnter={() => setPreviewFlexAlign?.(opt.value)}
+                          onMouseLeave={() => setPreviewFlexAlign?.(null)}
+                        >
+                          {opt.label}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </>
             );
           })()}
 
           {/* Section Padding Controls */}
-          <div 
-            className="property-group flex flex-col gap-2"
-            onMouseEnter={() => setActivePaddingGuide({ sectionId: section.id, type: 'top' })}
-            onMouseLeave={() => setActivePaddingGuide(null)}
-          >
-            <div className="flex justify-between items-center">
-              <label className="group-title">상단 여백</label>
-              <label className="flex items-center gap-1 text-[11px] text-gray-500 cursor-pointer font-normal" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={section.paddingTop === undefined}
-                  onChange={(e) => updateSection({ paddingTop: e.target.checked ? undefined : (themeSettings?.defaultSectionPadding ?? 40) })}
-                  style={{ width: '13px', height: '13px', margin: 0, marginRight: '4px' }}
-                />
-                기본값 상속
-              </label>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="0"
-                max="120"
-                step="4"
-                disabled={section.paddingTop === undefined}
-                value={section.paddingTop ?? (themeSettings?.defaultSectionPadding ?? 40)}
-                onChange={(e) => updateSection({ paddingTop: parseInt(e.target.value) })}
-                onFocus={() => setActivePaddingGuide({ sectionId: section.id, type: 'top' })}
-                onBlur={() => setActivePaddingGuide(null)}
-              />
-              <span className="text-xs font-semibold w-12 text-right">{section.paddingTop ?? (themeSettings?.defaultSectionPadding ?? 40)}px</span>
-            </div>
-          </div>
+          {(() => {
+            const defaultPad = isMainSlide ? 0 : (themeSettings?.defaultSectionPadding ?? 40);
+            return (
+              <div className="property-group flex flex-col gap-2">
+                <label className="group-title">섹션 여백 설정</label>
 
-          <div 
-            className="property-group flex flex-col gap-2"
-            onMouseEnter={() => setActivePaddingGuide({ sectionId: section.id, type: 'bottom' })}
-            onMouseLeave={() => setActivePaddingGuide(null)}
-          >
-            <div className="flex justify-between items-center">
-              <label className="group-title">하단 여백</label>
-              <label className="flex items-center gap-1 text-[11px] text-gray-500 cursor-pointer font-normal" style={{ margin: 0 }}>
-                <input
-                  type="checkbox"
-                  checked={section.paddingBottom === undefined}
-                  onChange={(e) => updateSection({ paddingBottom: e.target.checked ? undefined : (themeSettings?.defaultSectionPadding ?? 40) })}
-                  style={{ width: '13px', height: '13px', margin: 0, marginRight: '4px' }}
-                />
-                기본값 상속
-              </label>
-            </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="0"
-                max="120"
-                step="4"
-                disabled={section.paddingBottom === undefined}
-                value={section.paddingBottom ?? (themeSettings?.defaultSectionPadding ?? 40)}
-                onChange={(e) => updateSection({ paddingBottom: parseInt(e.target.value) })}
-                onFocus={() => setActivePaddingGuide({ sectionId: section.id, type: 'bottom' })}
-                onBlur={() => setActivePaddingGuide(null)}
-              />
-              <span className="text-xs font-semibold w-12 text-right">{section.paddingBottom ?? (themeSettings?.defaultSectionPadding ?? 40)}px</span>
-            </div>
-          </div>
-
-          {/* Flex Layout Options */}
-          <div className="property-group flex flex-col gap-2">
-            <label className="group-title">흐름 정렬 방향</label>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                  section.flexDirection !== 'horizontal'
-                    ? ''
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-                style={section.flexDirection !== 'horizontal' ? {
-                  backgroundColor: 'var(--theme-primary, #10b981)',
-                  color: '#ffffff',
-                  borderColor: 'var(--theme-primary, #10b981)',
-                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
-                  fontWeight: '700'
-                } : {}}
-                onClick={() => updateSection({ flexDirection: 'vertical' })}
-              >
-                세로 흐름 (Column)
-              </button>
-              <button
-                type="button"
-                className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
-                  section.flexDirection === 'horizontal'
-                    ? ''
-                    : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                }`}
-                style={section.flexDirection === 'horizontal' ? {
-                  backgroundColor: 'var(--theme-primary, #10b981)',
-                  color: '#ffffff',
-                  borderColor: 'var(--theme-primary, #10b981)',
-                  boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
-                  fontWeight: '700'
-                } : {}}
-                onClick={() => updateSection({ flexDirection: 'horizontal' })}
-              >
-                가로 흐름 (Row)
-              </button>
-            </div>
-          </div>
-
-          <div className="property-group flex flex-col gap-2">
-            <label className="group-title">요소 배치 정렬</label>
-            <div className="grid grid-cols-2 gap-1.5">
-              {[
-                { value: 'start', label: '시작 정렬 (Start)' },
-                { value: 'center', label: '중앙 정렬 (Center)' },
-                { value: 'end', label: '끝 정렬 (End)' },
-                { value: 'space-between', label: '양끝 정렬 (Between)' },
-              ].map((opt) => {
-                const currentAlign = section.flexAlign || 'center';
-                const isSelected = currentAlign === opt.value;
-                const isHovered = previewFlexAlign === opt.value;
-                return (
-                  <button
-                    key={opt.value}
-                    type="button"
-                    onClick={() => updateSection({ flexAlign: opt.value as any })}
-                    onMouseEnter={() => setPreviewFlexAlign?.(opt.value)}
-                    onMouseLeave={() => setPreviewFlexAlign?.(null)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      padding: '8px 10px',
-                      borderRadius: '0px',
-                      border: isSelected ? '1.5px solid #0284c7' : isHovered ? '1px solid #7dd3fc' : '1px solid #e2e8f0',
-                      backgroundColor: isSelected ? '#f0f9ff' : isHovered ? '#f8fafc' : '#ffffff',
-                      color: isSelected ? '#0284c7' : '#0f172a',
-                      fontSize: '12.5px',
-                      fontWeight: isSelected ? 700 : 500,
-                      cursor: 'pointer',
-                      transition: 'all 0.15s ease',
-                    }}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {/* Row 1: 상단 여백 */}
+                  <div 
+                    className="sec-height-item"
+                    onMouseEnter={() => setActivePaddingGuide({ sectionId: section.id, type: 'top' })}
+                    onMouseLeave={() => setActivePaddingGuide(null)}
                   >
-                    {opt.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+                    <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155', userSelect: 'none' }}>
+                      상단 여백
+                    </span>
 
-          <div className="property-group flex flex-col gap-2">
-            <div className="flex justify-between items-center">
-              <label className="group-title">요소 간격</label>
-              <label className="flex items-center gap-1 text-[11px] text-gray-500 cursor-pointer font-normal" style={{ margin: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <input
+                        type="number"
+                        min={0}
+                        max={200}
+                        step={4}
+                        value={section.paddingTop ?? defaultPad}
+                        onChange={(e) => {
+                          const rawVal = e.target.value;
+                          if (rawVal === '') {
+                            updateSection({ paddingTop: 0 });
+                            return;
+                          }
+                          const val = parseInt(rawVal);
+                          if (!isNaN(val)) {
+                            const clamped = Math.min(300, Math.max(0, val));
+                            updateSection({ paddingTop: clamped });
+                          }
+                        }}
+                        onFocus={() => setActivePaddingGuide({ sectionId: section.id, type: 'top' })}
+                        onBlur={() => setActivePaddingGuide(null)}
+                      />
+                      <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '22px', textAlign: 'right' }}>
+                        px
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Row 2: 하단 여백 */}
+                  <div 
+                    className="sec-height-item"
+                    onMouseEnter={() => setActivePaddingGuide({ sectionId: section.id, type: 'bottom' })}
+                    onMouseLeave={() => setActivePaddingGuide(null)}
+                  >
+                    <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155', userSelect: 'none' }}>
+                      하단 여백
+                    </span>
+
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <input
+                        type="number"
+                        min={0}
+                        max={200}
+                        step={4}
+                        value={section.paddingBottom ?? defaultPad}
+                        onChange={(e) => {
+                          const rawVal = e.target.value;
+                          if (rawVal === '') {
+                            updateSection({ paddingBottom: 0 });
+                            return;
+                          }
+                          const val = parseInt(rawVal);
+                          if (!isNaN(val)) {
+                            const clamped = Math.min(300, Math.max(0, val));
+                            updateSection({ paddingBottom: clamped });
+                          }
+                        }}
+                        onFocus={() => setActivePaddingGuide({ sectionId: section.id, type: 'bottom' })}
+                        onBlur={() => setActivePaddingGuide(null)}
+                      />
+                      <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '22px', textAlign: 'right' }}>
+                        px
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Flex Layout Options: Hide for main-slide */}
+          {!isMainSlide && (
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">흐름 정렬 방향</label>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
+                    section.flexDirection !== 'horizontal'
+                      ? ''
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                  style={section.flexDirection !== 'horizontal' ? {
+                    backgroundColor: 'var(--theme-primary, #10b981)',
+                    color: '#ffffff',
+                    borderColor: 'var(--theme-primary, #10b981)',
+                    boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                    fontWeight: '700'
+                  } : {}}
+                  onClick={() => updateSection({ flexDirection: 'vertical' })}
+                >
+                  세로 흐름 (Column)
+                </button>
+                <button
+                  type="button"
+                  className={`flex-1 py-1.5 px-3 rounded text-xs border font-medium transition-all ${
+                    section.flexDirection === 'horizontal'
+                      ? ''
+                      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                  style={section.flexDirection === 'horizontal' ? {
+                    backgroundColor: 'var(--theme-primary, #10b981)',
+                    color: '#ffffff',
+                    borderColor: 'var(--theme-primary, #10b981)',
+                    boxShadow: '0 2px 4px rgba(16, 185, 129, 0.2)',
+                    fontWeight: '700'
+                  } : {}}
+                  onClick={() => updateSection({ flexDirection: 'horizontal' })}
+                >
+                  가로 흐름 (Row)
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* 요소 간격: Hide for main-slide */}
+          {!isMainSlide && (
+            <div className="property-group flex flex-col gap-2">
+              <div className="flex justify-between items-center">
+                <label className="group-title">요소 간격</label>
+                <label className="flex items-center gap-1 text-[11px] text-gray-500 cursor-pointer font-normal" style={{ margin: 0 }}>
+                  <input
+                    type="checkbox"
+                    checked={section.flexGap === undefined}
+                    onChange={(e) => updateSection({ flexGap: e.target.checked ? undefined : (themeSettings?.defaultFlexGap ?? 16) })}
+                    style={{ width: '13px', height: '13px', margin: 0, marginRight: '4px' }}
+                  />
+                  기본값 상속
+                </label>
+              </div>
+              <div className="flex items-center gap-3">
                 <input
-                  type="checkbox"
-                  checked={section.flexGap === undefined}
-                  onChange={(e) => updateSection({ flexGap: e.target.checked ? undefined : (themeSettings?.defaultFlexGap ?? 16) })}
-                  style={{ width: '13px', height: '13px', margin: 0, marginRight: '4px' }}
+                  type="range"
+                  min="0"
+                  max="80"
+                  step="2"
+                  disabled={section.flexGap === undefined}
+                  value={section.flexGap ?? (themeSettings?.defaultFlexGap ?? 16)}
+                  onChange={(e) => updateSection({ flexGap: parseInt(e.target.value) })}
                 />
-                기본값 상속
-              </label>
+                <span className="text-xs font-semibold w-12 text-right">{section.flexGap ?? (themeSettings?.defaultFlexGap ?? 16)}px</span>
+              </div>
+              <p className="text-[10px] text-gray-500" style={{ margin: 0, marginTop: '2px' }}>
+                * 흐름 배치 모드에서는 마지막 요소를 제외하고 균등하게 사이 간격이 조절됩니다.
+              </p>
             </div>
-            <div className="flex items-center gap-3">
-              <input
-                type="range"
-                min="0"
-                max="80"
-                step="2"
-                disabled={section.flexGap === undefined}
-                value={section.flexGap ?? (themeSettings?.defaultFlexGap ?? 16)}
-                onChange={(e) => updateSection({ flexGap: parseInt(e.target.value) })}
-              />
-              <span className="text-xs font-semibold w-12 text-right">{section.flexGap ?? (themeSettings?.defaultFlexGap ?? 16)}px</span>
-            </div>
-            <p className="text-[10px] text-gray-500" style={{ margin: 0, marginTop: '2px' }}>
-              * 흐름 배치 모드에서는 마지막 요소를 제외하고 균등하게 사이 간격이 조절됩니다.
-            </p>
-          </div>
+          )}
 
           {/* Background Color */}
           <div className="property-group flex flex-col gap-2">
@@ -1522,75 +3138,77 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             </div>
           </div>
 
-          {/* Background Image Source or Upload */}
-          <div className="property-group flex flex-col gap-2">
-            <label className="group-title">배경 이미지 설정</label>
-            {section.backgroundImageName ? (
-              <div className="flex items-center justify-between p-2 rounded border text-xs" style={{ background: 'var(--figma-bg)', border: '1px solid var(--figma-border)' }}>
-                <div className="flex items-center gap-1.5 overflow-hidden">
-                  <span className="font-semibold truncate max-w-[160px]">{section.backgroundImageName.replace(/^section-[a-zA-Z0-9]+-bg-/, '')}</span>
-                  <span className="text-[10px] text-muted-foreground" style={{ opacity: 0.6 }}>(업로드됨)</span>
+          {/* Background Image Source or Upload: Hide for main-slide */}
+          {!isMainSlide && (
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">배경 이미지 설정</label>
+              {section.backgroundImageName ? (
+                <div className="flex items-center justify-between p-2 rounded border text-xs" style={{ background: 'var(--figma-bg)', border: '1px solid var(--figma-border)' }}>
+                  <div className="flex items-center gap-1.5 overflow-hidden">
+                    <span className="font-semibold truncate max-w-[160px]">{section.backgroundImageName.replace(/^section-[a-zA-Z0-9]+-bg-/, '')}</span>
+                    <span className="text-[10px] text-muted-foreground" style={{ opacity: 0.6 }}>(업로드됨)</span>
+                  </div>
+                  <button
+                    className="del-el-btn p-1"
+                    onClick={() => updateSection({ backgroundImage: undefined, backgroundImageName: undefined })}
+                    title="이미지 삭제"
+                  >
+                    <Trash2 size={12} style={{ color: 'var(--figma-danger)' }} />
+                  </button>
                 </div>
-                <button
-                  className="del-el-btn p-1"
-                  onClick={() => updateSection({ backgroundImage: undefined, backgroundImageName: undefined })}
-                  title="이미지 삭제"
-                >
-                  <Trash2 size={12} style={{ color: 'var(--figma-danger)' }} />
-                </button>
-              </div>
-            ) : (
-              <div className="flex flex-col gap-2">
-                <input
-                  type="text"
-                  value={section.backgroundImage || ''}
-                  onChange={(e) => updateSection({ backgroundImage: e.target.value || undefined, backgroundImageName: undefined })}
-                  placeholder="외부 이미지 URL 또는 파일 업로드"
-                />
-                
-                <label className="upload-btn-label" style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '6px',
-                  padding: '8px',
-                  border: '1px dashed var(--figma-border)',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '11px',
-                  fontWeight: 600,
-                  color: 'var(--figma-text)',
-                  background: 'var(--figma-bg)',
-                  textAlign: 'center'
-                }}>
-                  <span>이미지 파일 업로드</span>
+              ) : (
+                <div className="flex flex-col gap-2">
                   <input
-                    type="file"
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (!file) return;
-                      const reader = new FileReader();
-                      reader.onloadend = () => {
-                        const base64 = reader.result as string;
-                        const cleanName = `section-${section.id}-bg-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-                        updateSection({
-                          backgroundImage: base64,
-                          backgroundImageName: cleanName
-                        });
-                      };
-                      reader.readAsDataURL(file);
-                    }}
+                    type="text"
+                    value={section.backgroundImage || ''}
+                    onChange={(e) => updateSection({ backgroundImage: e.target.value || undefined, backgroundImageName: undefined })}
+                    placeholder="외부 이미지 URL 또는 파일 업로드"
                   />
-                </label>
-              </div>
-            )}
-          </div>
+                  
+                  <label className="upload-btn-label" style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '6px',
+                    padding: '8px',
+                    border: '1px dashed var(--figma-border)',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontSize: '11px',
+                    fontWeight: 600,
+                    color: 'var(--figma-text)',
+                    background: 'var(--figma-bg)',
+                    textAlign: 'center'
+                  }}>
+                    <span>이미지 파일 업로드</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        const reader = new FileReader();
+                        reader.onloadend = () => {
+                          const base64 = reader.result as string;
+                          const cleanName = `section-${section.id}-bg-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                          updateSection({
+                            backgroundImage: base64,
+                            backgroundImageName: cleanName
+                          });
+                        };
+                        reader.readAsDataURL(file);
+                      }}
+                    />
+                  </label>
+                </div>
+              )}
+            </div>
+          )}
 
-          {/* Background Image Options */}
-          {section.backgroundImage && (
-            <>
+          {/* Background Image Options: Hide for main-slide */}
+          {!isMainSlide && section.backgroundImage && (
+            <div className="flex flex-col gap-5">
               {/* Background Position */}
               <div className="property-group flex flex-col gap-2">
                 <label className="group-title">배경 위치 (background-position)</label>
@@ -1635,7 +3253,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   <option value="repeat-y">repeat-y (세로 반복)</option>
                 </select>
               </div>
-            </>
+            </div>
           )}
         </div>
       </div>
@@ -1681,12 +3299,20 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             {sections.map((sec, idx) => {
               let label = '';
               if (sec.sharedType === 'header') {
-                label = '공통 헤더 컴포넌트';
+                label = '공통 헤더';
               } else if (sec.sharedType === 'footer') {
-                label = '공통 푸터 컴포넌트';
+                label = '공통 푸터';
+              } else if (sec.sectionPresetType === 'main-slide' || sec.id === 'sec-main-slide') {
+                label = '메인 슬라이드';
+              } else if (sec.sectionPresetType === 'features-grid') {
+                label = '주요 특징';
+              } else if (sec.sectionPresetType === 'promo-banner') {
+                label = '고정 배경 배너';
+              } else if (sec.sectionPresetType === 'card-slider') {
+                label = '카드 슬라이드';
               } else {
                 bodySectionIdx++;
-                label = `섹션 ${bodySectionIdx}`;
+                label = sec.sectionTitle || `섹션 ${bodySectionIdx}`;
               }
             
               const isFocused = (hoveredSectionId ? hoveredSectionId === sec.id : activeSectionId === sec.id);
@@ -2060,10 +3686,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
               }`}
               style={element.widthMode !== 'fit-content' && element.widthMode !== 'fixed' ? {
-                backgroundColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
+                backgroundColor: '#0284c7',
                 color: '#ffffff',
-                borderColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
-                boxShadow: '0 2px 4px rgba(30, 58, 138, 0.2)',
+                borderColor: '#0284c7',
+                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)',
                 fontWeight: '700'
               } : {}}
               onClick={() => updateElement({ gridX: 0, gridW: 12, widthMode: 'stretch' })}
@@ -2079,10 +3705,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
               }`}
               style={element.widthMode === 'fit-content' ? {
-                backgroundColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
+                backgroundColor: '#0284c7',
                 color: '#ffffff',
-                borderColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
-                boxShadow: '0 2px 4px rgba(30, 58, 138, 0.2)',
+                borderColor: '#0284c7',
+                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)',
                 fontWeight: '700'
               } : {}}
               onClick={() => updateElement({ widthMode: 'fit-content' })}
@@ -2098,10 +3724,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
               }`}
               style={element.widthMode === 'fixed' ? {
-                backgroundColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
+                backgroundColor: '#0284c7',
                 color: '#ffffff',
-                borderColor: 'var(--theme-primary, ' + (themeSettings?.primaryColor || '#1e3a8a') + ')',
-                boxShadow: '0 2px 4px rgba(30, 58, 138, 0.2)',
+                borderColor: '#0284c7',
+                boxShadow: '0 2px 4px rgba(2, 132, 199, 0.2)',
                 fontWeight: '700'
               } : {}}
               onClick={() => updateElement({ widthMode: 'fixed', fixedWidth: element.fixedWidth || 150 })}
@@ -2185,21 +3811,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 {/* Font Family selector */}
                 <div className="input-block">
                   <span className="input-label">글꼴 (Google Fonts)</span>
-                  <select
-                    value={element.fontFamily}
-                    onChange={(e) => updateElement({ fontFamily: e.target.value })}
-                  >
-                    <optgroup label="한글 지원 글꼴 (Korean Fonts)">
-                      {SUPPORTED_FONTS.filter(f => f.isKorean).map(f => (
-                        <option key={f.name} value={f.name}>{f.name}</option>
-                      ))}
-                    </optgroup>
-                    <optgroup label="영문 전용 글꼴 (English Fonts)">
-                      {SUPPORTED_FONTS.filter(f => !f.isKorean).map(f => (
-                        <option key={f.name} value={f.name}>{f.name}</option>
-                      ))}
-                    </optgroup>
-                  </select>
+                  <FontCustomSelect
+                    currentFontName={element.fontFamily || 'Inter'}
+                    onSelectFont={(fontName) => updateElement({ fontFamily: fontName })}
+                  />
                 </div>
 
                 {/* Font Size & Color */}

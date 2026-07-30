@@ -16,10 +16,14 @@ export const CodeViewerContainer: React.FC<CodeViewerContainerProps> = ({
   onClose,
 }) => {
   const code = generatedFiles[activeFile] || '';
+  const allFiles = Object.keys(generatedFiles) as ExportFileName[];
+  const htmlFiles = allFiles.filter(f => f.endsWith('.html')).sort((a, b) => a === 'index.html' ? -1 : b === 'index.html' ? 1 : a.localeCompare(b));
+  const cssFiles = allFiles.filter(f => f.endsWith('.css')).sort();
+  const fileList = [...htmlFiles, ...cssFiles];
 
   // Simple HTML and CSS syntax highlighter for VSCode visual style
   const renderHighlightedCode = (text: string, filename: string) => {
-    if (filename === 'index.html') {
+    if (filename.endsWith('.html')) {
       // Highlight HTML
       const lines = text.split('\n');
       return lines.map((line, idx) => {
@@ -136,7 +140,7 @@ export const CodeViewerContainer: React.FC<CodeViewerContainerProps> = ({
             <span>exported-project</span>
           </div>
           <div className="tree-children">
-            {(['index.html', 'style.css', 'variables.css'] as ExportFileName[]).map((file) => (
+            {fileList.map((file) => (
               <div
                 key={file}
                 className={`tree-file ${activeFile === file ? 'active' : ''}`}
@@ -153,8 +157,8 @@ export const CodeViewerContainer: React.FC<CodeViewerContainerProps> = ({
       {/* VSCode Editor Area */}
       <div className="vscode-editor">
         {/* Tab Header */}
-        <div className="editor-tabs">
-          {(['index.html', 'style.css', 'variables.css'] as ExportFileName[]).map((file) => (
+        <div className="editor-tabs" style={{ overflowX: 'auto' }}>
+          {fileList.map((file) => (
             <div
               key={file}
               className={`editor-tab ${activeFile === file ? 'active' : ''}`}

@@ -108,6 +108,58 @@ export interface HeaderMenuItem {
   fileName: string;
 }
 
+export interface FeatureItem {
+  id: string;
+  title: string;
+  description: string;
+  imageSrc: string;
+  imageName?: string;
+  btnText?: string;
+  linkType?: 'none' | 'page' | 'url';
+  linkPageId?: string;
+  linkUrl?: string;
+  linkTarget?: '_blank' | '_self';
+}
+
+export interface NewsCardItem {
+  id: string;
+  tag: string;
+  title: string;
+  date: string;
+  description?: string;
+  imageSrc: string;
+  imageName?: string;
+  linkType?: 'none' | 'page' | 'url';
+  linkPageId?: string;
+  linkUrl?: string;
+  linkTarget?: '_blank' | '_self';
+}
+
+export interface MainSlideItem {
+  id: string;
+  title: string;
+  description: string;
+  
+  mediaType?: 'image' | 'video' | 'youtube';
+  
+  imageSrc: string;
+  imageName?: string;
+  
+  videoSrc?: string;
+  videoName?: string;
+  
+  youtubeUrl?: string;
+  youtubeId?: string;
+
+  overlayOpacity?: number; // 0 ~ 90 %
+
+  btnText?: string;
+  linkType?: 'none' | 'page' | 'url';
+  linkPageId?: string;
+  linkUrl?: string;
+  linkTarget?: '_blank' | '_self';
+}
+
 export interface Section {
   id: string;
   height: number; // in pixels (default 400 or 500)
@@ -117,19 +169,53 @@ export interface Section {
   backgroundPosition?: string; // background position, e.g. center
   backgroundSize?: string; // background size, e.g. cover
   backgroundRepeat?: string; // background repeat, e.g. no-repeat
+  backgroundAttachment?: 'scroll' | 'fixed' | string; // background attachment for parallax effect
   elements: EditorElement[];
   isShared?: boolean; // Common layout section (Header/Footer)
   sharedType?: 'header' | 'footer';
+  
+  // Section preset & component type
+  sectionPresetType?: 'main-slide' | 'features-grid' | 'promo-banner' | 'card-slider' | string;
+  sectionTitle?: string;
+  sectionSubTitle?: string;
+  slideEffectType?: 'fade' | 'slide' | 'zoom';
+  activeSlideIndex?: number;
+  slideTitleMarginBottom?: number;
+  slideTitleMarginVarId?: string; // Linked spacing variable ID (e.g. 'space-md')
+  slideDescMarginBottom?: number;
+  slideDescMarginVarId?: string; // Linked spacing variable ID (e.g. 'space-xl')
+
+  // Main Slide Options
+  autoPlay?: boolean;
+  autoPlayInterval?: number; // in milliseconds (e.g. 4000)
+  slideAutoPlayMode?: 'fixed' | 'video-end'; // 'fixed': 고정 시간 전환, 'video-end': 동영상 완료 시 전환
+  loop?: boolean;
+  enableDrag?: boolean;
+
+  // Custom data arrays for interactive sections
+  slideItems?: MainSlideItem[];
+  featureItems?: FeatureItem[];
+  cardItems?: NewsCardItem[];
+
+  // CTA Button Link properties
+  ctaBtnText?: string;
+  ctaLinkType?: 'none' | 'page' | 'url';
+  ctaLinkPageId?: string;
+  ctaLinkUrl?: string;
+  ctaLinkTarget?: '_blank' | '_self';
+
   // Layout and alignment mode (Grid or Flex Flow)
   layoutMode?: 'grid' | 'flex' | string;
   guidelineWidth?: GuidelineWidth;
+  contentWidth?: GuidelineWidth;
   flexDirection?: 'vertical' | 'horizontal';
   flexGap?: number;
   flexAlign?: 'start' | 'center' | 'end' | 'space-between';
   
   // Section Padding & Height alignment mode
-  heightMode?: 'fixed' | 'auto';
+  heightMode?: 'fixed' | 'auto' | 'full';
   heightUnit?: 'px' | 'vh' | 'dvh';
+  minHeight?: number;
   paddingTop?: number;
   paddingBottom?: number;
   verticalAlign?: 'start' | 'center' | 'end';
@@ -139,6 +225,9 @@ export interface Section {
   headerShowLogo?: boolean;
   headerShowMenu?: boolean;
   headerShowBtn?: boolean;
+  headerTransparentAtTop?: boolean;
+  headerScrollBgColor?: string;
+  headerIsFixed?: boolean;
   
   headerLogoText?: string;
   headerLogoColor?: string;
@@ -202,6 +291,13 @@ export interface FontPreset {
   color: string;
 }
 
+export interface SpacingPreset {
+  id: string;
+  name: string;
+  value: number;
+  description?: string;
+}
+
 export interface ThemeSettings {
   primaryColor: string;
   secondaryColor: string;
@@ -209,6 +305,7 @@ export interface ThemeSettings {
   textColor: string;
   fontFamily: string;
   fontPresets: FontPreset[];
+  spacingPresets?: SpacingPreset[];
   defaultFlexGap?: number;
   defaultSectionPadding?: number;
 }

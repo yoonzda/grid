@@ -4,6 +4,13 @@ import { ElementWrapper } from './ElementWrapper';
 import { useGridSnap } from '../hooks/useGridSnap';
 import { getFontFamilyByFamilyName } from '../utils/fontManager';
 
+export const extractYouTubeId = (url?: string): string | null => {
+  if (!url) return null;
+  const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+  const match = url.match(regExp);
+  return (match && match[2].length === 11) ? match[2] : null;
+};
+
 interface CanvasGridProps {
   sections: Section[];
   setSections: React.Dispatch<React.SetStateAction<Section[]>>;
@@ -23,6 +30,529 @@ interface CanvasGridProps {
   previewFlexAlign?: string | null;
   previewHeaderLogoFont?: string | null;
 }
+
+export const getMarginPercent = (gWidth?: GuidelineWidth) => {
+  if (gWidth === '80%') return '10%';
+  if (gWidth === '60%') return '20%';
+  return '0%';
+};
+
+export const getContentPercent = (gWidth?: GuidelineWidth) => {
+  if (gWidth === '80%') return '80%';
+  if (gWidth === '60%') return '60%';
+  return '100%';
+};
+
+const MainSlideSectionNode: React.FC<{ 
+  sec: Section; 
+  onNavigatePage?: (id: string) => void;
+  onUpdateSection?: (secId: string, updates: Partial<Section>) => void;
+  activeElement?: { sectionId: string; elementId: string } | null;
+  setActiveElement?: (val: { sectionId: string; elementId: string } | null) => void;
+  activeSectionId?: string | null;
+  setActiveSectionId?: (val: string | null) => void;
+  setContextMenu?: (val: { x: number; y: number; type: 'section' | 'element'; sectionId: string; elementId?: string } | null) => void;
+  themeSettings?: ThemeSettings;
+}> = ({ sec, onNavigatePage, onUpdateSection, activeElement, setActiveElement, activeSectionId, setActiveSectionId, setContextMenu, themeSettings }) => {
+  const slides = sec.slideItems || [];
+  const [internalSlideIndex, setInternalSlideIndex] = useState(0);
+
+  const activeIdx = sec.activeSlideIndex !== undefined 
+    ? (sec.activeSlideIndex % Math.max(1, slides.length)) 
+    : (internalSlideIndex % Math.max(1, slides.length));
+
+  const autoPlay = sec.autoPlay !== false;
+  const autoPlayInterval = sec.autoPlayInterval || 4000;
+  const loop = sec.loop !== false;
+  const enableDrag = sec.enableDrag !== false;
+
+  const changeSlide = (newIdx: number) => {
+    setInternalSlideIndex(newIdx);
+    if (onUpdateSection) {
+      onUpdateSection(sec.id, { activeSlideIndex: newIdx });
+    }
+  };
+
+  const nextSlide = () => {
+    if (!loop && activeIdx >= slides.length - 1) return;
+    changeSlide((activeIdx + 1) % slides.length);
+  };
+
+  const prevSlide = () => {
+    if (!loop && activeIdx <= 0) return;
+    changeSlide((activeIdx - 1 + slides.length) % slides.length);
+  };
+
+  // Drag / Swipe handlers
+  const dragStartX = useRef<number | null>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (!enableDrag) return;
+    dragStartX.current = e.clientX;
+  };
+
+  const handleMouseUp = (e: React.MouseEvent) => {
+    if (!enableDrag || dragStartX.current === null) return;
+    const diff = e.clientX - dragStartX.current;
+    if (Math.abs(diff) > 40) {
+      if (diff < 0) nextSlide();
+      else prevSlide();
+    }
+    dragStartX.current = null;
+  };
+
+  const activeSlide = slides[activeIdx] || {
+    title: 'Experience Next-Gen Innovation',
+    description: '미래형 디지털 기술과 생동감 넘치는 인터랙티브 미디어 환경을 경험하세요.',
+    mediaType: 'video',
+    videoSrc: 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-41443-large.mp4',
+    videoName: 'sample1_cyber.mp4',
+    imageSrc: 'https://images.unsplash.com/photo-1573164713988-8665fc963095?w=1600&auto=format&fit=crop&q=80',
+    btnText: '자세히 보기'
+  };
+
+  const effect = sec.slideEffectType || 'zoom';
+
+  const cWidth = sec.contentWidth || (sec.guidelineWidth === '100%' ? '80%' : sec.guidelineWidth || '80%');
+  const widthPct = getContentPercent(cWidth);
+
+  const isAutoHeight = sec.heightMode === 'auto';
+  const isDvhHeight = sec.heightUnit === 'dvh' || sec.heightUnit === 'vh';
+  const computedHeight = isAutoHeight
+    ? 'auto'
+    : isDvhHeight
+      ? (sec.height === 100 ? '100vh' : `${sec.height || 100}vh`)
+      : `${sec.height || 680}px`;
+
+  const computedMinHeight = isAutoHeight
+    ? 'auto'
+    : isDvhHeight
+      ? (sec.height === 100 ? '100vh' : `${sec.height || 100}vh`)
+      : `${sec.height || 680}px`;
+
+  const [isContentHovered, setIsContentHovered] = useState(false);
+  const isContentSelected = activeElement?.sectionId === sec.id && activeElement?.elementId === 'slide-content';
+
+  const vertAlignStyle = sec.verticalAlign === 'start'
+    ? 'flex-start'
+    : sec.verticalAlign === 'end'
+      ? 'flex-end'
+      : 'center';
+
+  const titleMarginVar = themeSettings?.spacingPresets?.find(sp => sp.id === sec.slideTitleMarginVarId);
+  const titleMB = titleMarginVar ? titleMarginVar.value : (sec.slideTitleMarginBottom !== undefined ? sec.slideTitleMarginBottom : 16);
+
+  const descMarginVar = themeSettings?.spacingPresets?.find(sp => sp.id === sec.slideDescMarginVarId);
+  const descMB = descMarginVar ? descMarginVar.value : (sec.slideDescMarginBottom !== undefined ? sec.slideDescMarginBottom : 28);
+
+  const currentMediaType = activeSlide.mediaType || 'image';
+  const defaultOverlay = (currentMediaType === 'video' || currentMediaType === 'youtube') ? 45 : 0;
+  const overlayOpacity = activeSlide.overlayOpacity !== undefined ? activeSlide.overlayOpacity : defaultOverlay;
+  const brightnessVal = 1 - (overlayOpacity / 100);
+
+  const renderBackgroundMedia = () => {
+    if (currentMediaType === 'video' && (activeSlide.videoSrc || activeSlide.imageSrc)) {
+      const vSrc = activeSlide.videoSrc || 'https://vjs.zencdn.net/v/oceans.mp4';
+      return (
+        <video
+          key={vSrc + activeIdx}
+          autoPlay
+          loop
+          muted
+          playsInline
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            filter: `brightness(${brightnessVal})`,
+          }}
+          src={vSrc}
+        />
+      );
+    }
+
+    if (currentMediaType === 'youtube') {
+      const ytId = extractYouTubeId(activeSlide.youtubeUrl) || activeSlide.youtubeId || 'dQU4R_37R4s';
+      return (
+        <div
+          key={ytId + activeIdx}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden',
+            pointerEvents: 'none',
+          }}
+        >
+          <iframe
+            style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              width: '100vw',
+              height: '56.25vw',
+              minHeight: '100vh',
+              minWidth: '177.77vh',
+              transform: 'translate(-50%, -50%)',
+              pointerEvents: 'none',
+              border: 'none',
+              filter: `brightness(${brightnessVal})`,
+            }}
+            src={`https://www.youtube.com/embed/${ytId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${ytId}&showinfo=0&rel=0&modestbranding=1&enablejsapi=1`}
+            allow="autoplay; encrypted-media"
+            title="YouTube Background Video"
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div 
+        key={activeIdx}
+        style={{ 
+          position: 'absolute', 
+          inset: 0, 
+          backgroundImage: `url(${activeSlide.imageSrc})`, 
+          backgroundSize: 'cover', 
+          backgroundPosition: 'center', 
+          filter: `brightness(${brightnessVal})`, 
+          transition: effect === 'slide' ? 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease' : effect === 'zoom' ? 'transform 1.2s ease-out, opacity 0.6s ease' : 'opacity 0.6s ease',
+          transform: effect === 'zoom' ? 'scale(1.06)' : 'scale(1)',
+        }} 
+      />
+    );
+  };
+
+  return (
+    <div 
+      onMouseDown={handleMouseDown}
+      onMouseUp={handleMouseUp}
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('.main-slide-content-box')) return;
+        setActiveSectionId?.(sec.id);
+        setActiveElement?.(null);
+      }}
+      onContextMenu={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('.main-slide-content-box')) return;
+        e.preventDefault();
+        e.stopPropagation();
+        setActiveSectionId?.(sec.id);
+        setActiveElement?.(null);
+        setContextMenu?.({
+          x: e.clientX,
+          y: e.clientY,
+          type: 'section',
+          sectionId: sec.id,
+        });
+      }}
+      style={{ position: 'relative', width: '100%', minHeight: computedMinHeight, height: computedHeight, overflow: 'hidden', color: '#ffffff', display: 'flex', alignItems: vertAlignStyle, justifyContent: 'center', boxSizing: 'border-box', paddingTop: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)', paddingBottom: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)', cursor: enableDrag ? 'grab' : 'default' }}
+    >
+      {renderBackgroundMedia()}
+
+      {(() => {
+        const activeAlign = sec.flexAlign || 'start';
+        const textAlignVal: 'left' | 'center' | 'right' = activeAlign === 'center' ? 'center' : activeAlign === 'end' ? 'right' : 'left';
+        const flexAlignItems = activeAlign === 'center' ? 'center' : activeAlign === 'end' ? 'flex-end' : 'flex-start';
+        const descMargin = activeAlign === 'center' ? `0 auto ${descMB}px auto` : activeAlign === 'end' ? `0 0 ${descMB}px auto` : `0 0 ${descMB}px 0`;
+
+        return (
+          <div 
+            className="main-slide-content-box"
+            onMouseEnter={() => setIsContentHovered(true)}
+            onMouseLeave={() => setIsContentHovered(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveElement?.({ sectionId: sec.id, elementId: 'slide-content' });
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              setActiveElement?.({ sectionId: sec.id, elementId: 'slide-content' });
+              setContextMenu?.({
+                x: e.clientX,
+                y: e.clientY,
+                type: 'element',
+                sectionId: sec.id,
+                elementId: 'slide-content',
+              });
+            }}
+            style={{ 
+              position: 'relative', 
+              zIndex: 50, 
+              width: widthPct, 
+              margin: '0 auto', 
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: flexAlignItems,
+              textAlign: textAlignVal, 
+              padding: '0px', 
+              userSelect: 'none', 
+              transition: 'all 0.2s ease', 
+              boxSizing: 'border-box',
+              borderRadius: '0px',
+              border: isContentSelected ? '2.5px solid #0284c7' : isContentHovered ? '2px dashed #0284c7' : '2px solid transparent',
+              backgroundColor: 'transparent',
+              cursor: 'pointer',
+              pointerEvents: 'auto',
+            }}
+            title="슬라이드 컨텐츠 수정"
+          >
+            <h1 
+              style={{ width: '100%', textAlign: textAlignVal, fontSize: '48px', fontWeight: 800, margin: `0 0 ${titleMB}px 0`, letterSpacing: '-1px', lineHeight: 1.2, textShadow: '0 2px 10px rgba(0,0,0,0.5)', pointerEvents: 'none' }}
+            >
+              {activeSlide.title}
+            </h1>
+            <p 
+              style={{ width: '100%', textAlign: textAlignVal, fontSize: '18px', color: '#f1f5f9', margin: descMargin, lineHeight: 1.6, maxWidth: '640px', textShadow: '0 1px 5px rgba(0,0,0,0.5)', pointerEvents: 'none' }}
+            >
+              {activeSlide.description}
+            </p>
+            {activeSlide.btnText && (
+              <a
+                href={activeSlide.linkUrl || '#'}
+                style={{ display: 'inline-block', alignSelf: flexAlignItems, padding: '14px 32px', backgroundColor: 'var(--theme-primary, #1e3a8a)', color: '#ffffff', textDecoration: 'none', borderRadius: '6px', fontWeight: 600, fontSize: '15px', boxShadow: '0 4px 12px rgba(0,0,0,0.2)', pointerEvents: 'none' }}
+              >
+                {activeSlide.btnText}
+              </a>
+            )}
+          </div>
+        );
+      })()}
+
+      {slides.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); prevSlide(); }}
+            style={{ position: 'absolute', left: '20px', top: '50%', transform: 'translateY(-50%)', zIndex: 15, background: 'rgba(0,0,0,0.45)', color: '#ffffff', border: 'none', borderRadius: '50%', width: '44px', height: '44px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}
+          >
+            ‹
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); nextSlide(); }}
+            style={{ position: 'absolute', right: '20px', top: '50%', transform: 'translateY(-50%)', zIndex: 15, background: 'rgba(0,0,0,0.45)', color: '#ffffff', border: 'none', borderRadius: '50%', width: '44px', height: '44px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}
+          >
+            ›
+          </button>
+          <div style={{ position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)', zIndex: 15, display: 'flex', gap: '8px' }}>
+            {slides.map((_, idx) => (
+              <div
+                key={idx}
+                onClick={(e) => { e.stopPropagation(); changeSlide(idx); }}
+                style={{ width: idx === activeIdx ? '24px' : '8px', height: '8px', borderRadius: '4px', backgroundColor: idx === activeIdx ? '#ffffff' : 'rgba(255,255,255,0.4)', cursor: 'pointer', transition: 'all 0.3s ease' }}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const FeaturesGridSectionNode: React.FC<{ sec: Section; onNavigatePage?: (id: string) => void }> = ({ sec, onNavigatePage }) => {
+  const items = sec.featureItems || [];
+  return (
+    <div style={{ padding: '40px 0', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '60px' }}>
+        {items.map((item, idx) => {
+          const isEven = idx % 2 === 1;
+          const textCol = (
+            <div key="text" style={{ flex: '1 1 300px', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '10px' }}>
+              <h3 style={{ fontSize: '26px', fontWeight: 800, color: 'var(--theme-primary, #1e3a8a)', margin: '0 0 16px 0', letterSpacing: '-0.5px' }}>
+                {item.title}
+              </h3>
+              <p style={{ fontSize: '15px', color: '#475569', lineHeight: 1.7, margin: '0 0 24px 0' }}>
+                {item.description}
+              </p>
+              {item.btnText && (
+                <div>
+                  <a
+                    href={item.linkUrl || '#'}
+                    onClick={(e) => {
+                      if (item.linkType === 'page' && item.linkPageId && onNavigatePage) {
+                        e.preventDefault();
+                        onNavigatePage(item.linkPageId);
+                      }
+                    }}
+                    style={{ fontSize: '14px', fontWeight: 700, color: 'var(--theme-primary, #1e3a8a)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    {item.btnText}
+                  </a>
+                </div>
+              )}
+            </div>
+          );
+
+          const imgCol = (
+            <div key="img" style={{ flex: '1 1 300px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', borderRadius: '12px', boxShadow: '0 10px 25px rgba(0,0,0,0.08)' }}>
+              <img src={item.imageSrc} alt={item.title} style={{ width: '100%', height: '300px', objectFit: 'cover', display: 'block' }} />
+            </div>
+          );
+
+          return (
+            <div key={item.id || idx} className="feature-grid-row" style={{ display: 'flex', flexDirection: 'row', gap: '40px', alignItems: 'center', flexWrap: 'wrap' }}>
+              {isEven ? [imgCol, textCol] : [textCol, imgCol]}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+const PromoBannerSectionNode: React.FC<{ sec: Section; onNavigatePage?: (id: string) => void }> = ({ sec, onNavigatePage }) => {
+  return (
+    <div style={{
+      position: 'relative',
+      width: '100%',
+      minHeight: '340px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
+      backgroundAttachment: sec.backgroundAttachment || 'fixed',
+      backgroundPosition: sec.backgroundPosition || 'center',
+      backgroundSize: sec.backgroundSize || 'cover',
+      backgroundRepeat: 'no-repeat',
+      padding: '60px 20px',
+      boxSizing: 'border-box'
+    }}>
+      <div style={{ position: 'absolute', inset: 0, backgroundColor: 'rgba(11, 25, 44, 0.75)', zIndex: 1 }} />
+      <div style={{ position: 'relative', zIndex: 10, maxWidth: '800px', textAlign: 'center', color: '#ffffff' }}>
+        {sec.sectionSubTitle && (
+          <span style={{ fontSize: '13px', fontWeight: 700, letterSpacing: '1px', textTransform: 'uppercase', color: '#38bdf8', marginBottom: '12px', display: 'block' }}>
+            {sec.sectionSubTitle}
+          </span>
+        )}
+        <h2 style={{ fontSize: '30px', fontWeight: 800, margin: '0 0 24px 0', lineHeight: 1.4, wordBreak: 'keep-all' }}>
+          {sec.sectionTitle || '지속 가능한 성장과 함께하는 혁신, 우리는 미래를 준비합니다.'}
+        </h2>
+        {sec.ctaBtnText && (
+          <a
+            href={sec.ctaLinkUrl || '#'}
+            onClick={(e) => {
+              if (sec.ctaLinkType === 'page' && sec.ctaLinkPageId && onNavigatePage) {
+                e.preventDefault();
+                onNavigatePage(sec.ctaLinkPageId);
+              }
+            }}
+            style={{ display: 'inline-block', padding: '12px 28px', border: '1.5px solid #ffffff', color: '#ffffff', borderRadius: '4px', textDecoration: 'none', fontWeight: 600, fontSize: '14px', transition: 'all 0.2s ease' }}
+          >
+            {sec.ctaBtnText}
+          </a>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const CardSliderSectionNode: React.FC<{ sec: Section; onNavigatePage?: (id: string) => void }> = ({ sec, onNavigatePage }) => {
+  const cards = sec.cardItems || [];
+  const [startIndex, setStartIndex] = useState(0);
+
+  const visibleCardsCount = 3;
+  const totalCards = cards.length;
+
+  const handlePrev = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setStartIndex(prev => (prev - 1 + totalCards) % totalCards);
+  };
+
+  const handleNext = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setStartIndex(prev => (prev + 1) % totalCards);
+  };
+
+  const visibleCards = [];
+  for (let i = 0; i < Math.min(visibleCardsCount, totalCards); i++) {
+    visibleCards.push(cards[(startIndex + i) % totalCards]);
+  }
+
+  return (
+    <div style={{ padding: '40px 0', width: '100%', boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '28px' }}>
+        <div>
+          <h2 style={{ fontSize: '26px', fontWeight: 800, color: '#0f172a', margin: 0, letterSpacing: '-0.5px' }}>
+            {sec.sectionSubTitle || 'Our Latest News'}
+          </h2>
+          <div style={{ width: '40px', height: '3px', backgroundColor: 'var(--theme-primary, #1e3a8a)', marginTop: '8px' }} />
+        </div>
+        {totalCards > 3 && (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button
+              type="button"
+              onClick={handlePrev}
+              style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}
+            >
+              ‹
+            </button>
+            <button
+              type="button"
+              onClick={handleNext}
+              style={{ width: '38px', height: '38px', borderRadius: '50%', border: '1px solid #cbd5e1', backgroundColor: '#ffffff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#475569' }}
+            >
+              ›
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
+        {visibleCards.map((card, idx) => (
+          <div
+            key={card.id || idx}
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              boxShadow: '0 4px 15px rgba(0,0,0,0.04)',
+              border: '1px solid #e2e8f0',
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              cursor: 'pointer'
+            }}
+            onClick={() => {
+              if (card.linkType === 'page' && card.linkPageId && onNavigatePage) {
+                onNavigatePage(card.linkPageId);
+              } else if (card.linkUrl && card.linkUrl !== '#') {
+                window.open(card.linkUrl, card.linkTarget || '_self');
+              }
+            }}
+          >
+            <div style={{ height: '180px', overflow: 'hidden' }}>
+              <img src={card.imageSrc} alt={card.title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            </div>
+            <div style={{ padding: '20px', flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+              <div>
+                <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', backgroundColor: '#e0f2fe', color: '#0284c7', textTransform: 'uppercase', display: 'inline-block', marginBottom: '10px' }}>
+                  {card.tag || 'NEWS'}
+                </span>
+                <h4 style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', margin: '0 0 8px 0', lineHeight: 1.4 }}>
+                  {card.title}
+                </h4>
+                {card.description && (
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: '0 0 14px 0', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                    {card.description}
+                  </p>
+                )}
+              </div>
+              <div style={{ fontSize: '12px', color: '#94a3b8', borderTop: '1px solid #f1f5f9', paddingTop: '10px', marginTop: '10px' }}>
+                {card.date}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export const CanvasGrid: React.FC<CanvasGridProps> = ({
   sections,
@@ -47,21 +577,34 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'section' | 'element'; sectionId: string; elementId?: string } | null>(null);
 
-  // Close context menu on outside click or scroll or escape key
+  // Close context menu on left click (outside menu), scroll, or escape key
   useEffect(() => {
-    const handleCloseContextMenu = () => setContextMenu(null);
+    if (!contextMenu) return;
+
+    const handlePointerDown = (e: MouseEvent) => {
+      if (e.button === 0) {
+        const menuLayer = document.querySelector('.canvas-context-menu-layer');
+        if (menuLayer && menuLayer.contains(e.target as Node)) {
+          return;
+        }
+        setContextMenu(null);
+      }
+    };
+
+    const handleScroll = () => setContextMenu(null);
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') setContextMenu(null);
     };
-    window.addEventListener('click', handleCloseContextMenu);
-    window.addEventListener('scroll', handleCloseContextMenu, true);
+
+    window.addEventListener('pointerdown', handlePointerDown, true);
+    window.addEventListener('scroll', handleScroll, true);
     window.addEventListener('keydown', handleKeyDown);
     return () => {
-      window.removeEventListener('click', handleCloseContextMenu);
-      window.removeEventListener('scroll', handleCloseContextMenu, true);
+      window.removeEventListener('pointerdown', handlePointerDown, true);
+      window.removeEventListener('scroll', handleScroll, true);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, []);
+  }, [contextMenu]);
 
   // Element ordering helper
   const handleMoveElement = (secId: string, elId: string, direction: 'up' | 'down') => {
@@ -218,18 +761,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     return Array.from({ length: 12 }).map((_, idx) => (
       <div key={idx} className="grid-guide-col"></div>
     ));
-  };
-
-  const getMarginPercent = (gWidth: GuidelineWidth) => {
-    if (gWidth === '80%') return '10%';
-    if (gWidth === '60%') return '20%';
-    return '0%';
-  };
-
-  const getContentPercent = (gWidth: GuidelineWidth) => {
-    if (gWidth === '80%') return '80%';
-    if (gWidth === '60%') return '60%';
-    return '100%';
   };
 
   const renderHeaderComponent = (sec: Section) => {
@@ -667,7 +1198,9 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     <div 
       className="canvas-grid-root" 
       ref={containerRef}
-      onClick={() => {
+      onClick={(e) => {
+        const target = e.target as HTMLElement;
+        if (target.closest('.canvas-section-node')) return;
         setActiveSectionId(null);
         setActiveElement(null);
         setHoveredSectionId?.(null);
@@ -793,13 +1326,18 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             id={`section-${sec.id}`}
             className={`canvas-section-node section-${sec.id} relative w-full ${isFocused ? 'active-section' : ''}`}
             style={{
-              minHeight: (sec.sharedType === 'header' || sec.sharedType === 'footer' || sec.heightMode === 'auto') ? 'auto' : `${sec.height}${sec.heightUnit || 'px'}`,
+              minHeight: (sec.sharedType === 'header' || sec.sharedType === 'footer' || sec.heightMode === 'auto')
+                ? 'auto'
+                : (sec.heightUnit === 'dvh' || sec.heightUnit === 'vh')
+                  ? (sec.height === 100 ? `${sec.minHeight || 680}px` : `${sec.height * 6.8}px`)
+                  : `${sec.height || 400}px`,
               height: 'auto', // dynamic height flow
-              backgroundColor: sec.backgroundColor,
+              backgroundColor: (sec.sharedType === 'header' && sec.headerTransparentAtTop) ? 'transparent' : sec.backgroundColor,
               backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
               backgroundPosition: sec.backgroundPosition || 'center',
               backgroundSize: sec.backgroundSize || 'cover',
               backgroundRepeat: sec.backgroundRepeat || 'no-repeat',
+              marginBottom: (sec.sharedType === 'header' && sec.headerTransparentAtTop) ? '-70px' : '0px',
               '--content-width': gWidth,
               display: 'flex',
               flexDirection: 'column',
@@ -817,15 +1355,19 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                 ? `inset 0 0 0 2.5px ${rawThemeAccent}` 
                 : 'none',
               position: 'relative',
-              zIndex: isFocused ? 20 : 1,
+              zIndex: (sec.sharedType === 'header' && sec.headerTransparentAtTop) ? 40 : (isFocused ? 20 : 1),
             } as React.CSSProperties}
             onClick={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.closest('.main-slide-content-box')) return;
               e.stopPropagation();
               setHoveredSectionId?.(null);
               setActiveSectionId(sec.id);
               setActiveElement(null);
             }}
             onContextMenu={(e) => {
+              const target = e.target as HTMLElement;
+              if (target.closest('.main-slide-content-box')) return;
               e.preventDefault();
               e.stopPropagation();
               setHoveredSectionId?.(null);
@@ -958,7 +1500,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               {/* Elements container utilizing real CSS Grid for placement layout */}
               <div 
                 className="elements-box" 
-                style={(sec.sharedType === 'header' || sec.sharedType === 'footer') ? { 
+                style={(sec.sharedType === 'header' || sec.sharedType === 'footer' || sec.sectionPresetType === 'main-slide') ? { 
                   display: 'block',
                   width: '100%', 
                   height: '100%', 
@@ -993,6 +1535,24 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                   renderHeaderComponent(sec)
                 ) : sec.sharedType === 'footer' ? (
                   renderFooterComponent(sec)
+                ) : sec.sectionPresetType === 'main-slide' ? (
+                  <MainSlideSectionNode 
+                    sec={sec} 
+                    onNavigatePage={onNavigatePage} 
+                    onUpdateSection={(secId, updates) => setSections(prev => prev.map(s => s.id === secId ? { ...s, ...updates } : s))} 
+                    activeElement={activeElement}
+                    setActiveElement={setActiveElement}
+                    activeSectionId={activeSectionId}
+                    setActiveSectionId={setActiveSectionId}
+                    setContextMenu={setContextMenu}
+                    themeSettings={themeSettings}
+                  />
+                ) : sec.sectionPresetType === 'features-grid' ? (
+                  <FeaturesGridSectionNode sec={sec} onNavigatePage={onNavigatePage} />
+                ) : sec.sectionPresetType === 'promo-banner' ? (
+                  <PromoBannerSectionNode sec={sec} onNavigatePage={onNavigatePage} />
+                ) : sec.sectionPresetType === 'card-slider' ? (
+                  <CardSliderSectionNode sec={sec} onNavigatePage={onNavigatePage} />
                 ) : (
                   sec.elements.map(el => (
                     <ElementWrapper
@@ -1394,8 +1954,8 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           ? targetSection.elements.find(e => e.id === contextMenu.elementId)
           : null;
 
-        const menuWidth = 140;
-        const menuHeight = 130;
+        const menuWidth = 185;
+        const menuHeight = 160;
 
         const posX = Math.min(contextMenu.x, (typeof window !== 'undefined' ? window.innerWidth : 1200) - menuWidth - 10);
         const posY = Math.min(contextMenu.y, (typeof window !== 'undefined' ? window.innerHeight : 800) - menuHeight - 10);
@@ -1412,14 +1972,68 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               backgroundColor: '#ffffff',
               borderRadius: '0px',
               border: '1px solid #cbd5e1',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.16)',
+              boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
               padding: '0px',
+              overflow: 'hidden',
               fontFamily: 'Inter, Pretendard, sans-serif',
               userSelect: 'none',
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            {contextMenu.type === 'element' && targetElement ? (
+            {/* Top Selection Status Header */}
+            {(() => {
+              let selName = '';
+
+              if (contextMenu.type === 'element' && targetElement) {
+                const elTypeMap: Record<string, string> = {
+                  title: '타이틀',
+                  text: '글상자',
+                  button: '버튼',
+                  image: '이미지',
+                  'three-column': '3열 글상자',
+                  'legal-terms': '약관',
+                };
+                const typeLabel = elTypeMap[targetElement.type] || '요소';
+                const contentPreview = targetElement.content ? ` ("${targetElement.content.slice(0, 8)}${targetElement.content.length > 8 ? '...' : ''}")` : '';
+                selName = `${typeLabel}${contentPreview}`;
+              } else if (contextMenu.elementId === 'slide-content' || (activeElement?.sectionId === targetSection.id && activeElement?.elementId === 'slide-content')) {
+                selName = '슬라이드 컨텐츠';
+              } else if (targetSection.sectionPresetType === 'main-slide') {
+                selName = '메인 슬라이드';
+              } else if (targetSection.sharedType === 'header') {
+                selName = '공통 헤더';
+              } else if (targetSection.sharedType === 'footer') {
+                selName = '공통 푸터';
+              } else {
+                selName = `${targetSection.sectionTitle || '기본 섹션'}`;
+              }
+
+              return (
+                <div 
+                  style={{ 
+                    width: '100%',
+                    padding: '10px 16px', 
+                    backgroundColor: '#e2e8f0', 
+                    borderBottom: '1px solid #cbd5e1', 
+                    fontSize: '14px', 
+                    fontWeight: 500,
+                    color: '#334155',
+                    whiteSpace: 'nowrap',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    boxSizing: 'border-box'
+                  }}
+                  title={selName}
+                >
+                  {selName}
+                </div>
+              );
+            })()}
+            {contextMenu.elementId === 'slide-content' ? (
+              <div style={{ padding: '10px 16px', fontSize: '14px', color: '#94a3b8' }}>
+                슬라이드 컨텐츠
+              </div>
+            ) : contextMenu.type === 'element' && targetElement ? (
               <>
                 <button
                   type="button"

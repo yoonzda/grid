@@ -233,46 +233,58 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
             </div>
           )}
 
-          {/* TAB 2: Gaps & Grid sizes */}
+          {/* TAB 2: Spacing Variables & Global Layout */}
           {activeTab === 'layout' && (
             <div className="form-group-section">
-              <h3 className="section-title">글로벌 기본 레이아웃 설정</h3>
+              <h3 className="section-title">글로벌 기본 레이아웃 & 간격 변수 설정</h3>
               <p className="section-description">
-                새 섹션을 생성하거나 개별 커스텀 설정을 해제(상속)했을 때 적용되는 공통 레이아웃 기본값입니다.
+                슬라이드 및 컴포넌트 여백에 공통으로 연동되어 적용되는 테마 간격 변수(Spacing Tokens) 설정입니다.
               </p>
 
-              <div className="form-row flex flex-col gap-4">
-                <div className="form-col w-full">
-                  <label className="form-label flex justify-between">
-                    <span>기본 요소 간격 (Default Flex Gap)</span>
-                    <span className="value-badge">{themeSettings.defaultFlexGap ?? 16}px</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="60"
-                    step="2"
-                    value={themeSettings.defaultFlexGap ?? 16}
-                    onChange={(e) => setThemeSettings(prev => ({ ...prev, defaultFlexGap: parseInt(e.target.value) }))}
-                    className="form-range"
-                  />
-                </div>
+              <div className="flex flex-col gap-3 mt-4">
+                {(themeSettings.spacingPresets || []).map((preset) => (
+                  <div 
+                    key={preset.id}
+                    className="p-3 bg-white rounded-lg border border-slate-200/90 shadow-sm flex items-center justify-between gap-3 hover:border-sky-300 transition-all"
+                  >
+                    <div className="flex flex-col gap-0.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-xs text-slate-800 bg-slate-100 px-2 py-0.5 rounded border border-slate-200">
+                          {preset.name}
+                        </span>
+                        {preset.description && (
+                          <span className="text-[11px] text-slate-500 font-medium">
+                            {preset.description}
+                          </span>
+                        )}
+                      </div>
+                    </div>
 
-                <div className="form-col w-full mt-2">
-                  <label className="form-label flex justify-between">
-                    <span>기본 섹션 여백 (Default Section Padding)</span>
-                    <span className="value-badge">{themeSettings.defaultSectionPadding ?? 40}px</span>
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="120"
-                    step="4"
-                    value={themeSettings.defaultSectionPadding ?? 40}
-                    onChange={(e) => setThemeSettings(prev => ({ ...prev, defaultSectionPadding: parseInt(e.target.value) }))}
-                    className="form-range"
-                  />
-                </div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <input
+                        type="number"
+                        min="0"
+                        max="200"
+                        step="2"
+                        value={preset.value}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value);
+                          if (!isNaN(val)) {
+                            const clamped = Math.max(0, Math.min(300, val));
+                            setThemeSettings(prev => ({
+                              ...prev,
+                              spacingPresets: (prev.spacingPresets || []).map(sp => 
+                                sp.id === preset.id ? { ...sp, value: clamped } : sp
+                              )
+                            }));
+                          }
+                        }}
+                        className="w-20 px-2 py-1 border border-slate-300 rounded text-right font-bold text-xs text-slate-800 bg-slate-50 focus:bg-white focus:outline-none focus:border-sky-500"
+                      />
+                      <span className="text-xs font-semibold text-slate-600">px</span>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}
