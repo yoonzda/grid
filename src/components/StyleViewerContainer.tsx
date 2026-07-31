@@ -261,8 +261,8 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
                   <div className="base-palette-grid">
                     {baseColorsList.map((base) => (
-                      <div key={base.id} className="base-color-card">
-                        <div className="base-swatch-box" style={{ backgroundColor: base.hex }}>
+                      <div key={base.id} className="swatch-tile-card">
+                        <div className="swatch-tile-top" style={{ backgroundColor: base.hex }} title="클릭하여 색상 선택">
                           <input
                             type="color"
                             value={base.hex.startsWith('#') && base.hex.length === 7 ? base.hex : '#000000'}
@@ -270,16 +270,16 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                           />
                         </div>
 
-                        <div className="base-color-info">
+                        <div className="swatch-tile-bottom">
                           <input
                             type="text"
-                            className="base-color-name-input"
+                            className="swatch-tile-name"
                             value={base.name}
                             onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
                           />
                           <input
                             type="text"
-                            className="base-color-hex-input"
+                            className="swatch-tile-hex"
                             value={base.hex}
                             onChange={(e) => updateBaseColor(base.id, e.target.value)}
                           />
@@ -776,38 +776,42 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
         .base-palette-grid {
           display: grid !important;
-          grid-template-columns: repeat(3, 1fr) !important;
-          gap: 10px !important;
-          margin-top: 12px !important;
+          grid-template-columns: repeat(4, 1fr) !important;
+          gap: 12px !important;
+          margin-top: 14px !important;
         }
 
-        .base-color-card {
+        .swatch-tile-card {
           display: flex !important;
-          align-items: center !important;
-          gap: 8px !important;
+          flex-direction: column !important;
           background: #ffffff !important;
           border: 1px solid #e2e8f0 !important;
-          border-radius: 10px !important;
-          padding: 8px 10px !important;
-          transition: all 0.2s ease !important;
+          border-radius: 12px !important;
+          overflow: hidden !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
-        .base-color-card:hover {
-          border-color: #38bdf8 !important;
+        .swatch-tile-card:hover {
+          border-color: #0284c7 !important;
+          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12) !important;
+          transform: translateY(-1px) !important;
         }
 
-        .base-swatch-box {
-          width: 30px !important;
-          height: 30px !important;
-          border-radius: 7px !important;
-          border: 1px solid rgba(0, 0, 0, 0.12) !important;
+        .swatch-tile-top {
+          width: 100% !important;
+          height: 48px !important;
           position: relative !important;
           cursor: pointer !important;
-          flex-shrink: 0 !important;
-          overflow: hidden !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+          transition: filter 0.2s ease !important;
         }
 
-        .base-swatch-box input[type="color"] {
+        .swatch-tile-top:hover {
+          filter: brightness(0.95) !important;
+        }
+
+        .swatch-tile-top input[type="color"] {
           position: absolute !important;
           inset: 0 !important;
           opacity: 0 !important;
@@ -816,14 +820,14 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           cursor: pointer !important;
         }
 
-        .base-color-info {
+        .swatch-tile-bottom {
           display: flex !important;
           flex-direction: column !important;
-          flex: 1 !important;
-          min-width: 0 !important;
+          padding: 8px 10px !important;
+          background: #ffffff !important;
         }
 
-        .base-color-name-input {
+        .swatch-tile-name {
           font-size: 12px !important;
           font-weight: 700 !important;
           color: #0f172a !important;
@@ -833,9 +837,12 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           padding: 0 !important;
           margin: 0 !important;
           width: 100% !important;
+          text-overflow: ellipsis !important;
+          overflow: hidden !important;
+          white-space: nowrap !important;
         }
 
-        .base-color-hex-input {
+        .swatch-tile-hex {
           font-size: 10.5px !important;
           font-family: monospace !important;
           color: #64748b !important;
@@ -843,7 +850,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           border: none !important;
           outline: none !important;
           padding: 0 !important;
-          margin: 0 !important;
+          margin-top: 2px !important;
           width: 100% !important;
           text-transform: uppercase !important;
         }
