@@ -184,6 +184,22 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
               <div className="form-row mt-4">
                 <div className="form-col">
+                  <label className="form-label">포인트 색상 (Accent Color)</label>
+                  <div className="color-input-wrapper">
+                    <input
+                      type="color"
+                      value={(themeSettings.accentColor || '#0284c7').startsWith('#') ? (themeSettings.accentColor || '#0284c7') : '#0284c7'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, accentColor: e.target.value }))}
+                    />
+                    <input
+                      type="text"
+                      value={themeSettings.accentColor || '#0284c7'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, accentColor: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-col">
                   <label className="form-label">기본 배경색 (Background)</label>
                   <div className="color-input-wrapper">
                     <input
@@ -198,7 +214,43 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                     />
                   </div>
                 </div>
+              </div>
 
+              <div className="form-row mt-4">
+                <div className="form-col">
+                  <label className="form-label">서브 배경색 (Surface / Muted Bg)</label>
+                  <div className="color-input-wrapper">
+                    <input
+                      type="color"
+                      value={(themeSettings.surfaceColor || '#f1f5f9').startsWith('#') ? (themeSettings.surfaceColor || '#f1f5f9') : '#f1f5f9'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, surfaceColor: e.target.value }))}
+                    />
+                    <input
+                      type="text"
+                      value={themeSettings.surfaceColor || '#f1f5f9'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, surfaceColor: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-col">
+                  <label className="form-label">어두운 배경색 (Dark Background)</label>
+                  <div className="color-input-wrapper">
+                    <input
+                      type="color"
+                      value={(themeSettings.darkBgColor || '#0f172a').startsWith('#') ? (themeSettings.darkBgColor || '#0f172a') : '#0f172a'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, darkBgColor: e.target.value }))}
+                    />
+                    <input
+                      type="text"
+                      value={themeSettings.darkBgColor || '#0f172a'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, darkBgColor: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-row mt-4">
                 <div className="form-col">
                   <label className="form-label">기본 글자색 (Text Color)</label>
                   <div className="color-input-wrapper">
@@ -211,6 +263,22 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                       type="text"
                       value={themeSettings.textColor}
                       onChange={(e) => setThemeSettings(prev => ({ ...prev, textColor: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-col">
+                  <label className="form-label">보조 글자색 (Sub Text)</label>
+                  <div className="color-input-wrapper">
+                    <input
+                      type="color"
+                      value={(themeSettings.subtextColor || '#475569').startsWith('#') ? (themeSettings.subtextColor || '#475569') : '#475569'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, subtextColor: e.target.value }))}
+                    />
+                    <input
+                      type="text"
+                      value={themeSettings.subtextColor || '#475569'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, subtextColor: e.target.value }))}
                     />
                   </div>
                 </div>

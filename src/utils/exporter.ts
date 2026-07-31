@@ -60,8 +60,13 @@ ${fontImports.join('\n')}
   --theme-primary: ${theme.primaryColor};
   --theme-primary-rgb: ${hexToRgb(theme.primaryColor)};
   --theme-secondary: ${theme.secondaryColor};
+  --theme-accent: ${theme.accentColor || '#0284c7'};
   --theme-bg: ${theme.backgroundColor};
+  --theme-surface: ${theme.surfaceColor || '#f1f5f9'};
+  --theme-dark-bg: ${theme.darkBgColor || '#0f172a'};
   --theme-text: ${theme.textColor};
+  --theme-subtext: ${theme.subtextColor || '#475569'};
+  --theme-border: ${theme.borderColor || '#cbd5e1'};
   --font-default: '${theme.fontFamily}', system-ui, -apple-system, sans-serif;
 
   /* Layout Global Settings */

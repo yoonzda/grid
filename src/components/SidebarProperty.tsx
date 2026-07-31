@@ -1222,10 +1222,20 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   resolvedBg = themeSettings?.primaryColor || '#1e3a8a';
                 } else if (bgVal === 'var(--theme-secondary)') {
                   resolvedBg = themeSettings?.secondaryColor || '#4b5563';
+                } else if (bgVal === 'var(--theme-accent)') {
+                  resolvedBg = themeSettings?.accentColor || '#0284c7';
                 } else if (bgVal === 'var(--theme-bg)') {
-                  resolvedBg = themeSettings?.backgroundColor || '#f8fafc';
+                  resolvedBg = themeSettings?.backgroundColor || '#ffffff';
+                } else if (bgVal === 'var(--theme-surface)') {
+                  resolvedBg = themeSettings?.surfaceColor || '#f1f5f9';
+                } else if (bgVal === 'var(--theme-dark-bg)') {
+                  resolvedBg = themeSettings?.darkBgColor || '#0f172a';
                 } else if (bgVal === 'var(--theme-text)') {
-                  resolvedBg = themeSettings?.textColor || '#1e293b';
+                  resolvedBg = themeSettings?.textColor || '#0f172a';
+                } else if (bgVal === 'var(--theme-subtext)') {
+                  resolvedBg = themeSettings?.subtextColor || '#475569';
+                } else if (bgVal === 'var(--theme-border)') {
+                  resolvedBg = themeSettings?.borderColor || '#cbd5e1';
                 }
 
                 return (
@@ -1257,16 +1267,27 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     <div>
                       {isLinked ? (
                         <select
-                          style={{ width: '160px', height: '38px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: '#0f172a' }}
+                          style={{ width: '165px', height: '38px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
                           className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
                           value={bgVal}
                           onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                          title="글로벌 테마 색상 선택"
+                          title="글로벌 테마 색상 모듈 선택"
                         >
-                          <option value="var(--theme-primary)">주 색상 ({themeSettings?.primaryColor || '#1e3a8a'})</option>
-                          <option value="var(--theme-secondary)">보조 색상 ({themeSettings?.secondaryColor || '#4b5563'})</option>
-                          <option value="var(--theme-bg)">기본 배경색 ({themeSettings?.backgroundColor || '#f8fafc'})</option>
-                          <option value="var(--theme-text)">기본 글자색 ({themeSettings?.textColor || '#1e293b'})</option>
+                          <optgroup label="핵심 브랜드 색상">
+                            <option value="var(--theme-primary)">주 색상 ({themeSettings?.primaryColor || '#1e3a8a'})</option>
+                            <option value="var(--theme-secondary)">보조 색상 ({themeSettings?.secondaryColor || '#4b5563'})</option>
+                            <option value="var(--theme-accent)">포인트 색상 ({themeSettings?.accentColor || '#0284c7'})</option>
+                          </optgroup>
+                          <optgroup label="배경 색상 모듈">
+                            <option value="var(--theme-bg)">기본 배경색 ({themeSettings?.backgroundColor || '#ffffff'})</option>
+                            <option value="var(--theme-surface)">서브 배경색 ({themeSettings?.surfaceColor || '#f1f5f9'})</option>
+                            <option value="var(--theme-dark-bg)">어두운 배경색 ({themeSettings?.darkBgColor || '#0f172a'})</option>
+                          </optgroup>
+                          <optgroup label="텍스트 & 테두리">
+                            <option value="var(--theme-text)">주 글자색 ({themeSettings?.textColor || '#0f172a'})</option>
+                            <option value="var(--theme-subtext)">보조 글자색 ({themeSettings?.subtextColor || '#475569'})</option>
+                            <option value="var(--theme-border)">테두리 색상 ({themeSettings?.borderColor || '#cbd5e1'})</option>
+                          </optgroup>
                         </select>
                       ) : (
                         <div className="color-picker-wrapper">

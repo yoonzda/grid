@@ -16,8 +16,13 @@ export const DEFAULT_SPACING_PRESETS: SpacingPreset[] = [
 export const BUSINESS_THEME: ThemeSettings = {
   primaryColor: '#1e3a8a', // Deep Navy
   secondaryColor: '#4b5563', // Slate Gray
+  accentColor: '#0284c7', // Sky Blue
   backgroundColor: '#f9fafb', // Light Gray
+  surfaceColor: '#f1f5f9', // Slate 100
+  darkBgColor: '#0f172a', // Dark Slate
   textColor: '#1f2937', // Charcoal
+  subtextColor: '#475569', // Muted Gray
+  borderColor: '#cbd5e1', // Light Border
   fontFamily: 'Inter',
   defaultFlexGap: 16,
   defaultSectionPadding: 40,
@@ -862,8 +867,13 @@ export const BUSINESS_TEMPLATE: Page[] = [
 export const MODERN_THEME: ThemeSettings = {
   primaryColor: '#ff6b6b', // Coral
   secondaryColor: '#1f2937', // Jet Black
+  accentColor: '#ec4899', // Pink Accent
   backgroundColor: '#faf8f5', // Warm Beige/Warm White
+  surfaceColor: '#f3f4f6', // Neutral Surface
+  darkBgColor: '#111827', // Deep Charcoal
   textColor: '#1f2937', // Charcoal
+  subtextColor: '#6b7280', // Medium Gray
+  borderColor: '#e5e7eb', // Muted Border
   fontFamily: 'Outfit',
   defaultFlexGap: 20,
   defaultSectionPadding: 60,

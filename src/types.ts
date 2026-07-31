@@ -301,8 +301,13 @@ export interface SpacingPreset {
 export interface ThemeSettings {
   primaryColor: string;
   secondaryColor: string;
+  accentColor?: string;
   backgroundColor: string;
+  surfaceColor?: string;
+  darkBgColor?: string;
   textColor: string;
+  subtextColor?: string;
+  borderColor?: string;
   fontFamily: string;
   fontPresets: FontPreset[];
   spacingPresets?: SpacingPreset[];
