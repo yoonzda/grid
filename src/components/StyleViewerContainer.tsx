@@ -143,12 +143,16 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           {/* TAB 1: Theme Colors & Base Font */}
           {activeTab === 'theme' && (
             <div className="form-group-section">
-              <h3 className="section-title">글로벌 테마 색상</h3>
+              <h3 className="section-title">글로벌 시스템 색상 모듈</h3>
               <p className="section-description">
-                브랜드 디자인의 기초가 되는 핵심 테마 팔레트입니다.
+                웹사이트 전체 디자인 시스템을 제어하는 12종의 정교한 시스템 색상 모듈입니다.
               </p>
 
-              <div className="form-row">
+              {/* 1. BRAND COLOR MODULE */}
+              <div className="mt-4 pb-2 border-b border-slate-100">
+                <span className="text-xs font-bold text-sky-600 uppercase tracking-wider">1. 핵심 브랜드 색상 모듈</span>
+              </div>
+              <div className="form-row mt-3">
                 <div className="form-col">
                   <label className="form-label">주 색상 (Primary Color)</label>
                   <div className="color-input-wrapper">
@@ -182,7 +186,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 </div>
               </div>
 
-              <div className="form-row mt-4">
+              <div className="form-row mt-3">
                 <div className="form-col">
                   <label className="form-label">포인트 색상 (Accent Color)</label>
                   <div className="color-input-wrapper">
@@ -200,7 +204,29 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 </div>
 
                 <div className="form-col">
-                  <label className="form-label">기본 배경색 (Background)</label>
+                  <label className="form-label">연한 브랜드 배경 (Brand Light)</label>
+                  <div className="color-input-wrapper">
+                    <input
+                      type="color"
+                      value={(themeSettings.brandLightColor || '#eff6ff').startsWith('#') ? (themeSettings.brandLightColor || '#eff6ff') : '#eff6ff'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, brandLightColor: e.target.value }))}
+                    />
+                    <input
+                      type="text"
+                      value={themeSettings.brandLightColor || '#eff6ff'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, brandLightColor: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* 2. CANVAS & SURFACE MODULE */}
+              <div className="mt-6 pb-2 border-b border-slate-100">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">2. 캔버스 & 레이어 배경 모듈</span>
+              </div>
+              <div className="form-row mt-3">
+                <div className="form-col">
+                  <label className="form-label">기본 배경색 (Canvas Background)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -214,27 +240,43 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="form-row mt-4">
                 <div className="form-col">
-                  <label className="form-label">서브 배경색 (Surface / Muted Bg)</label>
+                  <label className="form-label">서브 배경색 (Surface Subdued)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
-                      value={(themeSettings.surfaceColor || '#f1f5f9').startsWith('#') ? (themeSettings.surfaceColor || '#f1f5f9') : '#f1f5f9'}
+                      value={(themeSettings.surfaceColor || '#f8fafc').startsWith('#') ? (themeSettings.surfaceColor || '#f8fafc') : '#f8fafc'}
                       onChange={(e) => setThemeSettings(prev => ({ ...prev, surfaceColor: e.target.value }))}
                     />
                     <input
                       type="text"
-                      value={themeSettings.surfaceColor || '#f1f5f9'}
+                      value={themeSettings.surfaceColor || '#f8fafc'}
                       onChange={(e) => setThemeSettings(prev => ({ ...prev, surfaceColor: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-row mt-3">
+                <div className="form-col">
+                  <label className="form-label">플로팅 배경색 (Surface Elevated)</label>
+                  <div className="color-input-wrapper">
+                    <input
+                      type="color"
+                      value={(themeSettings.surfaceElevatedColor || '#f1f5f9').startsWith('#') ? (themeSettings.surfaceElevatedColor || '#f1f5f9') : '#f1f5f9'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, surfaceElevatedColor: e.target.value }))}
+                    />
+                    <input
+                      type="text"
+                      value={themeSettings.surfaceElevatedColor || '#f1f5f9'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, surfaceElevatedColor: e.target.value }))}
                     />
                   </div>
                 </div>
 
                 <div className="form-col">
-                  <label className="form-label">어두운 배경색 (Dark Background)</label>
+                  <label className="form-label">어두운 배경색 (Dark Canvas)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -250,13 +292,17 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 </div>
               </div>
 
-              <div className="form-row mt-4">
+              {/* 3. TYPOGRAPHY & CONTENT MODULE */}
+              <div className="mt-6 pb-2 border-b border-slate-100">
+                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">3. 텍스트 & 콘텐츠 모듈</span>
+              </div>
+              <div className="form-row mt-3">
                 <div className="form-col">
-                  <label className="form-label">기본 글자색 (Text Color)</label>
+                  <label className="form-label">주 글자색 (Text Primary)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
-                      value={themeSettings.textColor.startsWith('#') && themeSettings.textColor.length === 7 ? themeSettings.textColor : '#1f2937'}
+                      value={themeSettings.textColor.startsWith('#') && themeSettings.textColor.length === 7 ? themeSettings.textColor : '#0f172a'}
                       onChange={(e) => setThemeSettings(prev => ({ ...prev, textColor: e.target.value }))}
                     />
                     <input
@@ -268,7 +314,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 </div>
 
                 <div className="form-col">
-                  <label className="form-label">보조 글자색 (Sub Text)</label>
+                  <label className="form-label">보조 글자색 (Text Muted)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -279,6 +325,40 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                       type="text"
                       value={themeSettings.subtextColor || '#475569'}
                       onChange={(e) => setThemeSettings(prev => ({ ...prev, subtextColor: e.target.value }))}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="form-row mt-3">
+                <div className="form-col">
+                  <label className="form-label">반전 글자색 (Text Inverse)</label>
+                  <div className="color-input-wrapper">
+                    <input
+                      type="color"
+                      value={(themeSettings.textInverseColor || '#ffffff').startsWith('#') ? (themeSettings.textInverseColor || '#ffffff') : '#ffffff'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, textInverseColor: e.target.value }))}
+                    />
+                    <input
+                      type="text"
+                      value={themeSettings.textInverseColor || '#ffffff'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, textInverseColor: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="form-col">
+                  <label className="form-label">테두리 색상 (Border Default)</label>
+                  <div className="color-input-wrapper">
+                    <input
+                      type="color"
+                      value={(themeSettings.borderColor || '#cbd5e1').startsWith('#') ? (themeSettings.borderColor || '#cbd5e1') : '#cbd5e1'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, borderColor: e.target.value }))}
+                    />
+                    <input
+                      type="text"
+                      value={themeSettings.borderColor || '#cbd5e1'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, borderColor: e.target.value }))}
                     />
                   </div>
                 </div>

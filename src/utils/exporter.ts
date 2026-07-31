@@ -56,17 +56,27 @@ export const generateCode = (pages: Page[], theme: ThemeSettings): GeneratedFile
 ${fontImports.join('\n')}
 
 :root {
-  /* Theme Design Variables */
+  /* 1. Brand Color Module */
   --theme-primary: ${theme.primaryColor};
   --theme-primary-rgb: ${hexToRgb(theme.primaryColor)};
   --theme-secondary: ${theme.secondaryColor};
   --theme-accent: ${theme.accentColor || '#0284c7'};
+  --theme-brand-light: ${theme.brandLightColor || '#eff6ff'};
+
+  /* 2. Canvas & Surface Module */
   --theme-bg: ${theme.backgroundColor};
-  --theme-surface: ${theme.surfaceColor || '#f1f5f9'};
+  --theme-surface: ${theme.surfaceColor || '#f8fafc'};
+  --theme-surface-elevated: ${theme.surfaceElevatedColor || '#f1f5f9'};
   --theme-dark-bg: ${theme.darkBgColor || '#0f172a'};
+
+  /* 3. Typography & Content Module */
   --theme-text: ${theme.textColor};
   --theme-subtext: ${theme.subtextColor || '#475569'};
+  --theme-text-inverse: ${theme.textInverseColor || '#ffffff'};
+
+  /* 4. Border & Line Module */
   --theme-border: ${theme.borderColor || '#cbd5e1'};
+
   --font-default: '${theme.fontFamily}', system-ui, -apple-system, sans-serif;
 
   /* Layout Global Settings */

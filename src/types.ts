@@ -299,15 +299,26 @@ export interface SpacingPreset {
 }
 
 export interface ThemeSettings {
+  // 1. BRAND COLOR MODULE
   primaryColor: string;
   secondaryColor: string;
   accentColor?: string;
+  brandLightColor?: string;
+
+  // 2. CANVAS & SURFACE MODULE
   backgroundColor: string;
   surfaceColor?: string;
+  surfaceElevatedColor?: string;
   darkBgColor?: string;
+
+  // 3. TYPOGRAPHY & CONTENT MODULE
   textColor: string;
   subtextColor?: string;
+  textInverseColor?: string;
+
+  // 4. BORDER & LINE MODULE
   borderColor?: string;
+
   fontFamily: string;
   fontPresets: FontPreset[];
   spacingPresets?: SpacingPreset[];

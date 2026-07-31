@@ -1224,16 +1224,22 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   resolvedBg = themeSettings?.secondaryColor || '#4b5563';
                 } else if (bgVal === 'var(--theme-accent)') {
                   resolvedBg = themeSettings?.accentColor || '#0284c7';
+                } else if (bgVal === 'var(--theme-brand-light)') {
+                  resolvedBg = themeSettings?.brandLightColor || '#eff6ff';
                 } else if (bgVal === 'var(--theme-bg)') {
                   resolvedBg = themeSettings?.backgroundColor || '#ffffff';
                 } else if (bgVal === 'var(--theme-surface)') {
-                  resolvedBg = themeSettings?.surfaceColor || '#f1f5f9';
+                  resolvedBg = themeSettings?.surfaceColor || '#f8fafc';
+                } else if (bgVal === 'var(--theme-surface-elevated)') {
+                  resolvedBg = themeSettings?.surfaceElevatedColor || '#f1f5f9';
                 } else if (bgVal === 'var(--theme-dark-bg)') {
                   resolvedBg = themeSettings?.darkBgColor || '#0f172a';
                 } else if (bgVal === 'var(--theme-text)') {
                   resolvedBg = themeSettings?.textColor || '#0f172a';
                 } else if (bgVal === 'var(--theme-subtext)') {
                   resolvedBg = themeSettings?.subtextColor || '#475569';
+                } else if (bgVal === 'var(--theme-text-inverse)') {
+                  resolvedBg = themeSettings?.textInverseColor || '#ffffff';
                 } else if (bgVal === 'var(--theme-border)') {
                   resolvedBg = themeSettings?.borderColor || '#cbd5e1';
                 }
@@ -1257,36 +1263,41 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                             updateSection({ backgroundColor: 'var(--theme-primary)', headerScrollBgColor: 'var(--theme-primary)' });
                           }
                         }}
-                        title={isLinked ? '글로벌 테마 색상 변수 연동 중 - 클릭하여 해제' : '개별 색상 고정 모드 - 클릭하여 글로버 테마 색상 연동'}
+                        title={isLinked ? '글로벌 시스템 색상 모듈 연동 중 - 클릭하여 해제' : '개별 색상 고정 모드 - 클릭하여 시스템 색상 연동'}
                       >
                         <Link size={16} style={{ color: isLinked ? '#0284c7' : '#94a3b8', strokeWidth: isLinked ? 2.5 : 2 }} />
                       </button>
                     </div>
 
-                    {/* Right Side: Global Theme Color Select Dropdown (when linked) vs Custom Color Picker (when unlinked) */}
+                    {/* Right Side: Global System Color Select Dropdown (when linked) vs Custom Color Picker (when unlinked) */}
                     <div>
                       {isLinked ? (
                         <select
-                          style={{ width: '165px', height: '38px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
+                          style={{ width: '175px', height: '38px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
                           className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
                           value={bgVal}
                           onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                          title="글로벌 테마 색상 모듈 선택"
+                          title="글로벌 시스템 색상 모듈 선택"
                         >
-                          <optgroup label="핵심 브랜드 색상">
+                          <optgroup label="1. 핵심 브랜드 색상">
                             <option value="var(--theme-primary)">주 색상 ({themeSettings?.primaryColor || '#1e3a8a'})</option>
                             <option value="var(--theme-secondary)">보조 색상 ({themeSettings?.secondaryColor || '#4b5563'})</option>
                             <option value="var(--theme-accent)">포인트 색상 ({themeSettings?.accentColor || '#0284c7'})</option>
+                            <option value="var(--theme-brand-light)">연한 브랜드 배경 ({themeSettings?.brandLightColor || '#eff6ff'})</option>
                           </optgroup>
-                          <optgroup label="배경 색상 모듈">
+                          <optgroup label="2. 캔버스 & 레이어 배경">
                             <option value="var(--theme-bg)">기본 배경색 ({themeSettings?.backgroundColor || '#ffffff'})</option>
-                            <option value="var(--theme-surface)">서브 배경색 ({themeSettings?.surfaceColor || '#f1f5f9'})</option>
+                            <option value="var(--theme-surface)">서브 배경색 ({themeSettings?.surfaceColor || '#f8fafc'})</option>
+                            <option value="var(--theme-surface-elevated)">플로팅 배경색 ({themeSettings?.surfaceElevatedColor || '#f1f5f9'})</option>
                             <option value="var(--theme-dark-bg)">어두운 배경색 ({themeSettings?.darkBgColor || '#0f172a'})</option>
                           </optgroup>
-                          <optgroup label="텍스트 & 테두리">
+                          <optgroup label="3. 텍스트 & 콘텐츠">
                             <option value="var(--theme-text)">주 글자색 ({themeSettings?.textColor || '#0f172a'})</option>
                             <option value="var(--theme-subtext)">보조 글자색 ({themeSettings?.subtextColor || '#475569'})</option>
-                            <option value="var(--theme-border)">테두리 색상 ({themeSettings?.borderColor || '#cbd5e1'})</option>
+                            <option value="var(--theme-text-inverse)">반전 글자색 ({themeSettings?.textInverseColor || '#ffffff'})</option>
+                          </optgroup>
+                          <optgroup label="4. 테두리 & 라인">
+                            <option value="var(--theme-border)">기본 테두리 색상 ({themeSettings?.borderColor || '#cbd5e1'})</option>
                           </optgroup>
                         </select>
                       ) : (
