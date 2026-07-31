@@ -1130,47 +1130,22 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             
-            {/* 0-1. Base settings height & colors (Placed at VERY TOP) */}
+            {/* 0-1. Base settings colors (Placed at VERY TOP) */}
             <div className="property-group flex flex-col gap-2">
-              <label className="group-title">{section.sharedType === 'header' ? '헤더 기본 설정' : '섹션 기본 설정'}</label>
-              <div className="grid-inputs-row">
-                {section.sharedType === 'header' ? (
-                  <div className="grid-input-item" style={{ flex: '1.5 1 0%' }}>
-                    <span className="input-label">상하 여백 (Padding Y): {section.headerPaddingY ?? 16}px</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="80"
-                      step="2"
-                      value={section.headerPaddingY ?? 16}
-                      onChange={(e) => updateSection({ headerPaddingY: parseInt(e.target.value) })}
-                    />
-                  </div>
-                ) : (
-                  <div className="grid-input-item">
-                    <span className="input-label">섹션 높이 (px)</span>
-                    <input
-                      type="number"
-                      value={section.height}
-                      onChange={(e) => updateSection({ height: parseInt(e.target.value) || 70 })}
-                    />
-                  </div>
-                )}
-                
-                <div className="grid-input-item">
-                  <span className="input-label">기본 배경색</span>
-                  <div className="color-picker-wrapper">
-                    <input
-                      type="color"
-                      value={section.backgroundColor.startsWith('#') && section.backgroundColor.length === 7 ? section.backgroundColor : '#1e3a8a'}
-                      onChange={(e) => updateSection({ backgroundColor: e.target.value })}
-                    />
-                    <input
-                      type="text"
-                      value={section.backgroundColor}
-                      onChange={(e) => updateSection({ backgroundColor: e.target.value })}
-                    />
-                  </div>
+              <label className="group-title">헤더 기본 설정</label>
+              <div className="input-block">
+                <span className="input-label">기본 배경색</span>
+                <div className="color-picker-wrapper">
+                  <input
+                    type="color"
+                    value={section.backgroundColor.startsWith('#') && section.backgroundColor.length === 7 ? section.backgroundColor : '#1e3a8a'}
+                    onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+                  />
+                  <input
+                    type="text"
+                    value={section.backgroundColor}
+                    onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+                  />
                 </div>
               </div>
             </div>
@@ -1554,10 +1529,21 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               </div>
             </div>
 
-            {/* 3. Spacing Settings */}
+            {/* 3. Spacing & Margin Settings */}
             <div className="property-group flex flex-col gap-2">
-              <label className="group-title">헤더 간격 설정</label>
+              <label className="group-title">헤더 여백 및 간격 설정</label>
               <div className="input-block">
+                <span className="input-label">상하 여백 (Padding Y): {section.headerPaddingY ?? 16}px</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="80"
+                  step="2"
+                  value={section.headerPaddingY ?? 16}
+                  onChange={(e) => updateSection({ headerPaddingY: parseInt(e.target.value) })}
+                />
+              </div>
+              <div className="input-block mt-1">
                 <span className="input-label">요소 간격 (Gap): {section.headerGap ?? 40}px</span>
                 <input
                   type="range"
@@ -1568,17 +1554,19 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   onChange={(e) => updateSection({ headerGap: parseInt(e.target.value) })}
                 />
               </div>
-              <div className="input-block mt-1">
-                <span className="input-label">메뉴 내부 간격: {section.headerMenuGap ?? 24}px</span>
-                <input
-                  type="range"
-                  min="10"
-                  max="80"
-                  step="2"
-                  value={section.headerMenuGap ?? 24}
-                  onChange={(e) => updateSection({ headerMenuGap: parseInt(e.target.value) })}
-                />
-              </div>
+              {section.headerShowMenu !== false && (
+                <div className="input-block mt-1">
+                  <span className="input-label">메뉴 내부 간격: {section.headerMenuGap ?? 24}px</span>
+                  <input
+                    type="range"
+                    min="10"
+                    max="80"
+                    step="2"
+                    value={section.headerMenuGap ?? 24}
+                    onChange={(e) => updateSection({ headerMenuGap: parseInt(e.target.value) })}
+                  />
+                </div>
+              )}
             </div>
 
             {/* 4. Menu Link list */}
