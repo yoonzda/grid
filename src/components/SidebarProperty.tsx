@@ -1130,7 +1130,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             
-            {/* 0-1. Header Overlay & Scroll Settings (Placed FIRST at VERY TOP) */}
+            {/* 0-1. Header Scroll & Background Settings */}
             <div className="property-group flex flex-col gap-3">
               <label className="group-title">헤더 스크롤 설정</label>
               
@@ -1140,13 +1140,13 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '8px 0',
+                  padding: '4px 0',
                   cursor: 'pointer',
                   userSelect: 'none',
                 }}
               >
                 <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>스크롤 전 투명 배경</span>
+                  <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>스크롤 전 투명 배경</span>
                   <span style={{ fontSize: '11.5px', color: '#64748b' }}>최상단 스크롤 시 메인 슬라이드 위에 투명 오버레이</span>
                 </div>
                 <div style={{
@@ -1181,8 +1181,8 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
               {/* Show preview state switcher ONLY when headerTransparentAtTop is enabled */}
               {section.headerTransparentAtTop !== false && (
-                <div className="flex flex-col gap-2 mt-1">
-                  <label className="group-title">스크롤 스타일</label>
+                <div className="flex flex-col gap-1.5 mt-1">
+                  <span className="input-label" style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>스크롤 스타일</span>
                   <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff' }}>
                     <button
                       type="button"
@@ -1225,13 +1225,10 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   </span>
                 </div>
               )}
-            </div>
 
-            {/* 0-2. Unified Base Background Color (Placed SECOND) */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">헤더 기본 설정</label>
-              <div className="input-block">
-                <span className="input-label">배경색</span>
+              {/* Background Color Picker */}
+              <div className="input-block mt-1">
+                <span className="input-label" style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>배경색</span>
                 <div className="color-picker-wrapper">
                   {(() => {
                     const bgVal = section.backgroundColor || 'var(--theme-primary)';
