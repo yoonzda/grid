@@ -1215,13 +1215,17 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               {/* Background Color Picker with Theme Color Variable Select & Custom Picker Switcher */}
               {(() => {
                 const bgVal = section.backgroundColor || 'var(--theme-primary)';
-                const isLinked = !section.backgroundColor || bgVal.startsWith('var(') || bgVal === 'var(--theme-primary)' || bgVal === 'var(--theme-secondary)';
+                const isLinked = !section.backgroundColor || bgVal.startsWith('var(');
                 
                 let resolvedBg = bgVal;
                 if (bgVal === 'var(--theme-primary)' || !bgVal) {
                   resolvedBg = themeSettings?.primaryColor || '#1e3a8a';
                 } else if (bgVal === 'var(--theme-secondary)') {
-                  resolvedBg = themeSettings?.secondaryColor || '#3b82f6';
+                  resolvedBg = themeSettings?.secondaryColor || '#4b5563';
+                } else if (bgVal === 'var(--theme-bg)') {
+                  resolvedBg = themeSettings?.backgroundColor || '#f8fafc';
+                } else if (bgVal === 'var(--theme-text)') {
+                  resolvedBg = themeSettings?.textColor || '#1e293b';
                 }
 
                 return (
@@ -1243,27 +1247,26 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                             updateSection({ backgroundColor: 'var(--theme-primary)', headerScrollBgColor: 'var(--theme-primary)' });
                           }
                         }}
-                        title={isLinked ? '테마 색상 변수 연동 중 - 클릭하여 해제' : '개별 색상 고정 모드 - 클릭하여 테마 변수 연동'}
+                        title={isLinked ? '글로벌 테마 색상 변수 연동 중 - 클릭하여 해제' : '개별 색상 고정 모드 - 클릭하여 글로버 테마 색상 연동'}
                       >
                         <Link size={16} style={{ color: isLinked ? '#0284c7' : '#94a3b8', strokeWidth: isLinked ? 2.5 : 2 }} />
                       </button>
                     </div>
 
-                    {/* Right Side: Select Dropdown (when linked) vs Custom Color Picker (when unlinked) */}
+                    {/* Right Side: Global Theme Color Select Dropdown (when linked) vs Custom Color Picker (when unlinked) */}
                     <div>
                       {isLinked ? (
                         <select
-                          style={{ width: '150px', height: '38px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: '#0f172a' }}
+                          style={{ width: '160px', height: '38px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: '#0f172a' }}
                           className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
                           value={bgVal}
                           onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                          title="테마 색상 변수 선택"
+                          title="글로벌 테마 색상 선택"
                         >
-                          <option value="var(--theme-primary)">주조색 ({themeSettings?.primaryColor || '#1e3a8a'})</option>
-                          <option value="var(--theme-secondary)">보조색 ({themeSettings?.secondaryColor || '#3b82f6'})</option>
-                          <option value="#0f172a">어두운 배경 (#0f172a)</option>
-                          <option value="#ffffff">밝은 배경 (#ffffff)</option>
-                          <option value="#f8fafc">연한 회색 (#f8fafc)</option>
+                          <option value="var(--theme-primary)">주 색상 ({themeSettings?.primaryColor || '#1e3a8a'})</option>
+                          <option value="var(--theme-secondary)">보조 색상 ({themeSettings?.secondaryColor || '#4b5563'})</option>
+                          <option value="var(--theme-bg)">기본 배경색 ({themeSettings?.backgroundColor || '#f8fafc'})</option>
+                          <option value="var(--theme-text)">기본 글자색 ({themeSettings?.textColor || '#1e293b'})</option>
                         </select>
                       ) : (
                         <div className="color-picker-wrapper">
