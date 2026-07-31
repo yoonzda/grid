@@ -241,23 +241,24 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
             ];
 
             return (
-              <div className="space-y-6 pb-6">
+              <div className="space-y-5 pb-6">
                 {/* SECTION 1: GLOBAL BASE COLOR PALETTE */}
-                <div className="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 shadow-xs">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-150">
                     <div>
-                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-slate-800 tracking-wide flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-                        1. 글로벌 베이스 컬러 팔레트
+                        글로벌 베이스 컬러 팔레트
                       </h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">시스템의 원천 색상을 설정합니다. 변경 시 연동된 용도/컴포넌트가 일괄 업데이트됩니다.</p>
+                      <p className="text-[11px] text-slate-500 mt-0.5">시스템의 원천 색상을 설정합니다. 변경 시 연동된 용도 및 컴포넌트가 일괄 업데이트됩니다.</p>
                     </div>
                     <button
                       type="button"
                       onClick={addCustomBaseColor}
-                      className="text-xs font-bold text-sky-600 bg-white hover:bg-sky-50 border border-sky-200 px-3 py-1.5 rounded-lg shadow-2xs transition-all hover:border-sky-300 shrink-0"
+                      className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 hover:border-sky-300 px-3 py-1.5 rounded-lg shadow-2xs transition-all cursor-pointer shrink-0"
                     >
-                      + 색상 추가
+                      <Plus size={14} />
+                      <span>색상 추가</span>
                     </button>
                   </div>
 
@@ -265,9 +266,9 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                     {baseColorsList.map((base) => (
                       <div
                         key={base.id}
-                        className="bg-white border border-slate-200 hover:border-sky-400 p-2.5 rounded-xl flex items-center gap-2.5 shadow-2xs transition-all group"
+                        className="bg-slate-50/60 border border-slate-200 hover:border-sky-300 p-2.5 rounded-xl flex items-center gap-2.5 shadow-2xs transition-all group"
                       >
-                        <div className="relative shrink-0 w-8 h-8 rounded-lg border border-slate-200 shadow-2xs overflow-hidden cursor-pointer" style={{ backgroundColor: base.hex }}>
+                        <div className="relative shrink-0 w-8 h-8 rounded-lg border border-slate-250 shadow-2xs overflow-hidden cursor-pointer" style={{ backgroundColor: base.hex }}>
                           <input
                             type="color"
                             className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
@@ -296,18 +297,18 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 </div>
 
                 {/* SECTION 2: SEMANTIC TOKEN LINKING MAP */}
-                <div className="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 shadow-xs">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-150">
                     <div>
-                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                      <h4 className="text-xs font-bold text-slate-800 tracking-wide flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
-                        2. 용도별 베이스 컬러 연동 (Semantic Roles)
+                        용도별 베이스 컬러 연동 (Semantic Roles)
                       </h4>
                       <p className="text-[11px] text-slate-500 mt-0.5">각 디자인 용도가 어떤 베이스 컬러를 사용할지 연결합니다.</p>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-slate-200/80 mt-1">
+                  <div className="divide-y divide-slate-150 mt-1">
                     {semanticRoles.map((role) => {
                       const currentBaseId = semanticMap[role.key];
                       const currentBase = baseColorsList.find(b => b.id === currentBaseId) || baseColorsList[0];
@@ -322,7 +323,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
                           <div className="flex items-center gap-2 shrink-0">
                             <span className="text-[11px] font-medium text-slate-400">🔗 연결 ➡️</span>
-                            <div className="relative flex items-center bg-white border border-slate-300 hover:border-sky-400 rounded-xl px-2.5 py-1 shadow-2xs transition-all cursor-pointer">
+                            <div className="relative flex items-center bg-slate-50/80 border border-slate-250 hover:border-sky-400 rounded-xl px-2.5 py-1 shadow-2xs transition-all cursor-pointer">
                               <span
                                 className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs mr-2 shrink-0"
                                 style={{ backgroundColor: currentBase?.hex || '#ffffff' }}
@@ -346,10 +347,10 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   </div>
                 </div>
 
-                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
                   <label className="text-xs font-bold text-slate-800 block mb-1.5">사이트 기본 글꼴 (Default Font)</label>
                   <select
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-sky-500 transition-colors"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-sky-500 transition-colors cursor-pointer"
                     value={themeSettings.fontFamily}
                     onChange={(e) => setThemeSettings(prev => ({ ...prev, fontFamily: e.target.value }))}
                   >
