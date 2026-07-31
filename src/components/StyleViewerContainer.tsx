@@ -245,13 +245,10 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 {/* SECTION 1: GLOBAL BASE COLOR PALETTE */}
                 <div className="section-card">
                   <div className="section-card-header">
-                    <div>
-                      <h4 className="section-card-title">
-                        <span className="dot-indicator bg-sky"></span>
-                        글로벌 베이스 컬러 팔레트
-                      </h4>
-                      <p className="section-card-desc">시스템의 원천 색상을 설정합니다. 변경 시 연동된 용도 및 컴포넌트가 일괄 업데이트됩니다.</p>
-                    </div>
+                    <h4 className="section-card-title">
+                      <span className="dot-indicator bg-sky"></span>
+                      글로벌 베이스 컬러 팔레트
+                    </h4>
                     <button
                       type="button"
                       onClick={addCustomBaseColor}
@@ -295,13 +292,10 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 {/* SECTION 2: SEMANTIC TOKEN LINKING MAP */}
                 <div className="section-card">
                   <div className="section-card-header">
-                    <div>
-                      <h4 className="section-card-title">
-                        <span className="dot-indicator bg-indigo"></span>
-                        용도별 베이스 컬러 연동 (Semantic Roles)
-                      </h4>
-                      <p className="section-card-desc">각 디자인 용도가 어떤 베이스 컬러를 사용할지 연결합니다.</p>
-                    </div>
+                    <h4 className="section-card-title">
+                      <span className="dot-indicator bg-indigo"></span>
+                      용도별 베이스 컬러 연동 (Semantic Roles)
+                    </h4>
                   </div>
 
                   <div className="semantic-binding-list">
@@ -701,19 +695,19 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
         .section-card-header {
           display: flex !important;
-          align-items: justify-between !important;
+          align-items: center !important;
           justify-content: space-between !important;
-          padding-bottom: 8px !important;
+          padding-bottom: 10px !important;
           border-bottom: 1px solid #e2e8f0 !important;
         }
 
         .section-card-title {
-          font-size: 13px !important;
+          font-size: 15px !important;
           font-weight: 700 !important;
           color: #0f172a !important;
           display: flex !important;
           align-items: center !important;
-          gap: 6px !important;
+          gap: 7px !important;
         }
 
         .dot-indicator {
