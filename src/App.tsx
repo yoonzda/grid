@@ -543,14 +543,14 @@ function App() {
         }
 
         .pane-viewer.code-open {
-          width: 680px;
+          width: 780px;
           transform: translateX(0);
           border-left: 1px solid var(--figma-border);
           box-shadow: -6px 0 24px rgba(0, 0, 0, 0.35);
         }
 
         .pane-viewer.code-closed {
-          width: 680px;
+          width: 780px;
           transform: translateX(100%);
           border-left: 0 solid transparent;
           box-shadow: none;
