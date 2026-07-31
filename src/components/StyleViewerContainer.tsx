@@ -247,7 +247,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   <div className="section-card-header">
                     <h4 className="section-card-title">
                       <span className="dot-indicator bg-sky"></span>
-                      글로벌 베이스 컬러 팔레트
+                      System Color Palette
                     </h4>
                     <button
                       type="button"
@@ -294,7 +294,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   <div className="section-card-header">
                     <h4 className="section-card-title">
                       <span className="dot-indicator bg-indigo"></span>
-                      용도별 베이스 컬러 연동 (Semantic Roles)
+                      Semantic Color Mapping
                     </h4>
                   </div>
 
