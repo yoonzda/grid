@@ -143,14 +143,14 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           {/* TAB 1: Theme Colors & Base Font */}
           {activeTab === 'theme' && (() => {
             const baseColorsList: BaseColorItem[] = themeSettings.baseColors || [
-              { id: 'base-navy', name: '딥네이비 (주 브랜드)', hex: themeSettings.primaryColor || '#1e3a8a' },
-              { id: 'base-slate', name: '슬레이트 (보조 브랜드)', hex: themeSettings.secondaryColor || '#4b5563' },
-              { id: 'base-sky', name: '스카이블루 (포인트)', hex: themeSettings.accentColor || '#0284c7' },
-              { id: 'base-blue-tint', name: '소프트블루 (연한 브랜드)', hex: themeSettings.brandLightColor || '#eff6ff' },
-              { id: 'base-white', name: '화이트 (순백색)', hex: themeSettings.backgroundColor || '#ffffff' },
-              { id: 'base-light-gray', name: '연한회색 (서브배경)', hex: themeSettings.surfaceColor || '#f8fafc' },
-              { id: 'base-dark-slate', name: '다크슬레이트 (검정/다크)', hex: themeSettings.darkBgColor || '#0f172a' },
-              { id: 'base-border-gray', name: '라인회색 (테두리)', hex: themeSettings.borderColor || '#cbd5e1' }
+              { id: 'base-navy', name: '딥네이비', hex: themeSettings.primaryColor || '#1e3a8a' },
+              { id: 'base-slate', name: '슬레이트', hex: themeSettings.secondaryColor || '#4b5563' },
+              { id: 'base-sky', name: '스카이블루', hex: themeSettings.accentColor || '#0284c7' },
+              { id: 'base-blue-tint', name: '소프트블루', hex: themeSettings.brandLightColor || '#eff6ff' },
+              { id: 'base-white', name: '화이트', hex: themeSettings.backgroundColor || '#ffffff' },
+              { id: 'base-light-gray', name: '연회색', hex: themeSettings.surfaceColor || '#f8fafc' },
+              { id: 'base-dark-slate', name: '다크슬레이트', hex: themeSettings.darkBgColor || '#0f172a' },
+              { id: 'base-border-gray', name: '라인회색', hex: themeSettings.borderColor || '#cbd5e1' }
             ];
 
             const semanticMap: SemanticTokenMapping = themeSettings.semanticMappings || {

@@ -16,14 +16,14 @@ export const DEFAULT_SPACING_PRESETS: SpacingPreset[] = [
 export const BUSINESS_THEME: ThemeSettings = {
   // 0. BASE PALETTE & SEMANTIC MAPPINGS
   baseColors: [
-    { id: 'base-navy', name: '딥네이비 (주 브랜드)', hex: '#1e3a8a' },
-    { id: 'base-slate', name: '슬레이트 (보조 브랜드)', hex: '#4b5563' },
-    { id: 'base-sky', name: '스카이블루 (포인트)', hex: '#0284c7' },
-    { id: 'base-blue-tint', name: '소프트블루 (연한 브랜드)', hex: '#eff6ff' },
-    { id: 'base-white', name: '화이트 (순백색)', hex: '#ffffff' },
-    { id: 'base-light-gray', name: '연한회색 (서브배경)', hex: '#f8fafc' },
-    { id: 'base-dark-slate', name: '다크슬레이트 (검정/다크)', hex: '#0f172a' },
-    { id: 'base-border-gray', name: '라인회색 (테두리)', hex: '#cbd5e1' }
+    { id: 'base-navy', name: '딥네이비', hex: '#1e3a8a' },
+    { id: 'base-slate', name: '슬레이트', hex: '#4b5563' },
+    { id: 'base-sky', name: '스카이블루', hex: '#0284c7' },
+    { id: 'base-blue-tint', name: '소프트블루', hex: '#eff6ff' },
+    { id: 'base-white', name: '화이트', hex: '#ffffff' },
+    { id: 'base-light-gray', name: '연회색', hex: '#f8fafc' },
+    { id: 'base-dark-slate', name: '다크슬레이트', hex: '#0f172a' },
+    { id: 'base-border-gray', name: '라인회색', hex: '#cbd5e1' }
   ],
   semanticMappings: {
     primary: 'base-navy',
