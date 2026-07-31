@@ -223,70 +223,70 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
             const addCustomBaseColor = () => {
               const newId = `base-custom-${Date.now()}`;
-              const updatedBases = [...baseColorsList, { id: newId, name: '커스텀 베이스 색상', hex: '#6366f1' }];
+              const updatedBases = [...baseColorsList, { id: newId, name: '커스텀 색상', hex: '#6366f1' }];
               setThemeSettings(prev => ({ ...prev, baseColors: updatedBases }));
             };
 
-            const semanticRoles: { key: keyof SemanticTokenMapping; label: string; desc: string }[] = [
-              { key: 'primary', label: '주 색상 (Primary)', desc: '메인 브랜드 / 버튼 / 강조' },
-              { key: 'secondary', label: '보조 색상 (Secondary)', desc: '서브 요소 / 보조 그래픽' },
-              { key: 'accent', label: '포인트 색상 (Accent)', desc: '포인트 배지 / 시선 집중 요소' },
-              { key: 'brandLight', label: '연한 브랜드 배경 (Brand Light)', desc: '은은한 연한 틴트 박스 배경' },
-              { key: 'backgroundColor', label: '기본 배경색 (Canvas Bg)', desc: '웹사이트 캔버스 1차 배경' },
-              { key: 'surfaceColor', label: '서브 배경색 (Surface)', desc: '카드 및 콘텐츠 구획 2차 배경' },
-              { key: 'darkBgColor', label: '어두운 배경색 (Dark Canvas)', desc: '다크 스타일 섹션 배경' },
-              { key: 'textColor', label: '주 글자색 (Text Primary)', desc: '메인 타이틀 및 본문 텍스트' },
-              { key: 'subtextColor', label: '보조 글자색 (Text Muted)', desc: '보조 설명 문구 및 캡션' },
-              { key: 'borderColor', label: '테두리 색상 (Border)', desc: '카드 경계선 및 디바이더' }
+            const semanticRoles: { key: keyof SemanticTokenMapping; label: string; tag: string; desc: string }[] = [
+              { key: 'primary', label: '주 색상', tag: 'Primary', desc: '메인 브랜드 / 버튼 / 강조' },
+              { key: 'secondary', label: '보조 색상', tag: 'Secondary', desc: '서브 요소 / 보조 그래픽' },
+              { key: 'accent', label: '포인트 색상', tag: 'Accent', desc: '포인트 배지 / 시선 집중 요소' },
+              { key: 'brandLight', label: '연한 브랜드 배경', tag: 'Brand Light', desc: '은은한 연한 틴트 박스 배경' },
+              { key: 'backgroundColor', label: '기본 배경색', tag: 'Canvas Bg', desc: '웹사이트 캔버스 1차 배경' },
+              { key: 'surfaceColor', label: '서브 배경색', tag: 'Surface', desc: '카드 및 콘텐츠 구획 2차 배경' },
+              { key: 'darkBgColor', label: '어두운 배경색', tag: 'Dark Canvas', desc: '다크 스타일 섹션 배경' },
+              { key: 'textColor', label: '주 글자색', tag: 'Text Primary', desc: '메인 타이틀 및 본문 텍스트' },
+              { key: 'subtextColor', label: '보조 글자색', tag: 'Text Muted', desc: '보조 설명 문구 및 캡션' },
+              { key: 'borderColor', label: '테두리 색상', tag: 'Border', desc: '카드 경계선 및 디바이더' }
             ];
 
             return (
-              <div className="form-group-section space-y-6">
-                <div>
-                  <h3 className="section-title text-lg font-bold text-slate-800">글로벌 색상 모듈 연동 체계</h3>
-                  <p className="section-description text-xs text-slate-500 mt-1">
-                    원천 베이스 컬러(Hex)를 정의하고, 각 디자인 용도에 바인딩합니다. 베이스 컬러의 Hex를 변경하면 이에 연결된 모든 용도와 컴포넌트가 동시에 100% 동일하게 자동 변경됩니다.
-                  </p>
-                </div>
-
+              <div className="space-y-6 pb-6">
                 {/* SECTION 1: GLOBAL BASE COLOR PALETTE */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-                  <div className="pb-3 mb-3 border-b border-slate-150 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-sky-500"></span>
-                      <h4 className="text-xs font-bold text-slate-800 tracking-wide uppercase">1. 글로벌 베이스 컬러 리스트 (Base Colors)</h4>
+                <div className="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 shadow-xs">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                        1. 글로벌 베이스 컬러 팔레트
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">시스템의 원천 색상을 설정합니다. 변경 시 연동된 용도/컴포넌트가 일괄 업데이트됩니다.</p>
                     </div>
                     <button
                       type="button"
                       onClick={addCustomBaseColor}
-                      className="text-xs font-semibold text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 px-2.5 py-1 rounded-md transition-colors"
+                      className="text-xs font-bold text-sky-600 bg-white hover:bg-sky-50 border border-sky-200 px-3 py-1.5 rounded-lg shadow-2xs transition-all hover:border-sky-300 shrink-0"
                     >
-                      + 베이스 컬러 추가
+                      + 색상 추가
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-3 gap-2.5 mt-3">
                     {baseColorsList.map((base) => (
-                      <div key={base.id} className="p-3 bg-slate-50/80 border border-slate-200 rounded-lg flex items-center justify-between gap-3">
-                        <div className="flex-1 min-w-0">
+                      <div
+                        key={base.id}
+                        className="bg-white border border-slate-200 hover:border-sky-400 p-2.5 rounded-xl flex items-center gap-2.5 shadow-2xs transition-all group"
+                      >
+                        <div className="relative shrink-0 w-8 h-8 rounded-lg border border-slate-200 shadow-2xs overflow-hidden cursor-pointer" style={{ backgroundColor: base.hex }}>
+                          <input
+                            type="color"
+                            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+                            value={base.hex.startsWith('#') && base.hex.length === 7 ? base.hex : '#000000'}
+                            onChange={(e) => updateBaseColor(base.id, e.target.value)}
+                          />
+                        </div>
+
+                        <div className="flex flex-col min-w-0 flex-1">
                           <input
                             type="text"
-                            className="text-xs font-bold text-slate-800 bg-transparent border-b border-slate-300 focus:border-sky-500 outline-none w-full pb-0.5"
+                            className="text-xs font-bold text-slate-800 bg-transparent border-none outline-none p-0 w-full focus:text-sky-600 transition-colors"
                             value={base.name}
                             onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
                           />
                           <input
                             type="text"
-                            className="text-[11px] font-mono text-slate-500 bg-transparent outline-none w-full mt-0.5"
+                            className="text-[11px] font-mono text-slate-400 bg-transparent border-none outline-none p-0 w-full uppercase"
                             value={base.hex}
-                            onChange={(e) => updateBaseColor(base.id, e.target.value)}
-                          />
-                        </div>
-                        <div className="shrink-0 relative">
-                          <input
-                            type="color"
-                            className="w-8 h-8 rounded-lg cursor-pointer border border-slate-300 p-0 overflow-hidden shadow-xs"
-                            value={base.hex.startsWith('#') && base.hex.length === 7 ? base.hex : '#000000'}
                             onChange={(e) => updateBaseColor(base.id, e.target.value)}
                           />
                         </div>
@@ -296,46 +296,49 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 </div>
 
                 {/* SECTION 2: SEMANTIC TOKEN LINKING MAP */}
-                <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-xs">
-                  <div className="pb-3 mb-3 border-b border-slate-150 flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-indigo-500"></span>
-                      <h4 className="text-xs font-bold text-slate-800 tracking-wide uppercase">2. 용도별 베이스 컬러 바인딩 (Semantic Roles)</h4>
+                <div className="bg-slate-50/70 border border-slate-200 rounded-2xl p-4 shadow-xs">
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+                    <div>
+                      <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                        <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                        2. 용도별 베이스 컬러 연동 (Semantic Roles)
+                      </h4>
+                      <p className="text-[11px] text-slate-500 mt-0.5">각 디자인 용도가 어떤 베이스 컬러를 사용할지 연결합니다.</p>
                     </div>
-                    <span className="text-[11px] text-slate-400 font-medium">베이스 컬러 ➡️ 디자인 용도 바인딩</span>
                   </div>
 
-                  <div className="divide-y divide-slate-150">
+                  <div className="divide-y divide-slate-200/80 mt-1">
                     {semanticRoles.map((role) => {
                       const currentBaseId = semanticMap[role.key];
                       const currentBase = baseColorsList.find(b => b.id === currentBaseId) || baseColorsList[0];
 
                       return (
-                        <div key={String(role.key)} className="py-2.5 flex items-center justify-between gap-4">
-                          <div className="flex flex-col min-w-0">
+                        <div key={String(role.key)} className="py-2.5 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2 min-w-0">
                             <span className="text-xs font-bold text-slate-800">{role.label}</span>
-                            <span className="text-[11px] text-slate-400 mt-0.5">{role.desc}</span>
+                            <span className="text-[10px] font-bold text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded-md uppercase tracking-wider">{role.tag}</span>
+                            <span className="text-[11px] text-slate-400 hidden sm:inline ml-1 truncate">{role.desc}</span>
                           </div>
 
                           <div className="flex items-center gap-2 shrink-0">
-                            <span className="text-[11px] font-medium text-slate-400 whitespace-nowrap">🔗 연결 ➡️</span>
-                            <select
-                              style={{ height: '34px', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
-                              className="border border-slate-300 rounded-lg px-2.5 bg-white focus:border-sky-500 outline-none cursor-pointer min-w-[180px]"
-                              value={currentBaseId || ''}
-                              onChange={(e) => updateSemanticBinding(role.key, e.target.value)}
-                            >
-                              {baseColorsList.map((b) => (
-                                <option key={b.id} value={b.id}>
-                                  {b.name} ({b.hex})
-                                </option>
-                              ))}
-                            </select>
-                            <span
-                              className="w-6 h-6 rounded-md border border-slate-300 shadow-xs inline-block shrink-0"
-                              style={{ backgroundColor: currentBase?.hex || '#ffffff' }}
-                              title={`${currentBase?.name} (${currentBase?.hex})`}
-                            ></span>
+                            <span className="text-[11px] font-medium text-slate-400">🔗 연결 ➡️</span>
+                            <div className="relative flex items-center bg-white border border-slate-300 hover:border-sky-400 rounded-xl px-2.5 py-1 shadow-2xs transition-all cursor-pointer">
+                              <span
+                                className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs mr-2 shrink-0"
+                                style={{ backgroundColor: currentBase?.hex || '#ffffff' }}
+                              ></span>
+                              <select
+                                className="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer pr-1"
+                                value={currentBaseId || ''}
+                                onChange={(e) => updateSemanticBinding(role.key, e.target.value)}
+                              >
+                                {baseColorsList.map((b) => (
+                                  <option key={b.id} value={b.id}>
+                                    {b.name} ({b.hex})
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
                           </div>
                         </div>
                       );
@@ -343,10 +346,10 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   </div>
                 </div>
 
-                <div className="pt-2">
-                  <label className="form-label">사이트 기본 글꼴 (Default Font)</label>
+                <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+                  <label className="text-xs font-bold text-slate-800 block mb-1.5">사이트 기본 글꼴 (Default Font)</label>
                   <select
-                    className="select-font-element mt-1"
+                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-sky-500 transition-colors"
                     value={themeSettings.fontFamily}
                     onChange={(e) => setThemeSettings(prev => ({ ...prev, fontFamily: e.target.value }))}
                   >
