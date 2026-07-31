@@ -1130,37 +1130,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             
-            {/* 0-1. Unified Base Background Color (Connected to Theme Variables) */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">헤더 기본 설정</label>
-              <div className="input-block">
-                <span className="input-label">배경색</span>
-                <div className="color-picker-wrapper">
-                  {(() => {
-                    const bgVal = section.backgroundColor || 'var(--theme-primary)';
-                    const resolvedBg = (bgVal === 'var(--theme-primary)' || !bgVal)
-                      ? (themeSettings?.primaryColor || '#1e3a8a')
-                      : (bgVal === 'var(--theme-secondary)' ? (themeSettings?.secondaryColor || '#3b82f6') : bgVal);
-                    return (
-                      <>
-                        <input
-                          type="color"
-                          value={resolvedBg.startsWith('#') && resolvedBg.length === 7 ? resolvedBg : '#1e3a8a'}
-                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                        />
-                        <input
-                          type="text"
-                          value={section.backgroundColor || 'var(--theme-primary)'}
-                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                        />
-                      </>
-                    );
-                  })()}
-                </div>
-              </div>
-            </div>
-
-            {/* 0-2. Header Overlay & Scroll Settings */}
+            {/* 0-1. Header Overlay & Scroll Settings (Placed FIRST at VERY TOP) */}
             <div className="property-group flex flex-col gap-3">
               <label className="group-title">상단 고정 및 스크롤 배경 설정</label>
               
@@ -1255,6 +1225,36 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   </span>
                 </div>
               )}
+            </div>
+
+            {/* 0-2. Unified Base Background Color (Placed SECOND) */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">헤더 기본 설정</label>
+              <div className="input-block">
+                <span className="input-label">배경색</span>
+                <div className="color-picker-wrapper">
+                  {(() => {
+                    const bgVal = section.backgroundColor || 'var(--theme-primary)';
+                    const resolvedBg = (bgVal === 'var(--theme-primary)' || !bgVal)
+                      ? (themeSettings?.primaryColor || '#1e3a8a')
+                      : (bgVal === 'var(--theme-secondary)' ? (themeSettings?.secondaryColor || '#3b82f6') : bgVal);
+                    return (
+                      <>
+                        <input
+                          type="color"
+                          value={resolvedBg.startsWith('#') && resolvedBg.length === 7 ? resolvedBg : '#1e3a8a'}
+                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          value={section.backgroundColor || 'var(--theme-primary)'}
+                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                        />
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
             </div>
 
             {/* 0. Section Width (Guideline) settings */}
