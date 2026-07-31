@@ -261,8 +261,8 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
                   <div className="base-palette-grid">
                     {baseColorsList.map((base) => (
-                      <div key={base.id} className="swatch-tile-card">
-                        <div className="swatch-tile-top" style={{ backgroundColor: base.hex }} title="클릭하여 색상 선택">
+                      <div key={base.id} className="base-color-bar-card">
+                        <div className="base-swatch-box" style={{ backgroundColor: base.hex }} title="클릭하여 색상 선택">
                           <input
                             type="color"
                             value={base.hex.startsWith('#') && base.hex.length === 7 ? base.hex : '#000000'}
@@ -270,16 +270,16 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                           />
                         </div>
 
-                        <div className="swatch-tile-bottom">
+                        <div className="base-color-info">
                           <input
                             type="text"
-                            className="swatch-tile-name"
+                            className="base-color-name-input"
                             value={base.name}
                             onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
                           />
                           <input
                             type="text"
-                            className="swatch-tile-hex"
+                            className="base-color-hex-input"
                             value={base.hex}
                             onChange={(e) => updateBaseColor(base.id, e.target.value)}
                           />
@@ -305,13 +305,13 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
                       return (
                         <div key={String(role.key)} className="semantic-binding-item">
-                          <div className="flex items-center gap-1.5">
+                          <div className="flex items-center gap-2">
                             <span className="semantic-role-label">{role.label}</span>
                             <span className="semantic-role-tag">{role.tag}</span>
                           </div>
 
                           <div className="flex items-center gap-2">
-                            <span className="text-[11px] font-medium text-slate-400">🔗 연결 ➡️</span>
+                            <span className="text-xs font-semibold text-slate-400">🔗 연결 ➡️</span>
                             <div className="semantic-select-wrapper">
                               <span
                                 className="semantic-select-swatch"
@@ -776,42 +776,42 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
         .base-palette-grid {
           display: grid !important;
-          grid-template-columns: repeat(4, 1fr) !important;
-          gap: 8px !important;
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 10px !important;
           margin-top: 10px !important;
         }
 
-        .swatch-tile-card {
+        .base-color-bar-card {
           display: flex !important;
-          flex-direction: column !important;
+          align-items: center !important;
+          gap: 10px !important;
           background: #ffffff !important;
-          border: 1px solid #e2e8f0 !important;
-          border-radius: 8px !important;
-          overflow: hidden !important;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+          border: 1px solid #cbd5e1 !important;
+          border-radius: 12px !important;
+          padding: 8px 12px !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
-        .swatch-tile-card:hover {
+        .base-color-bar-card:hover {
           border-color: #0284c7 !important;
-          box-shadow: 0 3px 8px rgba(2, 132, 199, 0.12) !important;
+          box-shadow: 0 3px 10px rgba(2, 132, 199, 0.12) !important;
           transform: translateY(-1px) !important;
         }
 
-        .swatch-tile-top {
-          width: 100% !important;
-          height: 32px !important;
+        .base-swatch-box {
+          width: 34px !important;
+          height: 34px !important;
+          border-radius: 8px !important;
+          border: 1px solid rgba(0, 0, 0, 0.15) !important;
           position: relative !important;
           cursor: pointer !important;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
-          transition: filter 0.2s ease !important;
+          flex-shrink: 0 !important;
+          overflow: hidden !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
         }
 
-        .swatch-tile-top:hover {
-          filter: brightness(0.95) !important;
-        }
-
-        .swatch-tile-top input[type="color"] {
+        .base-swatch-box input[type="color"] {
           position: absolute !important;
           inset: 0 !important;
           opacity: 0 !important;
@@ -820,17 +820,16 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           cursor: pointer !important;
         }
 
-        .swatch-tile-bottom {
+        .base-color-info {
           display: flex !important;
           flex-direction: column !important;
-          padding: 4px 6px !important;
-          background: #ffffff !important;
+          flex: 1 !important;
+          min-width: 0 !important;
         }
 
-        .swatch-tile-name {
-          font-size: 11px !important;
+        .base-color-name-input {
+          font-size: 13.5px !important;
           font-weight: 700 !important;
-          line-height: 1.2 !important;
           color: #0f172a !important;
           background: transparent !important;
           border: none !important;
@@ -843,11 +842,11 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           white-space: nowrap !important;
         }
 
-        .swatch-tile-hex {
-          font-size: 9.5px !important;
+        .base-color-hex-input {
+          font-size: 11.5px !important;
           font-family: monospace !important;
-          line-height: 1.2 !important;
-          color: #64748b !important;
+          font-weight: 600 !important;
+          color: #475569 !important;
           background: transparent !important;
           border: none !important;
           outline: none !important;
@@ -860,34 +859,35 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         .semantic-binding-list {
           display: flex !important;
           flex-direction: column !important;
-          margin-top: 4px !important;
+          gap: 4px !important;
+          margin-top: 6px !important;
         }
 
         .semantic-binding-item {
           display: flex !important;
           align-items: center !important;
           justify-content: space-between !important;
-          padding: 10px 0 !important;
+          padding: 10px 4px !important;
           background: transparent !important;
           border: none !important;
-          border-bottom: 1px solid #f1f5f9 !important;
+          border-bottom: 1px solid #e2e8f0 !important;
           border-radius: 0 !important;
         }
 
         .semantic-role-label {
-          font-size: 12px !important;
+          font-size: 13.5px !important;
           font-weight: 700 !important;
-          color: #1e293b !important;
+          color: #0f172a !important;
         }
 
         .semantic-role-tag {
-          font-size: 10px !important;
+          font-size: 11px !important;
           font-weight: 700 !important;
           color: #0284c7 !important;
           background: #e0f2fe !important;
           border: 1px solid #bae6fd !important;
-          padding: 1px 6px !important;
-          border-radius: 4px !important;
+          padding: 2px 8px !important;
+          border-radius: 6px !important;
           text-transform: uppercase !important;
         }
 
@@ -897,21 +897,22 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           background: #ffffff !important;
           border: 1px solid #cbd5e1 !important;
           border-radius: 8px !important;
-          padding: 4px 8px !important;
+          padding: 4px 10px !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
         }
 
         .semantic-select-swatch {
-          width: 14px !important;
-          height: 14px !important;
+          width: 16px !important;
+          height: 16px !important;
           border-radius: 50% !important;
-          border: 1px solid rgba(0, 0, 0, 0.12) !important;
-          margin-right: 6px !important;
+          border: 1px solid rgba(0, 0, 0, 0.15) !important;
+          margin-right: 8px !important;
           flex-shrink: 0 !important;
         }
 
         .semantic-select-element {
-          font-size: 11.5px !important;
-          font-weight: 600 !important;
+          font-size: 12.5px !important;
+          font-weight: 700 !important;
           color: #0f172a !important;
           background: transparent !important;
           border: none !important;
