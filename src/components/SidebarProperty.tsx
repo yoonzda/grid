@@ -1132,7 +1132,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             
             {/* 0-1. Header Overlay & Scroll Settings (Placed FIRST at VERY TOP) */}
             <div className="property-group flex flex-col gap-3">
-              <label className="group-title">상단 고정 및 스크롤 배경 설정</label>
+              <label className="group-title">헤더 스크롤 설정</label>
               
               <div 
                 onClick={() => updateSection({ headerTransparentAtTop: section.headerTransparentAtTop === false ? true : false })}
@@ -1182,7 +1182,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
               {/* Show preview state switcher ONLY when headerTransparentAtTop is enabled */}
               {section.headerTransparentAtTop !== false && (
                 <div className="flex flex-col gap-2 mt-1">
-                  <label className="group-title">편집 미리보기 상태 확인</label>
+                  <label className="group-title">스크롤 스타일</label>
                   <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff' }}>
                     <button
                       type="button"
