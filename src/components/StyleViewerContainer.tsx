@@ -241,52 +241,48 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
             ];
 
             return (
-              <div className="space-y-5 pb-6">
+              <div className="theme-tab-content">
                 {/* SECTION 1: GLOBAL BASE COLOR PALETTE */}
-                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-150">
+                <div className="section-card">
+                  <div className="section-card-header">
                     <div>
-                      <h4 className="text-xs font-bold text-slate-800 tracking-wide flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                      <h4 className="section-card-title">
+                        <span className="dot-indicator bg-sky"></span>
                         글로벌 베이스 컬러 팔레트
                       </h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">시스템의 원천 색상을 설정합니다. 변경 시 연동된 용도 및 컴포넌트가 일괄 업데이트됩니다.</p>
+                      <p className="section-card-desc">시스템의 원천 색상을 설정합니다. 변경 시 연동된 용도 및 컴포넌트가 일괄 업데이트됩니다.</p>
                     </div>
                     <button
                       type="button"
                       onClick={addCustomBaseColor}
-                      className="flex items-center gap-1.5 text-xs font-semibold text-sky-600 bg-sky-50 hover:bg-sky-100 border border-sky-200 hover:border-sky-300 px-3 py-1.5 rounded-lg shadow-2xs transition-all cursor-pointer shrink-0"
+                      className="add-base-color-btn"
                     >
                       <Plus size={14} />
                       <span>색상 추가</span>
                     </button>
                   </div>
 
-                  <div className="grid grid-cols-3 gap-2.5 mt-3">
+                  <div className="base-palette-grid">
                     {baseColorsList.map((base) => (
-                      <div
-                        key={base.id}
-                        className="bg-slate-50/60 border border-slate-200 hover:border-sky-300 p-2.5 rounded-xl flex items-center gap-2.5 shadow-2xs transition-all group"
-                      >
-                        <div className="relative shrink-0 w-8 h-8 rounded-lg border border-slate-250 shadow-2xs overflow-hidden cursor-pointer" style={{ backgroundColor: base.hex }}>
+                      <div key={base.id} className="base-color-card">
+                        <div className="base-swatch-box" style={{ backgroundColor: base.hex }}>
                           <input
                             type="color"
-                            className="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
                             value={base.hex.startsWith('#') && base.hex.length === 7 ? base.hex : '#000000'}
                             onChange={(e) => updateBaseColor(base.id, e.target.value)}
                           />
                         </div>
 
-                        <div className="flex flex-col min-w-0 flex-1">
+                        <div className="base-color-info">
                           <input
                             type="text"
-                            className="text-xs font-bold text-slate-800 bg-transparent border-none outline-none p-0 w-full focus:text-sky-600 transition-colors"
+                            className="base-color-name-input"
                             value={base.name}
                             onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
                           />
                           <input
                             type="text"
-                            className="text-[11px] font-mono text-slate-400 bg-transparent border-none outline-none p-0 w-full uppercase"
+                            className="base-color-hex-input"
                             value={base.hex}
                             onChange={(e) => updateBaseColor(base.id, e.target.value)}
                           />
@@ -297,39 +293,38 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                 </div>
 
                 {/* SECTION 2: SEMANTIC TOKEN LINKING MAP */}
-                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-150">
+                <div className="section-card">
+                  <div className="section-card-header">
                     <div>
-                      <h4 className="text-xs font-bold text-slate-800 tracking-wide flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full bg-indigo-500"></span>
+                      <h4 className="section-card-title">
+                        <span className="dot-indicator bg-indigo"></span>
                         용도별 베이스 컬러 연동 (Semantic Roles)
                       </h4>
-                      <p className="text-[11px] text-slate-500 mt-0.5">각 디자인 용도가 어떤 베이스 컬러를 사용할지 연결합니다.</p>
+                      <p className="section-card-desc">각 디자인 용도가 어떤 베이스 컬러를 사용할지 연결합니다.</p>
                     </div>
                   </div>
 
-                  <div className="divide-y divide-slate-150 mt-1">
+                  <div className="semantic-binding-list">
                     {semanticRoles.map((role) => {
                       const currentBaseId = semanticMap[role.key];
                       const currentBase = baseColorsList.find(b => b.id === currentBaseId) || baseColorsList[0];
 
                       return (
-                        <div key={String(role.key)} className="py-2.5 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span className="text-xs font-bold text-slate-800">{role.label}</span>
-                            <span className="text-[10px] font-bold text-sky-700 bg-sky-50 border border-sky-200 px-1.5 py-0.5 rounded-md uppercase tracking-wider">{role.tag}</span>
-                            <span className="text-[11px] text-slate-400 hidden sm:inline ml-1 truncate">{role.desc}</span>
+                        <div key={String(role.key)} className="semantic-binding-item">
+                          <div className="flex items-center gap-1.5">
+                            <span className="semantic-role-label">{role.label}</span>
+                            <span className="semantic-role-tag">{role.tag}</span>
                           </div>
 
-                          <div className="flex items-center gap-2 shrink-0">
+                          <div className="flex items-center gap-2">
                             <span className="text-[11px] font-medium text-slate-400">🔗 연결 ➡️</span>
-                            <div className="relative flex items-center bg-slate-50/80 border border-slate-250 hover:border-sky-400 rounded-xl px-2.5 py-1 shadow-2xs transition-all cursor-pointer">
+                            <div className="semantic-select-wrapper">
                               <span
-                                className="w-3.5 h-3.5 rounded-full border border-slate-300 shadow-2xs mr-2 shrink-0"
+                                className="semantic-select-swatch"
                                 style={{ backgroundColor: currentBase?.hex || '#ffffff' }}
                               ></span>
                               <select
-                                className="bg-transparent text-xs font-bold text-slate-800 outline-none cursor-pointer pr-1"
+                                className="semantic-select-element"
                                 value={currentBaseId || ''}
                                 onChange={(e) => updateSemanticBinding(role.key, e.target.value)}
                               >
@@ -347,7 +342,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   </div>
                 </div>
 
-                <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-xs">
+                <div className="section-card">
                   <label className="text-xs font-bold text-slate-800 block mb-1.5">사이트 기본 글꼴 (Default Font)</label>
                   <select
                     className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-sky-500 transition-colors cursor-pointer"
@@ -687,6 +682,211 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           color: #6b7280;
           margin-bottom: 16px;
           line-height: 1.5;
+        }
+
+        .theme-tab-content {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 20px !important;
+          padding-bottom: 24px !important;
+        }
+
+        .section-card {
+          background: #ffffff !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 14px !important;
+          padding: 16px !important;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        .section-card-header {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          padding-bottom: 12px !important;
+          border-bottom: 1px solid #f1f5f9 !important;
+        }
+
+        .section-card-title {
+          font-size: 13px !important;
+          font-weight: 700 !important;
+          color: #0f172a !important;
+          display: flex !important;
+          align-items: center !important;
+          gap: 6px !important;
+        }
+
+        .dot-indicator {
+          width: 8px !important;
+          height: 8px !important;
+          border-radius: 50% !important;
+          display: inline-block !important;
+        }
+        .dot-indicator.bg-sky { background: #0284c7 !important; }
+        .dot-indicator.bg-indigo { background: #6366f1 !important; }
+
+        .section-card-desc {
+          font-size: 11px !important;
+          color: #64748b !important;
+          margin-top: 2px !important;
+        }
+
+        .add-base-color-btn {
+          display: inline-flex !important;
+          align-items: center !important;
+          gap: 4px !important;
+          font-size: 11.5px !important;
+          font-weight: 700 !important;
+          color: #0284c7 !important;
+          background: #f0f9ff !important;
+          border: 1px solid #bae6fd !important;
+          border-radius: 8px !important;
+          padding: 5px 12px !important;
+          cursor: pointer !important;
+          transition: all 0.2s ease !important;
+          shrink: 0 !important;
+        }
+
+        .add-base-color-btn:hover {
+          background: #e0f2fe !important;
+          border-color: #38bdf8 !important;
+        }
+
+        .base-palette-grid {
+          display: grid !important;
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 10px !important;
+          margin-top: 12px !important;
+        }
+
+        .base-color-card {
+          display: flex !important;
+          align-items: center !important;
+          gap: 8px !important;
+          background: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 10px !important;
+          padding: 8px 10px !important;
+          transition: all 0.2s ease !important;
+        }
+
+        .base-color-card:hover {
+          border-color: #38bdf8 !important;
+          background: #ffffff !important;
+        }
+
+        .base-swatch-box {
+          width: 32px !important;
+          height: 32px !important;
+          border-radius: 8px !important;
+          border: 1px solid rgba(0, 0, 0, 0.12) !important;
+          position: relative !important;
+          cursor: pointer !important;
+          flex-shrink: 0 !important;
+          overflow: hidden !important;
+        }
+
+        .base-swatch-box input[type="color"] {
+          position: absolute !important;
+          inset: 0 !important;
+          opacity: 0 !important;
+          width: 100% !important;
+          height: 100% !important;
+          cursor: pointer !important;
+        }
+
+        .base-color-info {
+          display: flex !important;
+          flex-direction: column !important;
+          flex: 1 !important;
+          min-width: 0 !important;
+        }
+
+        .base-color-name-input {
+          font-size: 12px !important;
+          font-weight: 700 !important;
+          color: #0f172a !important;
+          background: transparent !important;
+          border: none !important;
+          outline: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100% !important;
+        }
+
+        .base-color-hex-input {
+          font-size: 10.5px !important;
+          font-family: monospace !important;
+          color: #64748b !important;
+          background: transparent !important;
+          border: none !important;
+          outline: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100% !important;
+          text-transform: uppercase !important;
+        }
+
+        .semantic-binding-list {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 6px !important;
+          margin-top: 10px !important;
+        }
+
+        .semantic-binding-item {
+          display: flex !important;
+          align-items: center !important;
+          justify-content: space-between !important;
+          padding: 8px 12px !important;
+          background: #f8fafc !important;
+          border: 1px solid #e2e8f0 !important;
+          border-radius: 10px !important;
+        }
+
+        .semantic-role-label {
+          font-size: 12px !important;
+          font-weight: 700 !important;
+          color: #1e293b !important;
+        }
+
+        .semantic-role-tag {
+          font-size: 10px !important;
+          font-weight: 700 !important;
+          color: #0284c7 !important;
+          background: #e0f2fe !important;
+          border: 1px solid #bae6fd !important;
+          padding: 1px 6px !important;
+          border-radius: 4px !important;
+          text-transform: uppercase !important;
+        }
+
+        .semantic-select-wrapper {
+          display: flex !important;
+          align-items: center !important;
+          background: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+          border-radius: 8px !important;
+          padding: 4px 8px !important;
+        }
+
+        .semantic-select-swatch {
+          width: 14px !important;
+          height: 14px !important;
+          border-radius: 50% !important;
+          border: 1px solid rgba(0, 0, 0, 0.12) !important;
+          margin-right: 6px !important;
+          flex-shrink: 0 !important;
+        }
+
+        .semantic-select-element {
+          font-size: 11.5px !important;
+          font-weight: 600 !important;
+          color: #0f172a !important;
+          background: transparent !important;
+          border: none !important;
+          outline: none !important;
+          cursor: pointer !important;
         }
 
         .form-row {
