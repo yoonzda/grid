@@ -3,7 +3,7 @@ import { Section, EditorElement, ThemeSettings, Page, GuidelineWidth } from '../
 import { SUPPORTED_FONTS, findSupportedFont, updateGoogleFontsInDOM } from '../utils/fontManager';
 import { ICON_TEMPLATES } from '../utils/iconTemplates';
 import { DEFAULT_SPACING_PRESETS } from '../utils/templates';
-import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, Trash2, X, Grid, ExternalLink, ArrowRight, ChevronLeft, ChevronRight, Plus, Check, ChevronDown, ChevronUp, Link } from 'lucide-react';
+import { AlignLeft, AlignCenter, AlignRight, MoveLeft, MoveRight, Trash2, X, Grid, ExternalLink, ArrowRight, ChevronLeft, ChevronRight, Plus, Check, ChevronDown, ChevronUp, Link, Link2, Unlink2 } from 'lucide-react';
 import { resolveCollisions } from '../utils/collision';
 
 export const SLIDE_IMAGE_PRESETS = [
@@ -1212,30 +1212,98 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 </div>
               )}
 
-              {/* Background Color Picker */}
+              {/* Background Color Picker - Single Horizontal Row (Text + Link Icon + Input + Unit/Badge) */}
               <div className="input-block mt-1">
-                <span className="input-label" style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>배경색</span>
-                <div className="color-picker-wrapper">
-                  {(() => {
-                    const bgVal = section.backgroundColor || 'var(--theme-primary)';
-                    const resolvedBg = (bgVal === 'var(--theme-primary)' || !bgVal)
-                      ? (themeSettings?.primaryColor || '#1e3a8a')
-                      : (bgVal === 'var(--theme-secondary)' ? (themeSettings?.secondaryColor || '#3b82f6') : bgVal);
-                    return (
-                      <>
-                        <input
-                          type="color"
-                          value={resolvedBg.startsWith('#') && resolvedBg.length === 7 ? resolvedBg : '#1e3a8a'}
-                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                        />
-                        <input
-                          type="text"
-                          value={section.backgroundColor || 'var(--theme-primary)'}
-                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                        />
-                      </>
-                    );
-                  })()}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+                  {/* Left: Text Label + Link Icon */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+                    <span className="input-label" style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155', margin: 0, whiteSpace: 'nowrap' }}>배경색</span>
+                    
+                    {/* Link / Unlink Icon Button */}
+                    {(() => {
+                      const bgVal = section.backgroundColor || 'var(--theme-primary)';
+                      const isLinked = bgVal === 'var(--theme-primary)';
+                      return (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (isLinked) {
+                              const resolvedColor = themeSettings?.primaryColor || '#1e3a8a';
+                              updateSection({ backgroundColor: resolvedColor, headerScrollBgColor: resolvedColor });
+                            } else {
+                              updateSection({ backgroundColor: 'var(--theme-primary)', headerScrollBgColor: 'var(--theme-primary)' });
+                            }
+                          }}
+                          title={isLinked ? '주조색 변수에 연결됨 (클릭하여 끊기)' : '개별 색상 사용 중 (클릭하여 주조색 변수 연결)'}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            width: '24px',
+                            height: '24px',
+                            borderRadius: '4px',
+                            border: '1px solid #cbd5e1',
+                            backgroundColor: isLinked ? '#e0f2fe' : '#f8fafc',
+                            color: isLinked ? '#0284c7' : '#94a3b8',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                          }}
+                        >
+                          {isLinked ? <Link2 size={13} strokeWidth={2.2} /> : <Unlink2 size={13} strokeWidth={2.2} />}
+                        </button>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Right: Color Picker Input + Unit/Status Badge */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: 1, justifyContent: 'flex-end' }}>
+                    <div className="color-picker-wrapper" style={{ flex: 1, maxWidth: '140px' }}>
+                      {(() => {
+                        const bgVal = section.backgroundColor || 'var(--theme-primary)';
+                        const resolvedBg = (bgVal === 'var(--theme-primary)' || !bgVal)
+                          ? (themeSettings?.primaryColor || '#1e3a8a')
+                          : (bgVal === 'var(--theme-secondary)' ? (themeSettings?.secondaryColor || '#3b82f6') : bgVal);
+                        return (
+                          <>
+                            <input
+                              type="color"
+                              value={resolvedBg.startsWith('#') && resolvedBg.length === 7 ? resolvedBg : '#1e3a8a'}
+                              onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={section.backgroundColor || 'var(--theme-primary)'}
+                              onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                              style={{ fontSize: '11.5px' }}
+                            />
+                          </>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Unit / Variable Indicator Badge */}
+                    {(() => {
+                      const bgVal = section.backgroundColor || 'var(--theme-primary)';
+                      const isLinked = bgVal === 'var(--theme-primary)';
+                      return (
+                        <span
+                          style={{
+                            fontSize: '11px',
+                            fontWeight: 600,
+                            color: isLinked ? '#0284c7' : '#64748b',
+                            backgroundColor: isLinked ? '#e0f2fe' : '#f1f5f9',
+                            padding: '3px 6px',
+                            borderRadius: '4px',
+                            border: isLinked ? '1px solid #bae6fd' : '1px solid #e2e8f0',
+                            whiteSpace: 'nowrap',
+                            flexShrink: 0,
+                          }}
+                        >
+                          {isLinked ? '주조색' : 'HEX'}
+                        </span>
+                      );
+                    })()}
+                  </div>
                 </div>
               </div>
             </div>
