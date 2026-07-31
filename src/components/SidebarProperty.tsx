@@ -1130,27 +1130,37 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             
-            {/* 0-1. Base settings colors (Placed at VERY TOP) */}
+            {/* 0-1. Unified Base Background Color (Connected to Theme Variables) */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">헤더 기본 설정</label>
               <div className="input-block">
-                <span className="input-label">기본 배경색</span>
+                <span className="input-label">배경색</span>
                 <div className="color-picker-wrapper">
-                  <input
-                    type="color"
-                    value={section.backgroundColor.startsWith('#') && section.backgroundColor.length === 7 ? section.backgroundColor : '#1e3a8a'}
-                    onChange={(e) => updateSection({ backgroundColor: e.target.value })}
-                  />
-                  <input
-                    type="text"
-                    value={section.backgroundColor}
-                    onChange={(e) => updateSection({ backgroundColor: e.target.value })}
-                  />
+                  {(() => {
+                    const bgVal = section.backgroundColor || 'var(--theme-primary)';
+                    const resolvedBg = (bgVal === 'var(--theme-primary)' || !bgVal)
+                      ? (themeSettings?.primaryColor || '#1e3a8a')
+                      : (bgVal === 'var(--theme-secondary)' ? (themeSettings?.secondaryColor || '#3b82f6') : bgVal);
+                    return (
+                      <>
+                        <input
+                          type="color"
+                          value={resolvedBg.startsWith('#') && resolvedBg.length === 7 ? resolvedBg : '#1e3a8a'}
+                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                        />
+                        <input
+                          type="text"
+                          value={section.backgroundColor || 'var(--theme-primary)'}
+                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                        />
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>
 
-            {/* 0-2. Header Overlay & Scroll Background Settings */}
+            {/* 0-2. Header Overlay & Scroll Settings */}
             <div className="property-group flex flex-col gap-3">
               <label className="group-title">편집 미리보기 상태 확인</label>
               <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff' }}>
@@ -1238,24 +1248,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   <span style={{ fontSize: '11.5px', color: '#0369a1', fontWeight: 500 }}>
                     안내: 서브 페이지는 본문 콘텐츠 가림 방지를 위해 기본적으로 일반 배경색 헤더가 적용됩니다.
                   </span>
-                </div>
-              )}
-
-              {section.headerTransparentAtTop !== false && (
-                <div className="grid-input-item mt-1">
-                  <span className="input-label">스크롤 후 배경색</span>
-                  <div className="color-picker-wrapper">
-                    <input
-                      type="color"
-                      value={(section.headerScrollBgColor || '#1e3a8a').startsWith('#') ? (section.headerScrollBgColor || '#1e3a8a') : '#1e3a8a'}
-                      onChange={(e) => updateSection({ headerScrollBgColor: e.target.value })}
-                    />
-                    <input
-                      type="text"
-                      value={section.headerScrollBgColor || '#1e3a8a'}
-                      onChange={(e) => updateSection({ headerScrollBgColor: e.target.value })}
-                    />
-                  </div>
                 </div>
               )}
             </div>
