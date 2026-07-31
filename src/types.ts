@@ -298,7 +298,30 @@ export interface SpacingPreset {
   description?: string;
 }
 
+export interface BaseColorItem {
+  id: string;
+  name: string;
+  hex: string;
+}
+
+export interface SemanticTokenMapping {
+  primary: string; // Base Color ID
+  secondary: string;
+  accent: string;
+  brandLight: string;
+  backgroundColor: string;
+  surfaceColor: string;
+  darkBgColor: string;
+  textColor: string;
+  subtextColor: string;
+  borderColor: string;
+}
+
 export interface ThemeSettings {
+  // 0. BASE PALETTE & SEMANTIC MAPPINGS
+  baseColors?: BaseColorItem[];
+  semanticMappings?: SemanticTokenMapping;
+
   // 1. BRAND COLOR MODULE
   primaryColor: string;
   secondaryColor: string;
