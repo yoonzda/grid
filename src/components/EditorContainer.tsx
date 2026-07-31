@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType, Page, ThemeSettings } from '../types';
-import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns, FileText } from 'lucide-react';
+import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Palette, Columns, FileText } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 
@@ -340,23 +340,13 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
               </span>
             </div>
 
-            <div className="theme-color-input flex items-center gap-[7px] px-2.5 py-1 rounded-md bg-slate-50 border border-slate-200" title="클릭하여 보조색 복사">
-              <span className="color-label-tag text-xs font-semibold text-slate-600">보조색</span>
-              <div className="color-picker-badge-wrapper">
-                <input
-                  type="color"
-                  value={themeSettings.secondaryColor}
-                  onChange={(e) => setThemeSettings(prev => ({ ...prev, secondaryColor: e.target.value }))}
-                />
-                <span className="color-picker-badge" style={{ backgroundColor: themeSettings.secondaryColor }}></span>
-              </div>
-              <span 
-                className="color-code-tag copyable font-mono text-xs font-semibold text-slate-700" 
-                onClick={() => handleCopyColor(themeSettings.secondaryColor)}
-                title="클릭하여 보조색 복사"
-              >
-                {copiedColor === themeSettings.secondaryColor ? '복사됨!' : themeSettings.secondaryColor.toUpperCase()}
-              </span>
+            <div
+              className="theme-color-input flex items-center gap-[7px] px-2.5 py-1 rounded-md bg-sky-50 border border-sky-200 cursor-pointer hover:bg-sky-100 transition-colors"
+              onClick={() => setIsStyleViewerOpen(true)}
+              title="클릭하여 원천 베이스 컬러 라이브러리 열기"
+            >
+              <Palette size={14} className="text-sky-600" />
+              <span className="color-label-tag text-xs font-bold text-sky-750">색상 모듈 라이브러리</span>
             </div>
           </div>
         </div>
@@ -367,9 +357,9 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             <span>{isCodeViewerOpen ? '코드 접기' : '코드 보기'}</span>
           </button>
           
-          <button className={`toggle-code-action-btn flex items-center gap-1 ${isStyleViewerOpen ? 'active' : ''}`} onClick={() => setIsStyleViewerOpen(!isStyleViewerOpen)} title="기본 디자인 프리셋 가이드 스타일 편집">
-            <Sliders size={16} />
-            <span>기본 스타일</span>
+          <button className={`toggle-code-action-btn flex items-center gap-1 ${isStyleViewerOpen ? 'active' : ''}`} onClick={() => setIsStyleViewerOpen(!isStyleViewerOpen)} title="원천 베이스 컬러 라이브러리 & 시스템 스타일 가이드 열기">
+            <Palette size={16} />
+            <span>색상 모듈 가이드</span>
           </button>
 
           <button className="export-action-btn flex items-center gap-1" onClick={onExport}>
