@@ -336,18 +336,6 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   </div>
                 </div>
 
-                <div className="section-card">
-                  <label className="text-xs font-bold text-slate-800 block mb-1.5">사이트 기본 글꼴 (Default Font)</label>
-                  <select
-                    className="w-full bg-slate-50 border border-slate-300 rounded-xl p-2.5 text-xs font-semibold text-slate-800 outline-none focus:border-sky-500 transition-colors cursor-pointer"
-                    value={themeSettings.fontFamily}
-                    onChange={(e) => setThemeSettings(prev => ({ ...prev, fontFamily: e.target.value }))}
-                  >
-                    {SUPPORTED_FONTS.map(f => (
-                      <option key={f.name} value={f.name}>{f.name}</option>
-                    ))}
-                  </select>
-                </div>
               </div>
             );
           })()}
@@ -410,7 +398,47 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
           {/* TAB 3: Typography Presets */}
           {activeTab === 'presets' && (
-            <div className="form-group-section">
+            <div className="form-group-section space-y-5">
+              {/* GLOBAL DEFAULT FONT SELECTION (KOREAN & ENGLISH SEPARATED) */}
+              <div className="bg-slate-50/80 border border-slate-200 rounded-xl p-4 shadow-xs">
+                <h4 className="text-xs font-bold text-slate-800 mb-3 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-500"></span>
+                  사이트 기본 글꼴 설정 (한글 / 영문 분리)
+                </h4>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">한글 기본 글꼴 (Korean Font)</label>
+                    <select
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-800 outline-none focus:border-sky-500 cursor-pointer"
+                      value={themeSettings.fontFamilyKr || themeSettings.fontFamily || 'Pretendard'}
+                      onChange={(e) => setThemeSettings(prev => ({
+                        ...prev,
+                        fontFamilyKr: e.target.value,
+                        fontFamily: e.target.value
+                      }))}
+                    >
+                      {SUPPORTED_FONTS.filter(f => f.isKorean).map(f => (
+                        <option key={f.name} value={f.name}>{f.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-700 block mb-1">영문 기본 글꼴 (English Font)</label>
+                    <select
+                      className="w-full bg-white border border-slate-300 rounded-lg p-2 text-xs font-semibold text-slate-800 outline-none focus:border-sky-500 cursor-pointer"
+                      value={themeSettings.fontFamilyEn || 'Inter'}
+                      onChange={(e) => setThemeSettings(prev => ({ ...prev, fontFamilyEn: e.target.value }))}
+                    >
+                      {SUPPORTED_FONTS.filter(f => !f.isKorean).map(f => (
+                        <option key={f.name} value={f.name}>{f.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              </div>
+
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div>
                   <h3 className="section-title" style={{ margin: 0 }}>타이포그래피 프리셋 목록</h3>

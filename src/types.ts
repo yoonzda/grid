@@ -343,6 +343,8 @@ export interface ThemeSettings {
   borderColor?: string;
 
   fontFamily: string;
+  fontFamilyKr?: string;
+  fontFamilyEn?: string;
   fontPresets: FontPreset[];
   spacingPresets?: SpacingPreset[];
   defaultFlexGap?: number;
