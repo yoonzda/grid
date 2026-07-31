@@ -777,8 +777,8 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         .base-palette-grid {
           display: grid !important;
           grid-template-columns: repeat(4, 1fr) !important;
-          gap: 12px !important;
-          margin-top: 14px !important;
+          gap: 8px !important;
+          margin-top: 10px !important;
         }
 
         .swatch-tile-card {
@@ -786,24 +786,24 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           flex-direction: column !important;
           background: #ffffff !important;
           border: 1px solid #e2e8f0 !important;
-          border-radius: 12px !important;
+          border-radius: 8px !important;
           overflow: hidden !important;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
         .swatch-tile-card:hover {
           border-color: #0284c7 !important;
-          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.12) !important;
+          box-shadow: 0 3px 8px rgba(2, 132, 199, 0.12) !important;
           transform: translateY(-1px) !important;
         }
 
         .swatch-tile-top {
           width: 100% !important;
-          height: 48px !important;
+          height: 32px !important;
           position: relative !important;
           cursor: pointer !important;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
           transition: filter 0.2s ease !important;
         }
 
@@ -823,13 +823,14 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         .swatch-tile-bottom {
           display: flex !important;
           flex-direction: column !important;
-          padding: 8px 10px !important;
+          padding: 4px 6px !important;
           background: #ffffff !important;
         }
 
         .swatch-tile-name {
-          font-size: 12px !important;
+          font-size: 11px !important;
           font-weight: 700 !important;
+          line-height: 1.2 !important;
           color: #0f172a !important;
           background: transparent !important;
           border: none !important;
@@ -843,14 +844,15 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         }
 
         .swatch-tile-hex {
-          font-size: 10.5px !important;
+          font-size: 9.5px !important;
           font-family: monospace !important;
+          line-height: 1.2 !important;
           color: #64748b !important;
           background: transparent !important;
           border: none !important;
           outline: none !important;
           padding: 0 !important;
-          margin-top: 2px !important;
+          margin-top: 1px !important;
           width: 100% !important;
           text-transform: uppercase !important;
         }
