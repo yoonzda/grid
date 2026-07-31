@@ -294,7 +294,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   <div className="section-card-header">
                     <h4 className="section-card-title">
                       <span className="dot-indicator bg-indigo"></span>
-                      Semantic Color Mapping
+                      Semantic Color
                     </h4>
                   </div>
 
