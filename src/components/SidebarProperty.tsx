@@ -1212,17 +1212,21 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 </div>
               )}
 
-              {/* Background Color Picker - Matching 타이틀 하단 여백 layout 100% */}
+              {/* Background Color Picker with Theme Color Variable Select & Custom Picker Switcher */}
               {(() => {
                 const bgVal = section.backgroundColor || 'var(--theme-primary)';
-                const isLinked = bgVal === 'var(--theme-primary)';
-                const resolvedBg = (bgVal === 'var(--theme-primary)' || !bgVal)
-                  ? (themeSettings?.primaryColor || '#1e3a8a')
-                  : (bgVal === 'var(--theme-secondary)' ? (themeSettings?.secondaryColor || '#3b82f6') : bgVal);
+                const isLinked = !section.backgroundColor || bgVal.startsWith('var(') || bgVal === 'var(--theme-primary)' || bgVal === 'var(--theme-secondary)';
+                
+                let resolvedBg = bgVal;
+                if (bgVal === 'var(--theme-primary)' || !bgVal) {
+                  resolvedBg = themeSettings?.primaryColor || '#1e3a8a';
+                } else if (bgVal === 'var(--theme-secondary)') {
+                  resolvedBg = themeSettings?.secondaryColor || '#3b82f6';
+                }
 
                 return (
                   <div className="flex items-center justify-between py-1 mt-1">
-                    {/* Left Side: Label + Pure Blue/Gray Link Icon (Exact same style as 타이틀 하단 여백) */}
+                    {/* Left Side: Label + Link Icon (Exact same style as 타이틀 하단 여백) */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }} className="select-none">
                         배경색
@@ -1233,30 +1237,48 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                         style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
                         onClick={() => {
                           if (isLinked) {
-                            const resolvedColor = themeSettings?.primaryColor || '#1e3a8a';
-                            updateSection({ backgroundColor: resolvedColor, headerScrollBgColor: resolvedColor });
+                            const hexColor = resolvedBg.startsWith('#') ? resolvedBg : '#1e3a8a';
+                            updateSection({ backgroundColor: hexColor, headerScrollBgColor: hexColor });
                           } else {
                             updateSection({ backgroundColor: 'var(--theme-primary)', headerScrollBgColor: 'var(--theme-primary)' });
                           }
                         }}
-                        title={isLinked ? '주조색 변수에 연결됨 - 클릭하여 해제' : '개별 색상 고정 모드 - 클릭하여 주조색 변수 연결'}
+                        title={isLinked ? '테마 색상 변수 연동 중 - 클릭하여 해제' : '개별 색상 고정 모드 - 클릭하여 테마 변수 연동'}
                       >
                         <Link size={16} style={{ color: isLinked ? '#0284c7' : '#94a3b8', strokeWidth: isLinked ? 2.5 : 2 }} />
                       </button>
                     </div>
 
-                    {/* Right Side: Standard Color Picker Wrapper */}
-                    <div className="color-picker-wrapper">
-                      <input
-                        type="color"
-                        value={resolvedBg.startsWith('#') && resolvedBg.length === 7 ? resolvedBg : '#1e3a8a'}
-                        onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        value={section.backgroundColor || 'var(--theme-primary)'}
-                        onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                      />
+                    {/* Right Side: Select Dropdown (when linked) vs Custom Color Picker (when unlinked) */}
+                    <div>
+                      {isLinked ? (
+                        <select
+                          style={{ width: '150px', height: '38px', textAlign: 'left', fontSize: '12.5px', fontWeight: 600, color: '#0f172a' }}
+                          className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
+                          value={bgVal}
+                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                          title="테마 색상 변수 선택"
+                        >
+                          <option value="var(--theme-primary)">주조색 ({themeSettings?.primaryColor || '#1e3a8a'})</option>
+                          <option value="var(--theme-secondary)">보조색 ({themeSettings?.secondaryColor || '#3b82f6'})</option>
+                          <option value="#0f172a">어두운 배경 (#0f172a)</option>
+                          <option value="#ffffff">밝은 배경 (#ffffff)</option>
+                          <option value="#f8fafc">연한 회색 (#f8fafc)</option>
+                        </select>
+                      ) : (
+                        <div className="color-picker-wrapper">
+                          <input
+                            type="color"
+                            value={resolvedBg.startsWith('#') && resolvedBg.length === 7 ? resolvedBg : '#1e3a8a'}
+                            onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                          />
+                          <input
+                            type="text"
+                            value={section.backgroundColor}
+                            onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
+                          />
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
