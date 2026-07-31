@@ -692,19 +692,19 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         }
 
         .section-card {
-          background: #ffffff !important;
-          border: 1px solid #e2e8f0 !important;
-          border-radius: 14px !important;
-          padding: 16px !important;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+          background: transparent !important;
+          border: none !important;
+          border-radius: 0 !important;
+          padding: 0 !important;
+          box-shadow: none !important;
         }
 
         .section-card-header {
           display: flex !important;
-          align-items: center !important;
+          align-items: justify-between !important;
           justify-content: space-between !important;
-          padding-bottom: 12px !important;
-          border-bottom: 1px solid #f1f5f9 !important;
+          padding-bottom: 8px !important;
+          border-bottom: 1px solid #e2e8f0 !important;
         }
 
         .section-card-title {
@@ -741,7 +741,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           background: #f0f9ff !important;
           border: 1px solid #bae6fd !important;
           border-radius: 8px !important;
-          padding: 5px 12px !important;
+          padding: 4px 10px !important;
           cursor: pointer !important;
           transition: all 0.2s ease !important;
           shrink: 0 !important;
@@ -763,7 +763,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           display: flex !important;
           align-items: center !important;
           gap: 8px !important;
-          background: #f8fafc !important;
+          background: #ffffff !important;
           border: 1px solid #e2e8f0 !important;
           border-radius: 10px !important;
           padding: 8px 10px !important;
@@ -772,13 +772,12 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
         .base-color-card:hover {
           border-color: #38bdf8 !important;
-          background: #ffffff !important;
         }
 
         .base-swatch-box {
-          width: 32px !important;
-          height: 32px !important;
-          border-radius: 8px !important;
+          width: 30px !important;
+          height: 30px !important;
+          border-radius: 7px !important;
           border: 1px solid rgba(0, 0, 0, 0.12) !important;
           position: relative !important;
           cursor: pointer !important;
@@ -830,18 +829,18 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         .semantic-binding-list {
           display: flex !important;
           flex-direction: column !important;
-          gap: 6px !important;
-          margin-top: 10px !important;
+          margin-top: 4px !important;
         }
 
         .semantic-binding-item {
           display: flex !important;
           align-items: center !important;
           justify-content: space-between !important;
-          padding: 8px 12px !important;
-          background: #f8fafc !important;
-          border: 1px solid #e2e8f0 !important;
-          border-radius: 10px !important;
+          padding: 10px 0 !important;
+          background: transparent !important;
+          border: none !important;
+          border-bottom: 1px solid #f1f5f9 !important;
+          border-radius: 0 !important;
         }
 
         .semantic-role-label {
