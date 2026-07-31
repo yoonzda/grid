@@ -143,18 +143,23 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           {/* TAB 1: Theme Colors & Base Font */}
           {activeTab === 'theme' && (
             <div className="form-group-section">
-              <h3 className="section-title">글로벌 시스템 색상 모듈</h3>
+              <h3 className="section-title">글로벌 시맨틱 색상 시스템</h3>
               <p className="section-description">
-                웹사이트 전체 디자인 시스템을 제어하는 12종의 정교한 시스템 색상 모듈입니다.
+                베이스 컬러 팔레트에서 원시 색상을 정의하고, 시맨틱 토큰에 연결하여 웹사이트 전체 색상을 체계적으로 제어합니다.
               </p>
 
-              {/* 1. BRAND COLOR MODULE */}
-              <div className="mt-4 pb-2 border-b border-slate-100">
-                <span className="text-xs font-bold text-sky-600 uppercase tracking-wider">1. 핵심 브랜드 색상 모듈</span>
+              {/* SECTION 1: GLOBAL BASE COLOR PALETTE */}
+              <div className="mt-5 pb-2 border-b border-sky-200 flex items-center justify-between">
+                <span className="text-xs font-bold text-sky-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-sky-500 inline-block"></span>
+                  1. 글로벌 베이스 컬러 팔레트 (Base Palette)
+                </span>
+                <span className="text-[11px] text-slate-400 font-medium">원시 베이스 팔레트 색상 정의</span>
               </div>
-              <div className="form-row mt-3">
-                <div className="form-col">
-                  <label className="form-label">주 색상 (Primary Color)</label>
+
+              <div className="grid grid-cols-2 gap-3 mt-3">
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">Primary Base (주 브랜드 Base)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -169,8 +174,8 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   </div>
                 </div>
 
-                <div className="form-col">
-                  <label className="form-label">보조 색상 (Secondary Color)</label>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">Secondary Base (보조 브랜드 Base)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -184,11 +189,9 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="form-row mt-3">
-                <div className="form-col">
-                  <label className="form-label">포인트 색상 (Accent Color)</label>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">Accent Base (포인트 Base)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -203,8 +206,8 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   </div>
                 </div>
 
-                <div className="form-col">
-                  <label className="form-label">연한 브랜드 배경 (Brand Light)</label>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">Brand Light Base (연한 브랜드 Base)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -218,15 +221,9 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* 2. CANVAS & SURFACE MODULE */}
-              <div className="mt-6 pb-2 border-b border-slate-100">
-                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">2. 캔버스 & 레이어 배경 모듈</span>
-              </div>
-              <div className="form-row mt-3">
-                <div className="form-col">
-                  <label className="form-label">기본 배경색 (Canvas Background)</label>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">White Base (순백색 Base)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -241,8 +238,8 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   </div>
                 </div>
 
-                <div className="form-col">
-                  <label className="form-label">서브 배경색 (Surface Subdued)</label>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">Surface Base (서브 배경 Base)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -256,27 +253,9 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                     />
                   </div>
                 </div>
-              </div>
 
-              <div className="form-row mt-3">
-                <div className="form-col">
-                  <label className="form-label">플로팅 배경색 (Surface Elevated)</label>
-                  <div className="color-input-wrapper">
-                    <input
-                      type="color"
-                      value={(themeSettings.surfaceElevatedColor || '#f1f5f9').startsWith('#') ? (themeSettings.surfaceElevatedColor || '#f1f5f9') : '#f1f5f9'}
-                      onChange={(e) => setThemeSettings(prev => ({ ...prev, surfaceElevatedColor: e.target.value }))}
-                    />
-                    <input
-                      type="text"
-                      value={themeSettings.surfaceElevatedColor || '#f1f5f9'}
-                      onChange={(e) => setThemeSettings(prev => ({ ...prev, surfaceElevatedColor: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-col">
-                  <label className="form-label">어두운 배경색 (Dark Canvas)</label>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">Dark Canvas Base (다크 배경 Base)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -290,65 +269,9 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                     />
                   </div>
                 </div>
-              </div>
 
-              {/* 3. TYPOGRAPHY & CONTENT MODULE */}
-              <div className="mt-6 pb-2 border-b border-slate-100">
-                <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">3. 텍스트 & 콘텐츠 모듈</span>
-              </div>
-              <div className="form-row mt-3">
-                <div className="form-col">
-                  <label className="form-label">주 글자색 (Text Primary)</label>
-                  <div className="color-input-wrapper">
-                    <input
-                      type="color"
-                      value={themeSettings.textColor.startsWith('#') && themeSettings.textColor.length === 7 ? themeSettings.textColor : '#0f172a'}
-                      onChange={(e) => setThemeSettings(prev => ({ ...prev, textColor: e.target.value }))}
-                    />
-                    <input
-                      type="text"
-                      value={themeSettings.textColor}
-                      onChange={(e) => setThemeSettings(prev => ({ ...prev, textColor: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-col">
-                  <label className="form-label">보조 글자색 (Text Muted)</label>
-                  <div className="color-input-wrapper">
-                    <input
-                      type="color"
-                      value={(themeSettings.subtextColor || '#475569').startsWith('#') ? (themeSettings.subtextColor || '#475569') : '#475569'}
-                      onChange={(e) => setThemeSettings(prev => ({ ...prev, subtextColor: e.target.value }))}
-                    />
-                    <input
-                      type="text"
-                      value={themeSettings.subtextColor || '#475569'}
-                      onChange={(e) => setThemeSettings(prev => ({ ...prev, subtextColor: e.target.value }))}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="form-row mt-3">
-                <div className="form-col">
-                  <label className="form-label">반전 글자색 (Text Inverse)</label>
-                  <div className="color-input-wrapper">
-                    <input
-                      type="color"
-                      value={(themeSettings.textInverseColor || '#ffffff').startsWith('#') ? (themeSettings.textInverseColor || '#ffffff') : '#ffffff'}
-                      onChange={(e) => setThemeSettings(prev => ({ ...prev, textInverseColor: e.target.value }))}
-                    />
-                    <input
-                      type="text"
-                      value={themeSettings.textInverseColor || '#ffffff'}
-                      onChange={(e) => setThemeSettings(prev => ({ ...prev, textInverseColor: e.target.value }))}
-                    />
-                  </div>
-                </div>
-
-                <div className="form-col">
-                  <label className="form-label">테두리 색상 (Border Default)</label>
+                <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+                  <label className="text-[12px] font-semibold text-slate-700 block mb-1.5">Border Base (테두리 Base)</label>
                   <div className="color-input-wrapper">
                     <input
                       type="color"
@@ -360,6 +283,81 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                       value={themeSettings.borderColor || '#cbd5e1'}
                       onChange={(e) => setThemeSettings(prev => ({ ...prev, borderColor: e.target.value }))}
                     />
+                  </div>
+                </div>
+              </div>
+
+              {/* SECTION 2: SEMANTIC TOKEN LINKING MAP */}
+              <div className="mt-7 pb-2 border-b border-indigo-200 flex items-center justify-between">
+                <span className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-indigo-500 inline-block"></span>
+                  2. 시맨틱 토큰 베이스 연동 (Semantic Token Linking)
+                </span>
+                <span className="text-[11px] text-slate-400 font-medium">베이스 컬러 ➡️ 시맨틱 역할 바인딩</span>
+              </div>
+
+              <div className="flex flex-col gap-2 mt-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-200 text-xs">
+                  <span className="font-semibold text-slate-800">주 색상 (Primary)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">🔗 바인딩 ➡️</span>
+                    <span className="font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">Primary Base ({themeSettings.primaryColor})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-200 text-xs">
+                  <span className="font-semibold text-slate-800">보조 색상 (Secondary)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">🔗 바인딩 ➡️</span>
+                    <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">Secondary Base ({themeSettings.secondaryColor})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-200 text-xs">
+                  <span className="font-semibold text-slate-800">포인트 색상 (Accent)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">🔗 바인딩 ➡️</span>
+                    <span className="font-semibold text-sky-700 bg-sky-50 px-2 py-0.5 rounded border border-sky-200">Accent Base ({themeSettings.accentColor || '#0284c7'})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-200 text-xs">
+                  <span className="font-semibold text-slate-800">기본 배경색 (Canvas Background)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">🔗 바인딩 ➡️</span>
+                    <span className="font-semibold text-slate-700 bg-white px-2 py-0.5 rounded border border-slate-300">White Base ({themeSettings.backgroundColor})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-200 text-xs">
+                  <span className="font-semibold text-slate-800">서브 배경색 (Surface Subdued)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">🔗 바인딩 ➡️</span>
+                    <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">Surface Base ({themeSettings.surfaceColor || '#f8fafc'})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-200 text-xs">
+                  <span className="font-semibold text-slate-800">어두운 배경색 (Dark Canvas)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">🔗 바인딩 ➡️</span>
+                    <span className="font-semibold text-slate-100 bg-slate-900 px-2 py-0.5 rounded">Dark Canvas Base ({themeSettings.darkBgColor || '#0f172a'})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 border-b border-slate-200 text-xs">
+                  <span className="font-semibold text-slate-800">주 글자색 (Text Primary)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">🔗 바인딩 ➡️</span>
+                    <span className="font-semibold text-slate-100 bg-slate-900 px-2 py-0.5 rounded">Dark Canvas Base ({themeSettings.textColor})</span>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between py-1.5 text-xs">
+                  <span className="font-semibold text-slate-800">테두리 색상 (Border Default)</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-slate-400">🔗 바인딩 ➡️</span>
+                    <span className="font-semibold text-slate-700 bg-slate-100 px-2 py-0.5 rounded border border-slate-300">Border Base ({themeSettings.borderColor || '#cbd5e1'})</span>
                   </div>
                 </div>
               </div>
