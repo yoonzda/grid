@@ -103,7 +103,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
             onClick={() => setActiveTab('theme')}
           >
             <Palette size={14} />
-            <span>🎨 색상 & 테마</span>
+            <span>색상</span>
           </button>
           
           <button 
@@ -111,7 +111,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
             onClick={() => setActiveTab('layout')}
           >
             <Sliders size={14} />
-            <span>📏 레이아웃 & 간격</span>
+            <span>레이아웃 & 간격</span>
           </button>
 
           <button 
@@ -119,7 +119,7 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
             onClick={() => setActiveTab('presets')}
           >
             <Type size={14} />
-            <span>✏️ 타이포 프리셋</span>
+            <span>타이포 프리셋</span>
           </button>
         </div>
       </div>
@@ -130,9 +130,9 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         <div className="editor-tab-bar">
           <div className="editor-tab active">
             <span>
-              {activeTab === 'theme' && '🎨 색상 & 테마 설정'}
-              {activeTab === 'layout' && '📏 레이아웃 & 간격 설정'}
-              {activeTab === 'presets' && '✏️ 타이포그래피 프리셋'}
+              {activeTab === 'theme' && '색상 설정'}
+              {activeTab === 'layout' && '레이아웃 & 간격 설정'}
+              {activeTab === 'presets' && '타이포그래피 프리셋'}
             </span>
           </div>
           <div className="tab-filler"></div>
