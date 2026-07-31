@@ -261,8 +261,8 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
                   <div className="base-palette-grid">
                     {baseColorsList.map((base) => (
-                      <div key={base.id} className="base-color-bar-card">
-                        <div className="base-swatch-box" style={{ backgroundColor: base.hex }} title="클릭하여 색상 선택">
+                      <div key={base.id} className="pantone-swatch-card">
+                        <div className="pantone-top-color" style={{ backgroundColor: base.hex }} title="클릭하여 색상 선택">
                           <input
                             type="color"
                             value={base.hex.startsWith('#') && base.hex.length === 7 ? base.hex : '#000000'}
@@ -270,16 +270,16 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                           />
                         </div>
 
-                        <div className="base-color-info">
+                        <div className="pantone-bottom-band">
                           <input
                             type="text"
-                            className="base-color-name-input"
+                            className="pantone-name-input"
                             value={base.name}
                             onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
                           />
                           <input
                             type="text"
-                            className="base-color-hex-input"
+                            className="pantone-hex-input"
                             value={base.hex}
                             onChange={(e) => updateBaseColor(base.id, e.target.value)}
                           />
@@ -776,42 +776,42 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
         .base-palette-grid {
           display: grid !important;
-          grid-template-columns: repeat(3, 1fr) !important;
-          gap: 10px !important;
+          grid-template-columns: repeat(4, 1fr) !important;
+          gap: 8px !important;
           margin-top: 10px !important;
         }
 
-        .base-color-bar-card {
+        .pantone-swatch-card {
           display: flex !important;
-          align-items: center !important;
-          gap: 10px !important;
+          flex-direction: column !important;
           background: #ffffff !important;
           border: 1px solid #cbd5e1 !important;
-          border-radius: 12px !important;
-          padding: 8px 12px !important;
+          border-radius: 10px !important;
+          overflow: hidden !important;
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
-        .base-color-bar-card:hover {
+        .pantone-swatch-card:hover {
           border-color: #0284c7 !important;
-          box-shadow: 0 3px 10px rgba(2, 132, 199, 0.12) !important;
+          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15) !important;
           transform: translateY(-1px) !important;
         }
 
-        .base-swatch-box {
-          width: 34px !important;
-          height: 34px !important;
-          border-radius: 8px !important;
-          border: 1px solid rgba(0, 0, 0, 0.15) !important;
+        .pantone-top-color {
+          width: 100% !important;
+          height: 38px !important;
           position: relative !important;
           cursor: pointer !important;
-          flex-shrink: 0 !important;
-          overflow: hidden !important;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+          border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+          transition: filter 0.2s ease !important;
         }
 
-        .base-swatch-box input[type="color"] {
+        .pantone-top-color:hover {
+          filter: brightness(0.95) !important;
+        }
+
+        .pantone-top-color input[type="color"] {
           position: absolute !important;
           inset: 0 !important;
           opacity: 0 !important;
@@ -820,15 +820,16 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           cursor: pointer !important;
         }
 
-        .base-color-info {
+        .pantone-bottom-band {
           display: flex !important;
           flex-direction: column !important;
-          flex: 1 !important;
-          min-width: 0 !important;
+          padding: 6px 8px !important;
+          background: #f8fafc !important;
+          gap: 1px !important;
         }
 
-        .base-color-name-input {
-          font-size: 13.5px !important;
+        .pantone-name-input {
+          font-size: 12.5px !important;
           font-weight: 700 !important;
           color: #0f172a !important;
           background: transparent !important;
@@ -842,16 +843,16 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           white-space: nowrap !important;
         }
 
-        .base-color-hex-input {
-          font-size: 11.5px !important;
+        .pantone-hex-input {
+          font-size: 10.5px !important;
           font-family: monospace !important;
           font-weight: 600 !important;
-          color: #475569 !important;
+          color: #64748b !important;
           background: transparent !important;
           border: none !important;
           outline: none !important;
           padding: 0 !important;
-          margin-top: 1px !important;
+          margin: 0 !important;
           width: 100% !important;
           text-transform: uppercase !important;
         }
