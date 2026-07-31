@@ -1145,10 +1145,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   userSelect: 'none',
                 }}
               >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>스크롤 전 투명 배경</span>
-                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>최상단 스크롤 시 메인 슬라이드 위에 투명 오버레이</span>
-                </div>
+                <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>스크롤 전 투명 배경</span>
                 <div style={{
                   width: '42px',
                   height: '24px',
@@ -1170,14 +1167,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   }} />
                 </div>
               </div>
-
-              {activePageId !== 'main' && (
-                <div style={{ padding: '8px 10px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px' }}>
-                  <span style={{ fontSize: '11.5px', color: '#0369a1', fontWeight: 500 }}>
-                    안내: 서브 페이지는 본문 콘텐츠 가림 방지를 위해 기본적으로 일반 배경색 헤더가 적용됩니다.
-                  </span>
-                </div>
-              )}
 
               {/* Show preview state switcher ONLY when headerTransparentAtTop is enabled */}
               {section.headerTransparentAtTop !== false && (
@@ -1220,9 +1209,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                       스크롤 스타일 type2
                     </button>
                   </div>
-                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-                    편집 해제 시 본래 실행 설정으로 자동 복원됩니다.
-                  </span>
                 </div>
               )}
 
