@@ -1162,49 +1162,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
             {/* 0-2. Header Overlay & Scroll Settings */}
             <div className="property-group flex flex-col gap-3">
-              <label className="group-title">편집 미리보기 상태 확인</label>
-              <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff' }}>
-                <button
-                  type="button"
-                  style={{
-                    flex: 1,
-                    height: '36px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    border: 'none',
-                    borderRight: '1px solid #cbd5e1',
-                    cursor: 'pointer',
-                    backgroundColor: (previewHeaderState === 'top' || (!previewHeaderState && section.headerTransparentAtTop !== false && activePageId === 'main')) ? '#0284c7' : '#ffffff',
-                    color: (previewHeaderState === 'top' || (!previewHeaderState && section.headerTransparentAtTop !== false && activePageId === 'main')) ? '#ffffff' : '#475569',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onClick={() => setPreviewHeaderState?.('top')}
-                >
-                  상단 스크롤 (투명)
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    flex: 1,
-                    height: '36px',
-                    fontSize: '12px',
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: 'pointer',
-                    backgroundColor: (previewHeaderState === 'scrolled' || (!previewHeaderState && (section.headerTransparentAtTop === false || activePageId !== 'main'))) ? '#0284c7' : '#ffffff',
-                    color: (previewHeaderState === 'scrolled' || (!previewHeaderState && (section.headerTransparentAtTop === false || activePageId !== 'main'))) ? '#ffffff' : '#475569',
-                    transition: 'all 0.15s ease',
-                  }}
-                  onClick={() => setPreviewHeaderState?.('scrolled')}
-                >
-                  스크롤 다운 (배경색 적용)
-                </button>
-              </div>
-              <span style={{ fontSize: '11.5px', color: '#64748b' }}>
-                편집 해제 시 본래 실행 설정으로 자동 복원됩니다.
-              </span>
-
-              <label className="group-title mt-2">상단 고정 및 스크롤 배경 설정</label>
+              <label className="group-title">상단 고정 및 스크롤 배경 설정</label>
               
               <div 
                 onClick={() => updateSection({ headerTransparentAtTop: section.headerTransparentAtTop === false ? true : false })}
@@ -1247,6 +1205,53 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 <div style={{ padding: '8px 10px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px' }}>
                   <span style={{ fontSize: '11.5px', color: '#0369a1', fontWeight: 500 }}>
                     안내: 서브 페이지는 본문 콘텐츠 가림 방지를 위해 기본적으로 일반 배경색 헤더가 적용됩니다.
+                  </span>
+                </div>
+              )}
+
+              {/* Show preview state switcher ONLY when headerTransparentAtTop is enabled */}
+              {section.headerTransparentAtTop !== false && (
+                <div className="flex flex-col gap-2 mt-1">
+                  <label className="group-title">편집 미리보기 상태 확인</label>
+                  <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff' }}>
+                    <button
+                      type="button"
+                      style={{
+                        flex: 1,
+                        height: '36px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        border: 'none',
+                        borderRight: '1px solid #cbd5e1',
+                        cursor: 'pointer',
+                        backgroundColor: (previewHeaderState === 'top' || (!previewHeaderState && activePageId === 'main')) ? '#0284c7' : '#ffffff',
+                        color: (previewHeaderState === 'top' || (!previewHeaderState && activePageId === 'main')) ? '#ffffff' : '#475569',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onClick={() => setPreviewHeaderState?.('top')}
+                    >
+                      스크롤 스타일 type1
+                    </button>
+                    <button
+                      type="button"
+                      style={{
+                        flex: 1,
+                        height: '36px',
+                        fontSize: '12px',
+                        fontWeight: 600,
+                        border: 'none',
+                        cursor: 'pointer',
+                        backgroundColor: (previewHeaderState === 'scrolled' || (!previewHeaderState && activePageId !== 'main')) ? '#0284c7' : '#ffffff',
+                        color: (previewHeaderState === 'scrolled' || (!previewHeaderState && activePageId !== 'main')) ? '#ffffff' : '#475569',
+                        transition: 'all 0.15s ease',
+                      }}
+                      onClick={() => setPreviewHeaderState?.('scrolled')}
+                    >
+                      스크롤 스타일 type2
+                    </button>
+                  </div>
+                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                    편집 해제 시 본래 실행 설정으로 자동 복원됩니다.
                   </span>
                 </div>
               )}
