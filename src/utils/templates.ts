@@ -66,9 +66,9 @@ const getBusinessHeader = (): Section => ({
     { id: 'm6', name: '약관', fileName: 'terms.html' }
   ],
   headerMenuColor: '#cbd5e1',
-  headerMenuSize: '13px',
+  headerMenuSize: '15px',
   
-  headerBtnText: '시작하기',
+  headerBtnText: '문의하기',
   headerBtnBgColor: 'var(--theme-secondary)',
   headerBtnTextColor: '#ffffff',
   headerBtnRadius: 4,
@@ -907,7 +907,7 @@ const getModernHeader = (): Section => ({
     { id: 'm6', name: '서약', fileName: 'terms.html' }
   ],
   headerMenuColor: '#e5e7eb',
-  headerMenuSize: '13px',
+  headerMenuSize: '15px',
   
   headerBtnText: '컨택트',
   headerBtnBgColor: 'var(--theme-secondary)',

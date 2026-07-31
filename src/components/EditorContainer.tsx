@@ -64,6 +64,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   const [hoveredSectionId, setHoveredSectionId] = useState<string | null>(null);
   const [hoveredGuidelineWidth, setHoveredGuidelineWidth] = useState<GuidelineWidth | null>(null);
   const [previewHeaderLayout, setPreviewHeaderLayout] = useState<string | null>(null);
+  const [previewHeaderState, setPreviewHeaderState] = useState<'top' | 'scrolled' | null>(null);
   const [previewFlexAlign, setPreviewFlexAlign] = useState<string | null>(null);
   const [previewHeaderLogoFont, setPreviewHeaderLogoFont] = useState<string | null>(null);
 
@@ -471,6 +472,7 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             themeSettings={themeSettings}
             hoveredGuidelineWidth={hoveredGuidelineWidth}
             previewHeaderLayout={previewHeaderLayout}
+            previewHeaderState={previewHeaderState}
             previewFlexAlign={previewFlexAlign}
             previewHeaderLogoFont={previewHeaderLogoFont}
           />
@@ -499,6 +501,8 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           setHoveredGuidelineWidth={setHoveredGuidelineWidth}
           previewHeaderLayout={previewHeaderLayout}
           setPreviewHeaderLayout={setPreviewHeaderLayout}
+          previewHeaderState={previewHeaderState}
+          setPreviewHeaderState={setPreviewHeaderState}
           previewFlexAlign={previewFlexAlign}
           setPreviewFlexAlign={setPreviewFlexAlign}
           previewHeaderLogoFont={previewHeaderLogoFont}

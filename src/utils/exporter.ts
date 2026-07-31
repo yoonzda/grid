@@ -99,7 +99,7 @@ ${fontImports.join('\n')}
         variablesCss += `  --header-${sec.id}-logo-width: ${sec.headerLogoWidth || 120}px;\n`;
         
         variablesCss += `  --header-${sec.id}-menu-color: ${sec.headerMenuColor || '#cbd5e1'};\n`;
-        variablesCss += `  --header-${sec.id}-menu-size: ${sec.headerMenuSize || '13px'};\n`;
+        variablesCss += `  --header-${sec.id}-menu-size: ${sec.headerMenuSize || '15px'};\n`;
         variablesCss += `  --header-${sec.id}-menu-font: ${getFontFamilyByFamilyName(sec.headerMenuFont || 'Inter')};\n`;
         
         const headerBtnBg = sec.headerBtnBgColor || 'var(--theme-secondary)';
@@ -1158,7 +1158,7 @@ ${fontLinksHtml}
         if (sec.headerShowBtn !== false) {
           const loginPage = pages.find(pl => pl.id === 'login');
           const loginUrl = loginPage ? loginPage.fileName : 'login.html';
-          btnNode = `<button class="header-btn" onclick="location.href='${loginUrl}'">${sec.headerBtnText || '시작하기'}</button>`;
+          btnNode = `<button class="header-btn" onclick="location.href='${loginUrl}'">${sec.headerBtnText || '문의하기'}</button>`;
         }
         
         if (layout === 'spread-center') {

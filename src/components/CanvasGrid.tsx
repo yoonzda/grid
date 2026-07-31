@@ -27,6 +27,7 @@ interface CanvasGridProps {
   themeSettings?: ThemeSettings;
   hoveredGuidelineWidth?: GuidelineWidth | null;
   previewHeaderLayout?: string | null;
+  previewHeaderState?: 'top' | 'scrolled' | null;
   previewFlexAlign?: string | null;
   previewHeaderLogoFont?: string | null;
 }
@@ -568,6 +569,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   themeSettings,
   hoveredGuidelineWidth,
   previewHeaderLayout: _previewHeaderLayout,
+  previewHeaderState,
   previewFlexAlign,
   previewHeaderLogoFont,
 }) => {
@@ -778,7 +780,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
 
     const menuStyle: React.CSSProperties = {
       color: sec.headerMenuColor || '#cbd5e1',
-      fontSize: sec.headerMenuSize || '13px',
+      fontSize: sec.headerMenuSize || '15px',
       fontWeight: 500,
       fontFamily: sec.headerMenuFont || 'inherit',
       textDecoration: 'none',
@@ -887,7 +889,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           setActiveElement(null);
         }}
       >
-        <button style={btnStyle}>{sec.headerBtnText || '시작하기'}</button>
+        <button style={btnStyle}>{sec.headerBtnText || '문의하기'}</button>
       </div>
     );
 
@@ -1318,6 +1320,25 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         // Theme-adaptive primary accent color (e.g. #FF6B6B or #1E3A8A)
         const rawThemeAccent = themeSettings?.primaryColor || '#18a0fb';
 
+        const isEditingThisHeader = activeSectionId === sec.id;
+        const isHeaderComp = sec.sharedType === 'header';
+
+        let isHeaderTransparent = false;
+        if (isHeaderComp) {
+          if (isEditingThisHeader && previewHeaderState) {
+            isHeaderTransparent = previewHeaderState === 'top';
+          } else {
+            isHeaderTransparent = sec.headerTransparentAtTop !== false && activePageId === 'main';
+          }
+        }
+
+        const headerNodeBgColor = isHeaderComp
+          ? (isHeaderTransparent ? 'transparent' : (sec.headerScrollBgColor || sec.backgroundColor || 'var(--theme-primary, #1e3a8a)'))
+          : sec.backgroundColor;
+
+        const headerMarginBottom = (isHeaderComp && isHeaderTransparent) ? '-70px' : '0px';
+        const headerZIndex = (isHeaderComp && isHeaderTransparent) ? 40 : (isFocused ? 20 : 1);
+
         return (
           <div
             key={sec.id}
@@ -1330,12 +1351,12 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                   ? (sec.height === 100 ? `${sec.minHeight || 680}px` : `${sec.height * 6.8}px`)
                   : `${sec.height || 400}px`,
               height: 'auto', // dynamic height flow
-              backgroundColor: (sec.sharedType === 'header' && sec.headerTransparentAtTop) ? 'transparent' : sec.backgroundColor,
+              backgroundColor: headerNodeBgColor,
               backgroundImage: sec.backgroundImage ? `url(${sec.backgroundImage})` : 'none',
               backgroundPosition: sec.backgroundPosition || 'center',
               backgroundSize: sec.backgroundSize || 'cover',
               backgroundRepeat: sec.backgroundRepeat || 'no-repeat',
-              marginBottom: (sec.sharedType === 'header' && sec.headerTransparentAtTop) ? '-70px' : '0px',
+              marginBottom: headerMarginBottom,
               '--content-width': gWidth,
               display: 'flex',
               flexDirection: 'column',
@@ -1353,7 +1374,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                 ? `inset 0 0 0 2.5px ${rawThemeAccent}` 
                 : 'none',
               position: 'relative',
-              zIndex: (sec.sharedType === 'header' && sec.headerTransparentAtTop) ? 40 : (isFocused ? 20 : 1),
+              zIndex: headerZIndex,
             } as React.CSSProperties}
             onClick={(e) => {
               const target = e.target as HTMLElement;

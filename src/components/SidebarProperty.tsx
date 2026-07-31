@@ -66,6 +66,8 @@ interface SidebarPropertyProps {
   // Layout style hover preview props
   previewHeaderLayout?: string | null;
   setPreviewHeaderLayout?: (layout: string | null) => void;
+  previewHeaderState?: 'top' | 'scrolled' | null;
+  setPreviewHeaderState?: (state: 'top' | 'scrolled' | null) => void;
   previewFlexAlign?: string | null;
   setPreviewFlexAlign?: (align: string | null) => void;
   previewHeaderLogoFont?: string | null;
@@ -300,6 +302,8 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   setHoveredGuidelineWidth,
   previewHeaderLayout: _previewHeaderLayout,
   setPreviewHeaderLayout: _setPreviewHeaderLayout,
+  previewHeaderState,
+  setPreviewHeaderState,
   previewFlexAlign: _previewFlexAlign,
   setPreviewFlexAlign,
   previewHeaderLogoFont: _previewHeaderLogoFont,
@@ -1126,6 +1130,161 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             
+            {/* 0-1. Base settings height & colors (Placed at VERY TOP) */}
+            <div className="property-group flex flex-col gap-2">
+              <label className="group-title">{section.sharedType === 'header' ? '헤더 기본 설정' : '섹션 기본 설정'}</label>
+              <div className="grid-inputs-row">
+                {section.sharedType === 'header' ? (
+                  <div className="grid-input-item" style={{ flex: '1.5 1 0%' }}>
+                    <span className="input-label">상하 여백 (Padding Y): {section.headerPaddingY ?? 16}px</span>
+                    <input
+                      type="range"
+                      min="0"
+                      max="80"
+                      step="2"
+                      value={section.headerPaddingY ?? 16}
+                      onChange={(e) => updateSection({ headerPaddingY: parseInt(e.target.value) })}
+                    />
+                  </div>
+                ) : (
+                  <div className="grid-input-item">
+                    <span className="input-label">섹션 높이 (px)</span>
+                    <input
+                      type="number"
+                      value={section.height}
+                      onChange={(e) => updateSection({ height: parseInt(e.target.value) || 70 })}
+                    />
+                  </div>
+                )}
+                
+                <div className="grid-input-item">
+                  <span className="input-label">기본 배경색</span>
+                  <div className="color-picker-wrapper">
+                    <input
+                      type="color"
+                      value={section.backgroundColor.startsWith('#') && section.backgroundColor.length === 7 ? section.backgroundColor : '#1e3a8a'}
+                      onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+                    />
+                    <input
+                      type="text"
+                      value={section.backgroundColor}
+                      onChange={(e) => updateSection({ backgroundColor: e.target.value })}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 0-2. Header Overlay & Scroll Background Settings */}
+            <div className="property-group flex flex-col gap-3">
+              <label className="group-title">편집 미리보기 상태 확인</label>
+              <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff' }}>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    height: '36px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    border: 'none',
+                    borderRight: '1px solid #cbd5e1',
+                    cursor: 'pointer',
+                    backgroundColor: (previewHeaderState === 'top' || (!previewHeaderState && section.headerTransparentAtTop !== false && activePageId === 'main')) ? '#0284c7' : '#ffffff',
+                    color: (previewHeaderState === 'top' || (!previewHeaderState && section.headerTransparentAtTop !== false && activePageId === 'main')) ? '#ffffff' : '#475569',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onClick={() => setPreviewHeaderState?.('top')}
+                >
+                  상단 스크롤 (투명)
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    height: '36px',
+                    fontSize: '12px',
+                    fontWeight: 600,
+                    border: 'none',
+                    cursor: 'pointer',
+                    backgroundColor: (previewHeaderState === 'scrolled' || (!previewHeaderState && (section.headerTransparentAtTop === false || activePageId !== 'main'))) ? '#0284c7' : '#ffffff',
+                    color: (previewHeaderState === 'scrolled' || (!previewHeaderState && (section.headerTransparentAtTop === false || activePageId !== 'main'))) ? '#ffffff' : '#475569',
+                    transition: 'all 0.15s ease',
+                  }}
+                  onClick={() => setPreviewHeaderState?.('scrolled')}
+                >
+                  스크롤 다운 (배경색 적용)
+                </button>
+              </div>
+              <span style={{ fontSize: '11.5px', color: '#64748b' }}>
+                편집 해제 시 본래 실행 설정으로 자동 복원됩니다.
+              </span>
+
+              <label className="group-title mt-2">상단 고정 및 스크롤 배경 설정</label>
+              
+              <div 
+                onClick={() => updateSection({ headerTransparentAtTop: section.headerTransparentAtTop === false ? true : false })}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '8px 0',
+                  cursor: 'pointer',
+                  userSelect: 'none',
+                }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>스크롤 전 투명 배경</span>
+                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>최상단 스크롤 시 메인 슬라이드 위에 투명 오버레이</span>
+                </div>
+                <div style={{
+                  width: '42px',
+                  height: '24px',
+                  borderRadius: '12px',
+                  backgroundColor: section.headerTransparentAtTop !== false ? '#0284c7' : '#cbd5e1',
+                  position: 'relative',
+                  transition: 'background-color 0.2s ease',
+                }}>
+                  <div style={{
+                    width: '20px',
+                    height: '20px',
+                    borderRadius: '50%',
+                    backgroundColor: '#ffffff',
+                    position: 'absolute',
+                    top: '2px',
+                    left: section.headerTransparentAtTop !== false ? '20px' : '2px',
+                    transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                  }} />
+                </div>
+              </div>
+
+              {activePageId !== 'main' && (
+                <div style={{ padding: '8px 10px', backgroundColor: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '11.5px', color: '#0369a1', fontWeight: 500 }}>
+                    안내: 서브 페이지는 본문 콘텐츠 가림 방지를 위해 기본적으로 일반 배경색 헤더가 적용됩니다.
+                  </span>
+                </div>
+              )}
+
+              {section.headerTransparentAtTop !== false && (
+                <div className="grid-input-item mt-1">
+                  <span className="input-label">스크롤 후 배경색</span>
+                  <div className="color-picker-wrapper">
+                    <input
+                      type="color"
+                      value={(section.headerScrollBgColor || '#1e3a8a').startsWith('#') ? (section.headerScrollBgColor || '#1e3a8a') : '#1e3a8a'}
+                      onChange={(e) => updateSection({ headerScrollBgColor: e.target.value })}
+                    />
+                    <input
+                      type="text"
+                      value={section.headerScrollBgColor || '#1e3a8a'}
+                      onChange={(e) => updateSection({ headerScrollBgColor: e.target.value })}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* 0. Section Width (Guideline) settings */}
             <div className="property-group flex flex-col gap-2">
               <label className="group-title">가로폭</label>
@@ -1473,11 +1632,18 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 <div className="grid-inputs-row mt-2">
                   <div className="grid-input-item">
                     <span className="input-label">글자 크기</span>
-                    <input
-                      type="text"
-                      value={section.headerMenuSize || '13px'}
+                    <select
+                      style={{ height: '40px', fontSize: '13.5px', fontWeight: 500 }}
+                      className="border border-slate-300 rounded px-2.5 outline-none bg-white w-full"
+                      value={section.headerMenuSize || '15px'}
                       onChange={(e) => updateSection({ headerMenuSize: e.target.value })}
-                    />
+                    >
+                      <option value="14px">14px</option>
+                      <option value="15px">15px (권장)</option>
+                      <option value="16px">16px (크게)</option>
+                      <option value="18px">18px (매우 크게)</option>
+                      <option value="20px">20px (대형)</option>
+                    </select>
                   </div>
                   <div className="grid-input-item">
                     <span className="input-label">글자 색상</span>
@@ -1514,7 +1680,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   <span className="input-label">버튼 텍스트</span>
                   <input
                     type="text"
-                    value={section.headerBtnText || '시작하기'}
+                    value={section.headerBtnText || '문의하기'}
                     onChange={(e) => updateSection({ headerBtnText: e.target.value })}
                   />
                 </div>
@@ -1607,111 +1773,6 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 </div>
               </div>
             )}
-            
-            {/* 6. Base settings height & colors */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">{section.sharedType === 'header' ? '헤더 기본 설정' : '섹션 기본 설정'}</label>
-              <div className="grid-inputs-row">
-                {section.sharedType === 'header' ? (
-                  <div className="grid-input-item" style={{ flex: '1.5 1 0%' }}>
-                    <span className="input-label">상하 여백 (Padding Y): {section.headerPaddingY ?? 16}px</span>
-                    <input
-                      type="range"
-                      min="0"
-                      max="80"
-                      step="2"
-                      value={section.headerPaddingY ?? 16}
-                      onChange={(e) => updateSection({ headerPaddingY: parseInt(e.target.value) })}
-                    />
-                  </div>
-                ) : (
-                  <div className="grid-input-item">
-                    <span className="input-label">섹션 높이 (px)</span>
-                    <input
-                      type="number"
-                      value={section.height}
-                      onChange={(e) => updateSection({ height: parseInt(e.target.value) || 70 })}
-                    />
-                  </div>
-                )}
-                
-                <div className="grid-input-item">
-                  <span className="input-label">기본 배경색</span>
-                  <div className="color-picker-wrapper">
-                    <input
-                      type="color"
-                      value={section.backgroundColor.startsWith('#') && section.backgroundColor.length === 7 ? section.backgroundColor : '#1e3a8a'}
-                      onChange={(e) => updateSection({ backgroundColor: e.target.value })}
-                    />
-                    <input
-                      type="text"
-                      value={section.backgroundColor}
-                      onChange={(e) => updateSection({ backgroundColor: e.target.value })}
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Header Overlay & Scroll Background Settings */}
-            <div className="property-group flex flex-col gap-3">
-              <label className="group-title">상단 고정 및 스크롤 배경 설정</label>
-              
-              <div 
-                onClick={() => updateSection({ headerTransparentAtTop: !section.headerTransparentAtTop })}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '10px 0',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
-                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                  <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155' }}>스크롤 전 투명 배경</span>
-                  <span style={{ fontSize: '11.5px', color: '#64748b' }}>최상단 스크롤 시 메인 슬라이드 위에 투명하게 오버레이</span>
-                </div>
-                <div style={{
-                  width: '42px',
-                  height: '24px',
-                  borderRadius: '12px',
-                  backgroundColor: section.headerTransparentAtTop ? '#0284c7' : '#cbd5e1',
-                  position: 'relative',
-                  transition: 'background-color 0.2s ease',
-                }}>
-                  <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    backgroundColor: '#ffffff',
-                    position: 'absolute',
-                    top: '2px',
-                    left: section.headerTransparentAtTop ? '20px' : '2px',
-                    transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                  }} />
-                </div>
-              </div>
-
-              {section.headerTransparentAtTop && (
-                <div className="grid-input-item">
-                  <span className="input-label">스크롤 후 배경색</span>
-                  <div className="color-picker-wrapper">
-                    <input
-                      type="color"
-                      value={(section.headerScrollBgColor || '#1e3a8a').startsWith('#') ? (section.headerScrollBgColor || '#1e3a8a') : '#1e3a8a'}
-                      onChange={(e) => updateSection({ headerScrollBgColor: e.target.value })}
-                    />
-                    <input
-                      type="text"
-                      value={section.headerScrollBgColor || '#1e3a8a'}
-                      onChange={(e) => updateSection({ headerScrollBgColor: e.target.value })}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
 
           </div>
         </div>
