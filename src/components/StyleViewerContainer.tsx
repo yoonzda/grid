@@ -262,6 +262,15 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                   <div className="base-palette-grid">
                     {baseColorsList.map((base) => (
                       <div key={base.id} className="pantone-swatch-card">
+                        <div className="pantone-card-header">
+                          <input
+                            type="text"
+                            className="pantone-name-input"
+                            value={base.name}
+                            onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
+                          />
+                        </div>
+
                         <div className="pantone-top-color" style={{ backgroundColor: base.hex }} title="클릭하여 색상 선택">
                           <input
                             type="color"
@@ -271,18 +280,9 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                         </div>
 
                         <div className="pantone-bottom-band">
-                          <input
-                            type="text"
-                            className="pantone-name-input"
-                            value={base.name}
-                            onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
-                          />
-                          <input
-                            type="text"
-                            className="pantone-hex-input"
-                            value={base.hex}
-                            onChange={(e) => updateBaseColor(base.id, e.target.value)}
-                          />
+                          <span className="pantone-hex-text">
+                            {base.hex}
+                          </span>
                         </div>
                       </div>
                     ))}
@@ -786,24 +786,44 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           flex-direction: column !important;
           background: #ffffff !important;
           border: 1px solid #cbd5e1 !important;
-          border-radius: 10px !important;
+          border-radius: 0 !important;
           overflow: hidden !important;
-          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
           transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
         }
 
         .pantone-swatch-card:hover {
           border-color: #0284c7 !important;
-          box-shadow: 0 4px 12px rgba(2, 132, 199, 0.15) !important;
-          transform: translateY(-1px) !important;
+          box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15) !important;
+        }
+
+        .pantone-card-header {
+          padding: 4px 6px !important;
+          background: #f8fafc !important;
+          border-bottom: 1px solid #e2e8f0 !important;
+        }
+
+        .pantone-name-input {
+          font-size: 11.5px !important;
+          font-weight: 700 !important;
+          color: #0f172a !important;
+          background: transparent !important;
+          border: none !important;
+          outline: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100% !important;
+          text-overflow: ellipsis !important;
+          overflow: hidden !important;
+          white-space: nowrap !important;
         }
 
         .pantone-top-color {
           width: 100% !important;
-          height: 38px !important;
+          height: 32px !important;
           position: relative !important;
           cursor: pointer !important;
-          border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+          border-radius: 0 !important;
           transition: filter 0.2s ease !important;
         }
 
@@ -821,40 +841,20 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         }
 
         .pantone-bottom-band {
-          display: flex !important;
-          flex-direction: column !important;
-          padding: 6px 8px !important;
-          background: #f8fafc !important;
-          gap: 1px !important;
+          padding: 3px 6px !important;
+          background: #ffffff !important;
+          border-top: 1px solid #f1f5f9 !important;
+          text-align: center !important;
         }
 
-        .pantone-name-input {
-          font-size: 12.5px !important;
-          font-weight: 700 !important;
-          color: #0f172a !important;
-          background: transparent !important;
-          border: none !important;
-          outline: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          width: 100% !important;
-          text-overflow: ellipsis !important;
-          overflow: hidden !important;
-          white-space: nowrap !important;
-        }
-
-        .pantone-hex-input {
-          font-size: 10.5px !important;
+        .pantone-hex-text {
+          font-size: 10px !important;
           font-family: monospace !important;
           font-weight: 600 !important;
           color: #64748b !important;
-          background: transparent !important;
-          border: none !important;
-          outline: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          width: 100% !important;
           text-transform: uppercase !important;
+          display: block !important;
+          letter-spacing: 0.5px !important;
         }
 
         .semantic-binding-list {
