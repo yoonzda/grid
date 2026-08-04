@@ -231,30 +231,39 @@ export interface Section {
   
   headerLogoText?: string;
   headerLogoColor?: string;
+  headerScrolledLogoColor?: string;
   headerLogoSize?: string;
   headerLogoType?: 'text' | 'image';
   headerLogoImg?: string;
   headerLogoImgName?: string;
+  headerScrolledLogoImg?: string;
+  headerScrolledLogoImgName?: string;
   headerLogoWidth?: number;
   
   headerMenuItems?: HeaderMenuItem[];
   headerMenuColor?: string;
+  headerScrolledMenuColor?: string;
   headerMenuSize?: string;
   
   headerBtnText?: string;
   headerBtnBgColor?: string;
   headerBtnTextColor?: string;
+  headerScrolledBtnBgColor?: string;
+  headerScrolledBtnTextColor?: string;
   headerBtnRadius?: number;
   
   // Custom Gaps & Fonts for Header Component
+  headerPaddingY?: number;
   headerGap?: number;
   headerMenuGap?: number;
+  headerPaddingYVarId?: string;
+  headerGapVarId?: string;
+  headerMenuGapVarId?: string;
   headerLogoFont?: string;
   headerMenuFont?: string;
   headerBtnFont?: string;
   headerBtnSize?: ButtonSize;
   headerBtnVariant?: ButtonVariant;
-  headerPaddingY?: number;
 
   // Footer Component fields
   footerCompany?: string;

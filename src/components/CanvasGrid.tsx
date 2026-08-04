@@ -3,6 +3,7 @@ import { Section, EditorElement, GuidelineWidth, Page, ThemeSettings } from '../
 import { ElementWrapper } from './ElementWrapper';
 import { useGridSnap } from '../hooks/useGridSnap';
 import { getFontFamilyByFamilyName } from '../utils/fontManager';
+import { DEFAULT_SPACING_PRESETS } from '../utils/templates';
 
 export const extractYouTubeId = (url?: string): string | null => {
   if (!url) return null;
@@ -30,6 +31,7 @@ interface CanvasGridProps {
   previewHeaderState?: 'top' | 'scrolled' | null;
   previewFlexAlign?: string | null;
   previewHeaderLogoFont?: string | null;
+  viewportMode?: 'pc' | 'tab' | 'mo';
 }
 
 export const getMarginPercent = (gWidth?: GuidelineWidth) => {
@@ -572,6 +574,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   previewHeaderState,
   previewFlexAlign,
   previewHeaderLogoFont,
+  viewportMode = 'pc',
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
@@ -767,9 +770,27 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     const isSelectedHeader = activeSectionId === sec.id;
     const layout = sec.headerLayout || 'spread-center';
     
+    const isHeaderTransparentState = (sec.headerTransparentAtTop !== false && activePageId === 'main') && (previewHeaderState === 'top' || !previewHeaderState);
+
+    const activeLogoColor = isHeaderTransparentState
+      ? (sec.headerLogoColor || 'var(--theme-text-inverse)')
+      : (sec.headerScrolledLogoColor || 'var(--theme-text-inverse)');
+
+    const activeMenuColor = isHeaderTransparentState
+      ? (sec.headerMenuColor || 'var(--theme-text-inverse)')
+      : (sec.headerScrolledMenuColor || 'var(--theme-text-inverse)');
+
+    const activeBtnBg = isHeaderTransparentState
+      ? (sec.headerBtnBgColor || 'var(--theme-secondary)')
+      : (sec.headerScrolledBtnBgColor || sec.headerBtnBgColor || 'var(--theme-secondary)');
+
+    const activeBtnText = isHeaderTransparentState
+      ? (sec.headerBtnTextColor || 'var(--theme-text-inverse)')
+      : (sec.headerScrolledBtnTextColor || sec.headerBtnTextColor || 'var(--theme-text-inverse)');
+
     const activeLogoFont = (isSelectedHeader && previewHeaderLogoFont) ? previewHeaderLogoFont : (sec.headerLogoFont || 'Inter');
     const logoStyle: React.CSSProperties = {
-      color: sec.headerLogoColor || '#ffffff',
+      color: activeLogoColor,
       fontSize: sec.headerLogoSize || '20px',
       fontWeight: 800,
       fontFamily: getFontFamilyByFamilyName(activeLogoFont),
@@ -779,7 +800,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     };
 
     const menuStyle: React.CSSProperties = {
-      color: sec.headerMenuColor || '#cbd5e1',
+      color: activeMenuColor,
       fontSize: sec.headerMenuSize || '15px',
       fontWeight: 500,
       fontFamily: sec.headerMenuFont || 'inherit',
@@ -791,17 +812,17 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     const btnVariant = sec.headerBtnVariant || 'filled';
     const btnSize = sec.headerBtnSize || 'medium';
     
-    let btnBgColor = sec.headerBtnBgColor || 'var(--theme-secondary)';
-    let btnTextColor = sec.headerBtnTextColor || '#ffffff';
+    let btnBgColor = activeBtnBg;
+    let btnTextColor = activeBtnText;
     let btnBorder = 'none';
     
     if (btnVariant === 'outlined') {
       btnBgColor = 'transparent';
-      btnTextColor = sec.headerBtnBgColor || 'var(--theme-secondary)';
-      btnBorder = `2px solid ${sec.headerBtnBgColor || 'var(--theme-secondary)'}`;
+      btnTextColor = activeBtnBg;
+      btnBorder = `2px solid ${activeBtnBg}`;
     } else if (btnVariant === 'ghost') {
       btnBgColor = 'transparent';
-      btnTextColor = sec.headerBtnBgColor || 'var(--theme-secondary)';
+      btnTextColor = activeBtnBg;
       btnBorder = 'none';
     }
     
@@ -828,6 +849,10 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       whiteSpace: 'nowrap',
     };
 
+    const activeLogoImg = isHeaderTransparentState
+      ? sec.headerLogoImg
+      : (sec.headerScrolledLogoImg || sec.headerLogoImg);
+
     const logoNode = sec.headerShowLogo !== false && (
       <div 
         className="header-logo-container" 
@@ -838,11 +863,11 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           setActiveElement(null);
         }}
       >
-        {sec.headerLogoType === 'image' && sec.headerLogoImg ? (
+        {sec.headerLogoType === 'image' && activeLogoImg ? (
           <img 
-            src={sec.headerLogoImg} 
+            src={activeLogoImg} 
             alt={sec.headerLogoText || 'LOGO'} 
-            style={{ width: `${sec.headerLogoWidth || 120}px`, height: 'auto', display: 'block' }}
+            style={{ maxHeight: `${sec.headerLogoWidth || 40}px`, width: 'auto', maxWidth: '240px', objectFit: 'contain', display: 'block' }}
           />
         ) : (
           <h1 style={logoStyle}>{sec.headerLogoText || 'CORPORATE'}</h1>
@@ -1210,9 +1235,9 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         className="canvas-paper-artboard"
         style={{
           width: '100%',
-          minWidth: '1024px',
+          minWidth: viewportMode === 'pc' ? '1024px' : '0',
           height: 'fit-content',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.05)',
+          boxShadow: viewportMode === 'pc' ? '0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 8px rgba(0, 0, 0, 0.04), 0 0 0 1px rgba(0, 0, 0, 0.05)' : 'none',
           borderRadius: '0px',
           overflow: 'hidden',
           backgroundColor: '#ffffff',
@@ -1324,27 +1349,40 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
         const isHeaderComp = sec.sharedType === 'header';
 
         let isHeaderTransparent = false;
-        if (isHeaderComp) {
-          if (isEditingThisHeader && previewHeaderState) {
-            isHeaderTransparent = previewHeaderState === 'top';
-          } else {
-            isHeaderTransparent = sec.headerTransparentAtTop !== false && activePageId === 'main';
+        let isHeaderOverlayMode = false;
+
+        if (isHeaderComp && activePageId === 'main') {
+          const transparentEnabled = sec.headerTransparentAtTop !== false;
+          if (transparentEnabled) {
+            isHeaderOverlayMode = true;
+            if (isEditingThisHeader && previewHeaderState) {
+              isHeaderTransparent = previewHeaderState === 'top';
+            } else {
+              isHeaderTransparent = true;
+            }
           }
         }
 
         const headerNodeBgColor = isHeaderComp
-          ? (isHeaderTransparent ? 'transparent' : (sec.headerScrollBgColor || sec.backgroundColor || 'var(--theme-primary, #1e3a8a)'))
+          ? (isHeaderTransparent ? 'transparent' : (sec.backgroundColor || sec.headerScrollBgColor || 'var(--theme-primary, #1e3a8a)'))
           : sec.backgroundColor;
 
-        const headerMarginBottom = (isHeaderComp && isHeaderTransparent) ? '-70px' : '0px';
-        const headerZIndex = (isHeaderComp && isHeaderTransparent) ? 40 : (isFocused ? 20 : 1);
+        const isOverlay = isHeaderComp && isHeaderOverlayMode;
+        const headerPosition = isOverlay ? 'absolute' : 'relative';
+        const headerTop = isOverlay ? 0 : undefined;
+        const headerLeft = isOverlay ? 0 : undefined;
+        const headerZIndex = isOverlay ? 50 : (isFocused ? 20 : 1);
 
         return (
           <div
             key={sec.id}
             id={`section-${sec.id}`}
-            className={`canvas-section-node section-${sec.id} relative w-full ${isFocused ? 'active-section' : ''}`}
+            className={`canvas-section-node section-${sec.id} w-full ${isFocused ? 'active-section' : ''}`}
             style={{
+              position: headerPosition,
+              top: headerTop,
+              left: headerLeft,
+              zIndex: headerZIndex,
               minHeight: (sec.sharedType === 'header' || sec.sharedType === 'footer' || sec.heightMode === 'auto')
                 ? 'auto'
                 : (sec.heightUnit === 'dvh' || sec.heightUnit === 'vh')
@@ -1356,7 +1394,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               backgroundPosition: sec.backgroundPosition || 'center',
               backgroundSize: sec.backgroundSize || 'cover',
               backgroundRepeat: sec.backgroundRepeat || 'no-repeat',
-              marginBottom: headerMarginBottom,
+              marginBottom: 0,
               '--content-width': gWidth,
               display: 'flex',
               flexDirection: 'column',
@@ -1373,8 +1411,6 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               boxShadow: isFocused 
                 ? `inset 0 0 0 2.5px ${rawThemeAccent}` 
                 : 'none',
-              position: 'relative',
-              zIndex: headerZIndex,
             } as React.CSSProperties}
             onClick={(e) => {
               const target = e.target as HTMLElement;
@@ -1496,13 +1532,19 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             {/* 2. Centered Content Grid Container */}
             <div
               className="section-grid-container"
-              style={(sec.sharedType === 'header' || sec.sharedType === 'footer') ? { 
-                width: getContentPercent(gWidth), 
-                height: 'auto',
-                minHeight: 'auto',
-                paddingTop: sec.sharedType === 'header' ? `${sec.headerPaddingY ?? 16}px` : 0,
-                paddingBottom: sec.sharedType === 'header' ? `${sec.headerPaddingY ?? 16}px` : 0,
-              } : {
+              style={(sec.sharedType === 'header' || sec.sharedType === 'footer') ? (() => {
+                const presets = themeSettings?.spacingPresets || DEFAULT_SPACING_PRESETS;
+                const headerPadY = sec.headerPaddingYVarId
+                  ? (presets.find((p: any) => p.id === sec.headerPaddingYVarId)?.value ?? sec.headerPaddingY ?? 16)
+                  : (sec.headerPaddingY ?? 16);
+                return { 
+                  width: getContentPercent(gWidth), 
+                  height: 'auto',
+                  minHeight: 'auto',
+                  paddingTop: sec.sharedType === 'header' ? `${headerPadY}px` : 0,
+                  paddingBottom: sec.sharedType === 'header' ? `${headerPadY}px` : 0,
+                };
+              })() : {
                 width: getContentPercent(gWidth), 
                 height: 'auto',
                 minHeight: 'auto',
@@ -1691,10 +1733,10 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
 
         .canvas-grid-root {
           width: 100%;
-          min-width: calc(1024px + 56px);
+          min-width: 0;
           min-height: 100%;
           position: relative;
-          padding: 32px 28px;
+          padding: ${viewportMode === 'pc' ? '32px 28px' : '0'};
           box-sizing: border-box;
           cursor: default;
         }

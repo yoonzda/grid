@@ -1,6 +1,7 @@
 import { Page, ThemeSettings, GeneratedFiles } from '../types';
 import { SUPPORTED_FONTS, getFontFamilyByFamilyName } from './fontManager';
 import { getIconSvg } from './iconTemplates';
+import { DEFAULT_SPACING_PRESETS } from './templates';
 
 function hexToRgb(hex: string): string {
   if (!hex || !hex.startsWith('#')) return '24, 160, 251';
@@ -102,26 +103,42 @@ ${fontImports.join('\n')}
       writtenSections.add(sec.id);
 
       if (sec.sharedType === 'header') {
+        const solidBg = sec.backgroundColor || sec.headerScrollBgColor || 'var(--theme-primary)';
+        const presets = theme.spacingPresets || DEFAULT_SPACING_PRESETS;
+        const resPaddingY = sec.headerPaddingYVarId
+          ? (presets.find((p: any) => p.id === sec.headerPaddingYVarId)?.value ?? sec.headerPaddingY ?? 16)
+          : (sec.headerPaddingY ?? 16);
+        const resGap = sec.headerGapVarId
+          ? (presets.find((p: any) => p.id === sec.headerGapVarId)?.value ?? sec.headerGap ?? 40)
+          : (sec.headerGap ?? 40);
+        const resMenuGap = sec.headerMenuGapVarId
+          ? (presets.find((p: any) => p.id === sec.headerMenuGapVarId)?.value ?? sec.headerMenuGap ?? 24)
+          : (sec.headerMenuGap ?? 24);
+
         variablesCss += `\n  /* --- Header Component: ${sec.id} --- */\n`;
-        variablesCss += `  --sec-${sec.id}-bg-color: ${sec.backgroundColor};\n`;
-        variablesCss += `  --header-${sec.id}-padding-y: ${sec.headerPaddingY ?? 16}px;\n`;
-        variablesCss += `  --header-${sec.id}-gap: ${sec.headerGap ?? 40}px;\n`;
-        variablesCss += `  --header-${sec.id}-menu-gap: ${sec.headerMenuGap ?? 24}px;\n`;
+        variablesCss += `  --sec-${sec.id}-bg-color: ${solidBg};\n`;
+        variablesCss += `  --header-${sec.id}-scroll-bg: ${solidBg};\n`;
+        variablesCss += `  --header-${sec.id}-padding-y: ${resPaddingY}px;\n`;
+        variablesCss += `  --header-${sec.id}-gap: ${resGap}px;\n`;
+        variablesCss += `  --header-${sec.id}-menu-gap: ${resMenuGap}px;\n`;
         
-        variablesCss += `  --header-${sec.id}-logo-color: ${sec.headerLogoColor || '#ffffff'};\n`;
+        variablesCss += `  --header-${sec.id}-logo-color: ${sec.headerLogoColor || 'var(--theme-text-inverse)'};\n`;
+        variablesCss += `  --header-${sec.id}-scrolled-logo-color: ${sec.headerScrolledLogoColor || sec.headerLogoColor || 'var(--theme-text-inverse)'};\n`;
         variablesCss += `  --header-${sec.id}-logo-size: ${sec.headerLogoSize || '20px'};\n`;
         variablesCss += `  --header-${sec.id}-logo-font: ${getFontFamilyByFamilyName(sec.headerLogoFont || 'Inter')};\n`;
-        variablesCss += `  --header-${sec.id}-logo-width: ${sec.headerLogoWidth || 120}px;\n`;
+        variablesCss += `  --header-${sec.id}-logo-height: ${sec.headerLogoWidth || 40}px;\n`;
         
-        variablesCss += `  --header-${sec.id}-menu-color: ${sec.headerMenuColor || '#cbd5e1'};\n`;
+        variablesCss += `  --header-${sec.id}-menu-color: ${sec.headerMenuColor || 'var(--theme-text-inverse)'};\n`;
+        variablesCss += `  --header-${sec.id}-scrolled-menu-color: ${sec.headerScrolledMenuColor || sec.headerMenuColor || 'var(--theme-text-inverse)'};\n`;
         variablesCss += `  --header-${sec.id}-menu-size: ${sec.headerMenuSize || '15px'};\n`;
         variablesCss += `  --header-${sec.id}-menu-font: ${getFontFamilyByFamilyName(sec.headerMenuFont || 'Inter')};\n`;
         
         const headerBtnBg = sec.headerBtnBgColor || 'var(--theme-secondary)';
-        const isHex = headerBtnBg.startsWith('#');
+        const headerBtnText = sec.headerBtnTextColor || 'var(--theme-text-inverse)';
         variablesCss += `  --header-${sec.id}-btn-bg: ${headerBtnBg};\n`;
-        variablesCss += `  --header-${sec.id}-btn-hover-bg: ${isHex ? adjustColorBrightness(headerBtnBg, -15) : 'var(--theme-secondary)'};\n`;
-        variablesCss += `  --header-${sec.id}-btn-text-color: ${sec.headerBtnTextColor || '#ffffff'};\n`;
+        variablesCss += `  --header-${sec.id}-btn-text-color: ${headerBtnText};\n`;
+        variablesCss += `  --header-${sec.id}-scrolled-btn-bg: ${sec.headerScrolledBtnBgColor || headerBtnBg};\n`;
+        variablesCss += `  --header-${sec.id}-scrolled-btn-text-color: ${sec.headerScrolledBtnTextColor || headerBtnText};\n`;
         variablesCss += `  --header-${sec.id}-btn-radius: ${sec.headerBtnRadius ?? 4}px;\n`;
         variablesCss += `  --header-${sec.id}-btn-font: ${getFontFamilyByFamilyName(sec.headerBtnFont || 'Inter')};\n`;
         return;
@@ -191,6 +208,10 @@ ${(theme.fontPresets || []).map(p => `
   color: var(--theme-font-preset-${p.id}-color) !important;
 }
 `).join('\n')}
+
+html {
+  scroll-behavior: smooth;
+}
 
 * {
   box-sizing: border-box;
@@ -322,29 +343,79 @@ body {
         styleCss += `\n/* Header Component: ${sec.id} */\n`;
         styleCss += `.section-${sec.id} {\n`;
         styleCss += `  --content-width: ${sec.guidelineWidth || '80%'};\n`;
-        if (sec.headerTransparentAtTop || sec.headerIsFixed) {
-          styleCss += `  position: fixed;\n`;
-          styleCss += `  top: 0;\n`;
-          styleCss += `  left: 0;\n`;
-          styleCss += `  right: 0;\n`;
-          styleCss += `  z-index: 1000;\n`;
-          styleCss += `  transition: background-color 0.3s ease, box-shadow 0.3s ease;\n`;
-          styleCss += `  background-color: ${sec.headerTransparentAtTop ? 'transparent' : 'var(--sec-' + sec.id + '-bg-color)'};\n`;
-        } else {
-          styleCss += `  background-color: var(--sec-${sec.id}-bg-color);\n`;
-        }
         styleCss += `  padding-top: var(--header-${sec.id}-padding-y);\n`;
         styleCss += `  padding-bottom: var(--header-${sec.id}-padding-y);\n`;
         styleCss += `  display: flex;\n`;
         styleCss += `  align-items: center;\n`;
+        styleCss += `  width: 100%;\n`;
+        styleCss += `  box-sizing: border-box;\n`;
         styleCss += `}\n`;
-        
-        if (sec.headerTransparentAtTop) {
-          styleCss += `.section-${sec.id}.scrolled {\n`;
-          styleCss += `  background-color: ${sec.headerScrollBgColor || '#1e3a8a'} !important;\n`;
+
+        const isTransparentMode = sec.headerTransparentAtTop !== false;
+        if (isTransparentMode) {
+          styleCss += `/* Main page transparent fixed header default */\n`;
+          styleCss += `body.page-main .section-${sec.id} {\n`;
+          styleCss += `  position: absolute;\n`;
+          styleCss += `  top: 0;\n`;
+          styleCss += `  left: 0;\n`;
+          styleCss += `  right: 0;\n`;
+          styleCss += `  z-index: 1000;\n`;
+          styleCss += `  background-color: transparent;\n`;
+          styleCss += `  transition: background-color 0.3s ease, box-shadow 0.3s ease;\n`;
+          styleCss += `}\n`;
+          styleCss += `body.page-main .section-${sec.id} .header-logo { color: var(--header-${sec.id}-logo-color); }\n`;
+          styleCss += `body.page-main .section-${sec.id} .header-menu-link { color: var(--header-${sec.id}-menu-color); }\n`;
+          styleCss += `body.page-main .section-${sec.id} .header-btn { background-color: var(--header-${sec.id}-btn-bg); color: var(--header-${sec.id}-btn-text-color); }\n`;
+
+          styleCss += `/* Main page scrolled header state */\n`;
+          styleCss += `body.page-main .section-${sec.id}.scrolled {\n`;
+          styleCss += `  position: fixed;\n`;
+          styleCss += `  background-color: var(--header-${sec.id}-scroll-bg) !important;\n`;
           styleCss += `  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);\n`;
           styleCss += `}\n`;
+          styleCss += `body.page-main .section-${sec.id}.scrolled .header-logo { color: var(--header-${sec.id}-scrolled-logo-color); }\n`;
+          styleCss += `body.page-main .section-${sec.id}.scrolled .header-menu-link { color: var(--header-${sec.id}-scrolled-menu-color); }\n`;
+          styleCss += `body.page-main .section-${sec.id}.scrolled .header-btn { background-color: var(--header-${sec.id}-scrolled-btn-bg); color: var(--header-${sec.id}-scrolled-btn-text-color); }\n`;
+
+          styleCss += `body.page-main .section-${sec.id} .logo-img-scrolled { display: none !important; }\n`;
+          styleCss += `body.page-main .section-${sec.id} .logo-img-default { display: block !important; }\n`;
+          styleCss += `body.page-main .section-${sec.id}.scrolled .logo-img-default { display: none !important; }\n`;
+          styleCss += `body.page-main .section-${sec.id}.scrolled .logo-img-scrolled { display: block !important; }\n`;
+
+          styleCss += `/* Subpage solid fixed/sticky header state */\n`;
+          styleCss += `body:not(.page-main) .section-${sec.id} {\n`;
+          styleCss += `  position: sticky;\n`;
+          styleCss += `  top: 0;\n`;
+          styleCss += `  z-index: 1000;\n`;
+          styleCss += `  background-color: var(--header-${sec.id}-scroll-bg);\n`;
+          styleCss += `  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);\n`;
+          styleCss += `}\n`;
+          styleCss += `body:not(.page-main) .section-${sec.id} .header-logo { color: var(--header-${sec.id}-scrolled-logo-color); }\n`;
+          styleCss += `body:not(.page-main) .section-${sec.id} .header-menu-link { color: var(--header-${sec.id}-scrolled-menu-color); }\n`;
+          styleCss += `body:not(.page-main) .section-${sec.id} .header-btn { background-color: var(--header-${sec.id}-scrolled-btn-bg); color: var(--header-${sec.id}-scrolled-btn-text-color); }\n`;
+
+          styleCss += `body:not(.page-main) .section-${sec.id} .logo-img-default { display: none !important; }\n`;
+          styleCss += `body:not(.page-main) .section-${sec.id} .logo-img-scrolled { display: block !important; }\n`;
+          styleCss += `body:not(.page-main) .section-${sec.id} .logo-img-only { display: block !important; }\n`;
+        } else {
+          styleCss += `.section-${sec.id} {\n`;
+          styleCss += `  position: relative;\n`;
+          styleCss += `  z-index: 100;\n`;
+          styleCss += `  background-color: var(--header-${sec.id}-scroll-bg);\n`;
+          styleCss += `}\n`;
+          styleCss += `.section-${sec.id} .header-logo { color: var(--header-${sec.id}-scrolled-logo-color); }\n`;
+          styleCss += `.section-${sec.id} .header-menu-link { color: var(--header-${sec.id}-scrolled-menu-color); }\n`;
+          styleCss += `.section-${sec.id} .header-btn { background-color: var(--header-${sec.id}-scrolled-btn-bg); color: var(--header-${sec.id}-scrolled-btn-text-color); }\n`;
+          styleCss += `.section-${sec.id} .logo-img-only { display: block !important; }\n`;
         }
+
+        styleCss += `.section-${sec.id} .header-logo img {\n`;
+        styleCss += `  max-height: var(--header-${sec.id}-logo-height);\n`;
+        styleCss += `  width: auto;\n`;
+        styleCss += `  max-width: 240px;\n`;
+        styleCss += `  object-fit: contain;\n`;
+        styleCss += `  display: block;\n`;
+        styleCss += `}\n`;
         
         styleCss += `.section-${sec.id} .header-flex-wrapper {\n`;
         styleCss += `  display: flex;\n`;
@@ -408,10 +479,31 @@ body {
         styleCss += `}\n`;
 
         styleCss += `.section-${sec.id} .header-flex-wrapper.standard-flow {\n`;
+        styleCss += `  display: flex;\n`;
+        styleCss += `  align-items: center;\n`;
+        styleCss += `  width: var(--content-width);\n`;
+        styleCss += `  margin: 0 auto;\n`;
+        styleCss += `  justify-content: flex-start;\n`;
         styleCss += `  gap: var(--header-${sec.id}-gap);\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .header-flex-wrapper.layout-spread-between {\n`;
+        styleCss += `  justify-content: space-between;\n`;
+        styleCss += `  gap: 0;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .header-flex-wrapper.layout-right {\n`;
+        styleCss += `  justify-content: flex-end;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .header-flex-wrapper.layout-center {\n`;
+        styleCss += `  justify-content: center;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .header-flex-wrapper.layout-even-space {\n`;
+        styleCss += `  justify-content: space-around;\n`;
+        styleCss += `  gap: 0;\n`;
         styleCss += `}\n`;
 
         styleCss += `.section-${sec.id} .header-menu-container {\n`;
+        styleCss += `  display: flex;\n`;
+        styleCss += `  align-items: center;\n`;
         styleCss += `  gap: var(--header-${sec.id}-menu-gap);\n`;
         styleCss += `}\n`;
 
@@ -504,6 +596,18 @@ body {
         styleCss += `  gap: 14px;\n`;
         styleCss += `  font-size: 13px;\n`;
         styleCss += `  font-weight: 700;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .footer-link {\n`;
+        styleCss += `  color: inherit;\n`;
+        styleCss += `  text-decoration: none;\n`;
+        styleCss += `  transition: opacity 0.2s;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .footer-link:hover {\n`;
+        styleCss += `  opacity: 0.8;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .footer-link-divider {\n`;
+        styleCss += `  opacity: 0.4;\n`;
+        styleCss += `  margin: 0 4px;\n`;
         styleCss += `}\n`;
         styleCss += `.section-${sec.id} .footer-info-row {\n`;
         styleCss += `  display: flex;\n`;
@@ -1057,6 +1161,73 @@ body {
 .card-item-title { font-size: 16px; font-weight: 700; color: #0f172a; margin: 0 0 8px 0; line-height: 1.4; }
 .card-desc { font-size: 13px; color: #64748b; margin: 0 0 14px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card-date { font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 10px; }
+
+/* Responsive Media Queries */
+
+/* Desktop Large Screen (min 1280px) */
+@media screen and (min-width: 1280px) {
+  .header-flex-wrapper, .section-content, .footer-wrapper {
+    width: var(--content-width, 80%);
+    max-width: 1440px;
+  }
+}
+
+/* Tablet Screen (768px ~ 1279px) */
+@media screen and (min-width: 768px) and (max-width: 1279px) {
+  .header-flex-wrapper, .section-content, .footer-wrapper {
+    width: 90% !important;
+  }
+  .header-menu-container {
+    gap: 16px !important;
+  }
+  .header-menu-link {
+    font-size: 13.5px !important;
+  }
+  .section {
+    padding-left: 20px !important;
+    padding-right: 20px !important;
+  }
+}
+
+/* Mobile Screen (max 767px) */
+@media screen and (max-width: 767px) {
+  .header-flex-wrapper, .section-content, .footer-wrapper {
+    width: 92% !important;
+  }
+  .header-flex-wrapper.standard-flow,
+  .header-flex-wrapper.layout-spread-between {
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 12px !important;
+    padding: 12px 0 !important;
+  }
+  .header-menu-container {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 12px !important;
+  }
+  .header-menu-link {
+    font-size: 13px !important;
+  }
+  .section-content {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+  .three-column-container {
+    flex-direction: column !important;
+    gap: 20px !important;
+  }
+  .title-element {
+    font-size: 24px !important;
+    word-break: keep-all !important;
+  }
+  .text-element {
+    font-size: 14px !important;
+    word-break: keep-all !important;
+  }
+}
 `;
 
   // 3. Generate HTML code for EACH page
@@ -1142,7 +1313,7 @@ ${fontLinksHtml}
   <link rel="stylesheet" href="variables.css">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="${p.id === 'main' ? 'page-main' : 'page-sub'}">
   <div class="webpage">
 `;
 
@@ -1154,17 +1325,28 @@ ${fontLinksHtml}
         
         const layout = sec.headerLayout || 'spread-center';
         
-        const logoNode = sec.headerShowLogo !== false
-          ? (sec.headerLogoType === 'image' && sec.headerLogoImg
-              ? `<a href="index.html" class="header-logo"><img src="${sec.headerLogoImg}" alt="${sec.headerLogoText || 'LOGO'}"></a>`
-              : `<a href="index.html" class="header-logo">${sec.headerLogoText || 'CORPORATE'}</a>`)
-          : '';
+        let logoNode = '';
+        if (sec.headerShowLogo !== false) {
+          if (sec.headerLogoType === 'image' && (sec.headerLogoImg || sec.headerScrolledLogoImg)) {
+            if (sec.headerLogoImg && sec.headerScrolledLogoImg) {
+              logoNode = `<a href="index.html" class="header-logo"><img src="${sec.headerLogoImg}" alt="${sec.headerLogoText || 'LOGO'}" class="logo-img logo-img-default"><img src="${sec.headerScrolledLogoImg}" alt="${sec.headerLogoText || 'LOGO'}" class="logo-img logo-img-scrolled"></a>`;
+            } else {
+              const activeImg = sec.headerLogoImg || sec.headerScrolledLogoImg;
+              logoNode = `<a href="index.html" class="header-logo"><img src="${activeImg}" alt="${sec.headerLogoText || 'LOGO'}" class="logo-img logo-img-only"></a>`;
+            }
+          } else {
+            logoNode = `<a href="index.html" class="header-logo">${sec.headerLogoText || 'CORPORATE'}</a>`;
+          }
+        }
         
         let menuNode = '';
         if (sec.headerShowMenu !== false) {
-          menuNode += `<nav style="display: flex; gap: 24px; align-items: center;">\n`;
+          menuNode += `<nav class="header-menu-container">\n`;
           (sec.headerMenuItems || []).forEach(item => {
-            menuNode += `            <a href="${item.fileName}" class="header-menu-link">${item.name}</a>\n`;
+            const matchedPage = pages.find(pl => pl.fileName === item.fileName || pl.name === item.name || (pl.id === 'submain' && (item.name === '소개' || item.fileName === 'introduce.html')));
+            const targetUrl = matchedPage ? matchedPage.fileName : (item.fileName || '#');
+            const isActive = matchedPage && matchedPage.id === p.id ? 'active' : '';
+            menuNode += `            <a href="${targetUrl}" class="header-menu-link ${isActive}">${item.name}</a>\n`;
           });
           menuNode += `          </nav>`;
         }
@@ -1189,13 +1371,7 @@ ${fontLinksHtml}
           indexHtml += `        </div>\n`;
           indexHtml += `      </div>\n`;
         } else {
-          let justifyStyle = 'flex-start';
-          if (layout === 'spread-between') justifyStyle = 'space-between';
-          if (layout === 'right') justifyStyle = 'flex-end';
-          if (layout === 'center') justifyStyle = 'center';
-          if (layout === 'even-space') justifyStyle = 'space-around';
-          
-          indexHtml += `      <div class="header-flex-wrapper standard-flow" style="display: flex; align-items: center; justify-content: ${justifyStyle}; gap: ${layout === 'even-space' || layout === 'spread-between' ? '0' : '40px'}; width: 100%;">\n`;
+          indexHtml += `      <div class="header-flex-wrapper standard-flow layout-${layout}">\n`;
           if (logoNode) indexHtml += `        ${logoNode}\n`;
           if (menuNode) indexHtml += `        ${menuNode}\n`;
           if (btnNode) indexHtml += `        ${btnNode}\n`;
@@ -1224,8 +1400,8 @@ ${fontLinksHtml}
             const isPrivacy = trimmed.includes('개인정보');
             const isTerms = trimmed.includes('약관') || trimmed.includes('이용약관');
             const href = isPrivacy ? 'privacy.html' : isTerms ? 'terms.html' : '#';
-            return `<a href="${href}" style="color: inherit; text-decoration: none;">${trimmed}</a>`;
-          }).join(' &nbsp;|&nbsp; ');
+            return `<a href="${href}" class="footer-link">${trimmed}</a>`;
+          }).join(' <span class="footer-link-divider">|</span> ');
         } else {
           linksHtml = linksStr;
         }

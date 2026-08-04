@@ -17,25 +17,25 @@ export const BUSINESS_THEME: ThemeSettings = {
   // 0. BASE PALETTE & SEMANTIC MAPPINGS
   baseColors: [
     { id: 'base-navy', name: '딥네이비', hex: '#1e3a8a' },
-    { id: 'base-slate', name: '슬레이트', hex: '#4b5563' },
+    { id: 'base-slate', name: '차콜', hex: '#475569' },
     { id: 'base-sky', name: '스카이블루', hex: '#0284c7' },
-    { id: 'base-blue-tint', name: '소프트블루', hex: '#eff6ff' },
+    { id: 'base-teal', name: '청록', hex: '#0d9488' },
+    { id: 'base-rose', name: '레드', hex: '#e11d48' },
     { id: 'base-white', name: '화이트', hex: '#ffffff' },
-    { id: 'base-light-gray', name: '연회색', hex: '#f8fafc' },
-    { id: 'base-dark-slate', name: '다크슬레이트', hex: '#0f172a' },
-    { id: 'base-border-gray', name: '라인회색', hex: '#cbd5e1' }
+    { id: 'base-light-gray', name: '연회색', hex: '#f1f5f9' },
+    { id: 'base-dark-slate', name: '다크슬레이트', hex: '#0f172a' }
   ],
   semanticMappings: {
     primary: 'base-navy',
     secondary: 'base-slate',
     accent: 'base-sky',
-    brandLight: 'base-blue-tint',
+    brandLight: 'base-teal',
     backgroundColor: 'base-white',
     surfaceColor: 'base-light-gray',
     darkBgColor: 'base-dark-slate',
     textColor: 'base-dark-slate',
     subtextColor: 'base-slate',
-    borderColor: 'base-border-gray'
+    borderColor: 'base-light-gray'
   },
 
   // 1. BRAND COLOR MODULE
@@ -63,14 +63,14 @@ export const BUSINESS_THEME: ThemeSettings = {
   defaultSectionPadding: 40,
   spacingPresets: DEFAULT_SPACING_PRESETS,
   fontPresets: [
-    { id: 'title-1', name: '타이틀 1 (대형)', fontSize: '32px', fontFamily: 'Inter', fontWeight: '700', color: '#1e3a8a' },
-    { id: 'title-2', name: '타이틀 2 (중형)', fontSize: '24px', fontFamily: 'Inter', fontWeight: '700', color: '#1e3a8a' },
-    { id: 'title-3', name: '타이틀 3 (소형)', fontSize: '18px', fontFamily: 'Inter', fontWeight: '700', color: '#1e3a8a' },
-    { id: 'body-1', name: '본문 1 (기본)', fontSize: '14px', fontFamily: 'Inter', fontWeight: '400', color: '#1f2937' },
-    { id: 'body-2', name: '본문 2 (상세)', fontSize: '13px', fontFamily: 'Inter', fontWeight: '400', color: '#4b5563' },
-    { id: 'menu', name: '네비게이션 메뉴', fontSize: '13px', fontFamily: 'Inter', fontWeight: '500', color: '#cbd5e1' },
-    { id: 'button', name: '버튼 텍스트', fontSize: '14px', fontFamily: 'Inter', fontWeight: '600', color: '#ffffff' },
-    { id: 'footer', name: '푸터 텍스트', fontSize: '12px', fontFamily: 'Inter', fontWeight: '400', color: '#9ca3af' }
+    { id: 'title-1', name: '타이틀 1 (대형)', fontSize: '32px', fontFamily: 'Inter', fontWeight: '700', color: 'var(--theme-primary)' },
+    { id: 'title-2', name: '타이틀 2 (중형)', fontSize: '24px', fontFamily: 'Inter', fontWeight: '700', color: 'var(--theme-primary)' },
+    { id: 'title-3', name: '타이틀 3 (소형)', fontSize: '18px', fontFamily: 'Inter', fontWeight: '700', color: 'var(--theme-primary)' },
+    { id: 'body-1', name: '본문 1 (기본)', fontSize: '14px', fontFamily: 'Inter', fontWeight: '400', color: 'var(--theme-text)' },
+    { id: 'body-2', name: '본문 2 (상세)', fontSize: '13px', fontFamily: 'Inter', fontWeight: '400', color: 'var(--theme-subtext)' },
+    { id: 'menu', name: '네비게이션 메뉴', fontSize: '13px', fontFamily: 'Inter', fontWeight: '500', color: 'var(--theme-subtext)' },
+    { id: 'button', name: '버튼 텍스트', fontSize: '14px', fontFamily: 'Inter', fontWeight: '600', color: 'var(--theme-text-inverse)' },
+    { id: 'footer', name: '푸터 텍스트', fontSize: '12px', fontFamily: 'Inter', fontWeight: '400', color: 'var(--theme-subtext)' }
   ]
 };
 
@@ -88,44 +88,51 @@ const getBusinessHeader = (): Section => ({
   headerShowMenu: true,
   headerShowBtn: true,
   headerTransparentAtTop: true,
-  headerScrollBgColor: '#1e3a8a',
+  headerScrollBgColor: 'var(--theme-primary)',
   headerIsFixed: true,
   
   headerLogoText: 'CORPORATE',
-  headerLogoColor: '#ffffff',
+  headerLogoColor: 'var(--theme-text-inverse)',
+  headerScrolledLogoColor: 'var(--theme-text-inverse)',
   headerLogoSize: '20px',
   headerLogoType: 'text',
   headerLogoWidth: 120,
   
   headerMenuItems: [
     { id: 'm1', name: '메인', fileName: 'index.html' },
-    { id: 'm2', name: '소개', fileName: 'introduce.html' },
+    { id: 'm2', name: '소개', fileName: 'submain.html' },
     { id: 'm3', name: '로그인', fileName: 'login.html' },
     { id: 'm4', name: '마이페이지', fileName: 'mypage.html' },
     { id: 'm5', name: '게시판', fileName: 'board.html' },
     { id: 'm6', name: '약관', fileName: 'terms.html' }
   ],
-  headerMenuColor: '#cbd5e1',
+  headerMenuColor: 'var(--theme-text-inverse)',
+  headerScrolledMenuColor: 'var(--theme-text-inverse)',
   headerMenuSize: '15px',
   
   headerBtnText: '문의하기',
   headerBtnBgColor: 'var(--theme-secondary)',
-  headerBtnTextColor: '#ffffff',
+  headerBtnTextColor: 'var(--theme-text-inverse)',
+  headerScrolledBtnBgColor: 'var(--theme-secondary)',
+  headerScrolledBtnTextColor: 'var(--theme-text-inverse)',
   headerBtnRadius: 4,
-  headerGap: 40,
-  headerMenuGap: 24,
+  headerPaddingY: 16,
+  headerPaddingYVarId: 'space-md',
+  headerGap: 48,
+  headerGapVarId: 'space-2xl',
+  headerMenuGap: 28,
+  headerMenuGapVarId: 'space-xl',
   headerLogoFont: 'Inter',
   headerMenuFont: 'Inter',
   headerBtnFont: 'Inter',
   headerBtnSize: 'medium',
   headerBtnVariant: 'filled',
-  headerPaddingY: 16,
 });
 
 const getBusinessFooter = (): Section => ({
   id: 'sec-footer',
   height: 180,
-  backgroundColor: '#f8fafc', // Clean cool slate background
+  backgroundColor: 'var(--theme-surface)',
   isShared: true,
   sharedType: 'footer',
   heightMode: 'auto',
@@ -138,8 +145,8 @@ const getBusinessFooter = (): Section => ({
   footerBizNum: '123-45-67890',
   footerLinksText: '개인정보처리방침   이용약관',
   footerCopyright: 'Copyright © Corporate Inc. All rights reserved.',
-  footerTextColor: '#0f172a',
-  footerSubTextColor: '#475569',
+  footerTextColor: 'var(--theme-text)',
+  footerSubTextColor: 'var(--theme-subtext)',
   footerTextFont: 'Inter',
   footerPaddingY: 36,
   elements: []
@@ -924,14 +931,14 @@ export const MODERN_THEME: ThemeSettings = {
   defaultFlexGap: 20,
   defaultSectionPadding: 60,
   fontPresets: [
-    { id: 'title-1', name: '타이틀 1 (대형)', fontSize: '36px', fontFamily: 'Outfit', fontWeight: '700', color: '#ff6b6b' },
-    { id: 'title-2', name: '타이틀 2 (중형)', fontSize: '26px', fontFamily: 'Outfit', fontWeight: '700', color: '#ff6b6b' },
-    { id: 'title-3', name: '타이틀 3 (소형)', fontSize: '19px', fontFamily: 'Outfit', fontWeight: '700', color: '#ff6b6b' },
-    { id: 'body-1', name: '본문 1 (기본)', fontSize: '15px', fontFamily: 'Outfit', fontWeight: '400', color: '#1f2937' },
-    { id: 'body-2', name: '본문 2 (상세)', fontSize: '13px', fontFamily: 'Outfit', fontWeight: '400', color: '#4b5563' },
-    { id: 'menu', name: '네비게이션 메뉴', fontSize: '13px', fontFamily: 'Outfit', fontWeight: '500', color: '#cbd5e1' },
-    { id: 'button', name: '버튼 텍스트', fontSize: '14px', fontFamily: 'Outfit', fontWeight: '600', color: '#ffffff' },
-    { id: 'footer', name: '푸터 텍스트', fontSize: '11px', fontFamily: 'Outfit', fontWeight: '400', color: '#9ca3af' }
+    { id: 'title-1', name: '타이틀 1 (대형)', fontSize: '36px', fontFamily: 'Outfit', fontWeight: '700', color: 'var(--theme-primary)' },
+    { id: 'title-2', name: '타이틀 2 (중형)', fontSize: '26px', fontFamily: 'Outfit', fontWeight: '700', color: 'var(--theme-primary)' },
+    { id: 'title-3', name: '타이틀 3 (소형)', fontSize: '19px', fontFamily: 'Outfit', fontWeight: '700', color: 'var(--theme-primary)' },
+    { id: 'body-1', name: '본문 1 (기본)', fontSize: '15px', fontFamily: 'Outfit', fontWeight: '400', color: 'var(--theme-text)' },
+    { id: 'body-2', name: '본문 2 (상세)', fontSize: '13px', fontFamily: 'Outfit', fontWeight: '400', color: 'var(--theme-subtext)' },
+    { id: 'menu', name: '네비게이션 메뉴', fontSize: '13px', fontFamily: 'Outfit', fontWeight: '500', color: 'var(--theme-subtext)' },
+    { id: 'button', name: '버튼 텍스트', fontSize: '14px', fontFamily: 'Outfit', fontWeight: '600', color: 'var(--theme-text-inverse)' },
+    { id: 'footer', name: '푸터 텍스트', fontSize: '11px', fontFamily: 'Outfit', fontWeight: '400', color: 'var(--theme-subtext)' }
   ]
 };
 
@@ -956,34 +963,37 @@ const getModernHeader = (): Section => ({
   
   headerMenuItems: [
     { id: 'm1', name: '홈', fileName: 'index.html' },
-    { id: 'm2', name: '브랜드', fileName: 'introduce.html' },
+    { id: 'm2', name: '브랜드', fileName: 'submain.html' },
     { id: 'm3', name: '입장', fileName: 'login.html' },
     { id: 'm4', name: '마이룸', fileName: 'mypage.html' },
     { id: 'm5', name: '저널', fileName: 'board.html' },
     { id: 'm6', name: '서약', fileName: 'terms.html' }
   ],
-  headerMenuColor: '#e5e7eb',
+  headerMenuColor: 'var(--theme-subtext)',
   headerMenuSize: '15px',
   
   headerBtnText: '컨택트',
   headerBtnBgColor: 'var(--theme-secondary)',
-  headerBtnTextColor: '#ffffff',
+  headerBtnTextColor: 'var(--theme-text-inverse)',
   headerBtnRadius: 20,
-  headerGap: 40,
-  headerMenuGap: 24,
+  headerPaddingY: 16,
+  headerPaddingYVarId: 'space-md',
+  headerGap: 48,
+  headerGapVarId: 'space-2xl',
+  headerMenuGap: 28,
+  headerMenuGapVarId: 'space-xl',
   headerLogoFont: 'Outfit',
   headerMenuFont: 'Outfit',
   headerBtnFont: 'Outfit',
   headerBtnSize: 'medium',
   headerBtnVariant: 'filled',
-  headerPaddingY: 16,
 });
 
 // Common Modern Footer
 const getModernFooter = (): Section => ({
   id: 'sec-footer',
   height: 180,
-  backgroundColor: '#18181b', // Zinc Dark
+  backgroundColor: 'var(--theme-dark-bg)',
   isShared: true,
   sharedType: 'footer',
   heightMode: 'auto',
@@ -996,8 +1006,8 @@ const getModernFooter = (): Section => ({
   footerBizNum: '987-65-43210',
   footerLinksText: '개인정보처리방침   이용약관',
   footerCopyright: 'Copyright © M O D E R N. All rights reserved.',
-  footerTextColor: '#ffffff',
-  footerSubTextColor: '#a1a1aa',
+  footerTextColor: 'var(--theme-text-inverse)',
+  footerSubTextColor: 'var(--theme-subtext)',
   footerTextFont: 'Outfit',
   footerPaddingY: 36,
   elements: []

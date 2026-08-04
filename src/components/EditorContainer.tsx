@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Section, EditorElement, GuidelineWidth, ElementType, Page, ThemeSettings } from '../types';
-import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns, FileText } from 'lucide-react';
+import { Type, Image as ImageIcon, Link, Plus, FileOutput, HelpCircle, Terminal, X, Sliders, Columns, FileText, Monitor, Tablet, Smartphone } from 'lucide-react';
 import { CanvasGrid } from './CanvasGrid';
 import { SidebarProperty } from './SidebarProperty';
 
@@ -22,8 +22,8 @@ interface EditorContainerProps {
   setPages: React.Dispatch<React.SetStateAction<Page[]>>;
   activePageId: string;
   setActivePageId: (id: string) => void;
-  activeTemplate: 'business' | 'modern';
-  onTemplateChange: (templateKey: 'business' | 'modern') => void;
+  activeTemplate: 'business' | 'modern' | 'medical';
+  onTemplateChange: (templateKey: 'business' | 'modern' | 'medical') => void;
   themeSettings: ThemeSettings;
   setThemeSettings: React.Dispatch<React.SetStateAction<ThemeSettings>>;
   onAddPage: (name: string, rawFileName: string) => boolean;
@@ -58,6 +58,12 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
   activePaddingGuide,
   setActivePaddingGuide,
 }) => {
+  const [viewportMode, setViewportMode] = useState<'pc' | 'tab' | 'mo'>('pc');
+
+  // Always reset viewport to PC when template changes
+  useEffect(() => {
+    setViewportMode('pc');
+  }, [activeTemplate]);
   const [isAddPageModalOpen, setIsAddPageModalOpen] = useState(false);
   const [newPageName, setNewPageName] = useState('');
   const [copiedColor, setCopiedColor] = useState<string | null>(null);
@@ -308,10 +314,11 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
             <select
               className="template-select"
               value={activeTemplate}
-              onChange={(e) => onTemplateChange(e.target.value as 'business' | 'modern')}
+              onChange={(e) => onTemplateChange(e.target.value as 'business' | 'modern' | 'medical')}
             >
               <option value="business">비즈니스형 (Corporate)</option>
               <option value="modern">모던 브랜딩형 (Branding Agency)</option>
+              <option value="medical">원페이지 (치과)</option>
             </select>
           </div>
 
@@ -379,42 +386,75 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
         </div>
       </div>
 
-      {/* Row 2: Page Manager Tabs */}
+      {/* Row 2: Page Manager Tabs or Viewport Mode Tabs */}
       <div className="page-toolbar flex items-center justify-between">
-        <div className="page-tabs flex items-center overflow-x-auto">
-          {pages.map((p) => (
+        {activeTemplate === 'medical' ? (
+          /* Medical Template: Viewport mode switcher in place of page tabs */
+          <div className="page-tabs flex items-center gap-1.5">
             <div
-              key={p.id}
-              className={`page-tab flex items-center gap-2 ${p.id === activePageId ? 'active' : ''}`}
-              onClick={() => {
-                setActivePageId(p.id);
-                setActiveElement(null);
-                setActiveSectionId(null);
-              }}
+              className={`page-tab flex items-center gap-2 cursor-pointer ${viewportMode === 'pc' ? 'active' : ''}`}
+              onClick={() => setViewportMode('pc')}
+              title="PC 화면 미리보기"
             >
-              <span className={`tab-indicator ${p.id === activePageId ? 'active' : ''}`}></span>
-              <span className="tab-name">{p.name}</span>
-              {p.id !== 'main' && p.id !== 'sitemap' && !p.isSystem && (
-                <button
-                  className="tab-close-btn"
-                  onClick={(e) => handleDeletePage(p.id, e)}
-                  title="페이지 삭제"
-                >
-                  <X size={12} />
-                </button>
-              )}
+              <Monitor size={14} />
+              <span className="tab-name font-semibold">PC</span>
             </div>
-          ))}
-        </div>
+            <div
+              className={`page-tab flex items-center gap-2 cursor-pointer ${viewportMode === 'tab' ? 'active' : ''}`}
+              onClick={() => setViewportMode('tab')}
+              title="태블릿 화면 미리보기"
+            >
+              <Tablet size={14} />
+              <span className="tab-name font-semibold">Tablet</span>
+            </div>
+            <div
+              className={`page-tab flex items-center gap-2 cursor-pointer ${viewportMode === 'mo' ? 'active' : ''}`}
+              onClick={() => setViewportMode('mo')}
+              title="모바일 화면 미리보기"
+            >
+              <Smartphone size={14} />
+              <span className="tab-name font-semibold">Mobile</span>
+            </div>
+          </div>
+        ) : (
+          /* Multi-page Templates: Regular Page Tabs */
+          <div className="page-tabs flex items-center overflow-x-auto">
+            {pages.map((p) => (
+              <div
+                key={p.id}
+                className={`page-tab flex items-center gap-2 ${p.id === activePageId ? 'active' : ''}`}
+                onClick={() => {
+                  setActivePageId(p.id);
+                  setActiveElement(null);
+                  setActiveSectionId(null);
+                }}
+              >
+                <span className={`tab-indicator ${p.id === activePageId ? 'active' : ''}`}></span>
+                <span className="tab-name">{p.name}</span>
+                {p.id !== 'main' && p.id !== 'sitemap' && !p.isSystem && (
+                  <button
+                    className="tab-close-btn"
+                    onClick={(e) => handleDeletePage(p.id, e)}
+                    title="페이지 삭제"
+                  >
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
 
-        <button
-          className="add-page-btn flex items-center gap-1.5"
-          onClick={() => setIsAddPageModalOpen(true)}
-          title="새로운 페이지 추가"
-        >
-          <Plus size={15} />
-          <span>페이지 추가</span>
-        </button>
+        {activeTemplate !== 'medical' && (
+          <button
+            className="add-page-btn flex items-center gap-1.5"
+            onClick={() => setIsAddPageModalOpen(true)}
+            title="새로운 페이지 추가"
+          >
+            <Plus size={15} />
+            <span>페이지 추가</span>
+          </button>
+        )}
       </div>
 
       {/* Main Workspace split */}
@@ -450,32 +490,179 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
           </div>
         </div>
 
-        {/* Center Canvas Area */}
-        <div className="canvas-wrapper flex-1 overflow-auto">
-          <CanvasGrid
-            sections={sections}
-            setSections={setSections}
-            activeElement={activeElement}
-            setActiveElement={setActiveElement}
-            activeSectionId={activeSectionId}
-            setActiveSectionId={setActiveSectionId}
-            activePaddingGuide={activePaddingGuide}
-            pages={pages}
-            activePageId={activePageId}
-            onNavigatePage={(id) => {
-              setActivePageId(id);
-              setActiveElement(null);
-              setActiveSectionId(null);
-            }}
-            hoveredSectionId={hoveredSectionId}
-            setHoveredSectionId={setHoveredSectionId}
-            themeSettings={themeSettings}
-            hoveredGuidelineWidth={hoveredGuidelineWidth}
-            previewHeaderLayout={previewHeaderLayout}
-            previewHeaderState={previewHeaderState}
-            previewFlexAlign={previewFlexAlign}
-            previewHeaderLogoFont={previewHeaderLogoFont}
-          />
+        {/* Center Canvas Area (Device shells active only in medical template) */}
+        <div 
+          className="canvas-wrapper flex-1"
+          style={activeTemplate === 'medical' && viewportMode !== 'pc' ? {
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: '#cbd5e1',
+            padding: '20px',
+            boxSizing: 'border-box',
+            width: '100%',
+            height: '100%',
+            overflow: 'hidden'
+          } : {
+            width: '100%',
+            height: '100%',
+            overflow: 'auto'
+          }}
+        >
+          {activeTemplate !== 'medical' || viewportMode === 'pc' ? (
+            /* Standard Template Mode / PC Mode - Original 100% Full Canvas */
+            <div className="canvas-viewport-frame w-full min-h-full bg-white transition-all duration-300">
+              <CanvasGrid
+                sections={sections}
+                setSections={setSections}
+                activeElement={activeElement}
+                setActiveElement={setActiveElement}
+                activeSectionId={activeSectionId}
+                setActiveSectionId={setActiveSectionId}
+                activePaddingGuide={activePaddingGuide}
+                pages={pages}
+                activePageId={activePageId}
+                onNavigatePage={(id) => {
+                  setActivePageId(id);
+                  setActiveElement(null);
+                  setActiveSectionId(null);
+                }}
+                hoveredSectionId={hoveredSectionId}
+                setHoveredSectionId={setHoveredSectionId}
+                themeSettings={themeSettings}
+                hoveredGuidelineWidth={hoveredGuidelineWidth}
+                previewHeaderLayout={previewHeaderLayout}
+                previewHeaderState={previewHeaderState}
+                previewFlexAlign={previewFlexAlign}
+                previewHeaderLogoFont={previewHeaderLogoFont}
+                viewportMode="pc"
+              />
+            </div>
+          ) : viewportMode === 'tab' ? (
+            /* TAB Mode (Medical Template Only) - Fits 100% inside screen view with internal screen scroll */
+            <div
+              className="device-tablet-shell relative flex flex-col items-center shrink-0 transition-all duration-300"
+              style={{
+                width: '818px',
+                height: '100%',
+                maxHeight: 'calc(100vh - 180px)',
+                backgroundColor: '#0f172a',
+                borderRadius: '36px',
+                padding: '16px 20px',
+                border: '10px solid #1e293b',
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.45)',
+                boxSizing: 'border-box'
+              }}
+            >
+              {/* Tablet Camera Lens */}
+              <div className="w-full flex justify-center items-center pb-2 shrink-0">
+                <div className="w-3.5 h-3.5 rounded-full bg-slate-800 border-2 border-slate-600"></div>
+              </div>
+              {/* Tablet Screen Container */}
+              <div
+                className="device-screen relative bg-white rounded-[18px] flex-1 w-full"
+                style={{
+                  width: '768px',
+                  height: '100%',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  boxShadow: 'inset 0 0 12px rgba(0,0,0,0.15)',
+                  border: '1px solid #334155'
+                }}
+              >
+                <CanvasGrid
+                  sections={sections}
+                  setSections={setSections}
+                  activeElement={activeElement}
+                  setActiveElement={setActiveElement}
+                  activeSectionId={activeSectionId}
+                  setActiveSectionId={setActiveSectionId}
+                  activePaddingGuide={activePaddingGuide}
+                  pages={pages}
+                  activePageId={activePageId}
+                  onNavigatePage={(id) => {
+                    setActivePageId(id);
+                    setActiveElement(null);
+                    setActiveSectionId(null);
+                  }}
+                  hoveredSectionId={hoveredSectionId}
+                  setHoveredSectionId={setHoveredSectionId}
+                  themeSettings={themeSettings}
+                  hoveredGuidelineWidth={hoveredGuidelineWidth}
+                  previewHeaderLayout={previewHeaderLayout}
+                  previewHeaderState={previewHeaderState}
+                  previewFlexAlign={previewFlexAlign}
+                  previewHeaderLogoFont={previewHeaderLogoFont}
+                  viewportMode={viewportMode}
+                />
+              </div>
+              {/* Tablet Home Indicator Bar */}
+              <div className="w-36 h-1.5 bg-slate-600 rounded-full mt-3 shrink-0"></div>
+            </div>
+          ) : (
+            /* MO Mode (Medical Template Only) - Fits 100% inside screen view with internal screen scroll */
+            <div
+              className="device-mobile-shell relative flex flex-col items-center shrink-0 transition-all duration-300"
+              style={{
+                width: '415px',
+                height: '100%',
+                maxHeight: 'calc(100vh - 180px)',
+                backgroundColor: '#090d16',
+                borderRadius: '46px',
+                padding: '14px 18px',
+                border: '10px solid #1e293b',
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.55)',
+                boxSizing: 'border-box'
+              }}
+            >
+              {/* Smartphone Dynamic Island Notch */}
+              <div className="w-full flex justify-center items-center pb-2 shrink-0">
+                <div className="w-28 h-5 rounded-full bg-black border border-slate-800 flex items-center justify-end px-2.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700"></div>
+                </div>
+              </div>
+              {/* Smartphone Screen Container */}
+              <div
+                className="device-screen relative bg-white rounded-[28px] flex-1 w-full"
+                style={{
+                  width: '375px',
+                  height: '100%',
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  boxShadow: 'inset 0 0 12px rgba(0,0,0,0.15)',
+                  border: '1px solid #334155'
+                }}
+              >
+                <CanvasGrid
+                  sections={sections}
+                  setSections={setSections}
+                  activeElement={activeElement}
+                  setActiveElement={setActiveElement}
+                  activeSectionId={activeSectionId}
+                  setActiveSectionId={setActiveSectionId}
+                  activePaddingGuide={activePaddingGuide}
+                  pages={pages}
+                  activePageId={activePageId}
+                  onNavigatePage={(id) => {
+                    setActivePageId(id);
+                    setActiveElement(null);
+                    setActiveSectionId(null);
+                  }}
+                  hoveredSectionId={hoveredSectionId}
+                  setHoveredSectionId={setHoveredSectionId}
+                  themeSettings={themeSettings}
+                  hoveredGuidelineWidth={hoveredGuidelineWidth}
+                  previewHeaderLayout={previewHeaderLayout}
+                  previewHeaderState={previewHeaderState}
+                  previewFlexAlign={previewFlexAlign}
+                  previewHeaderLogoFont={previewHeaderLogoFont}
+                  viewportMode={viewportMode}
+                />
+              </div>
+              {/* Mobile Home Indicator Bar */}
+              <div className="w-36 h-1 bg-slate-600 rounded-full mt-2.5 shrink-0"></div>
+            </div>
+          )}
         </div>
 
         {/* Right Properties Panel */}

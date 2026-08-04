@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ThemeSettings, FontPreset, BaseColorItem, SemanticTokenMapping } from '../types';
 import { SUPPORTED_FONTS } from '../utils/fontManager';
-import { X, Plus, Trash2, Palette, Sliders, Type } from 'lucide-react';
+import { X, Plus, Trash2, Palette, Sliders, Type, ChevronDown, Check } from 'lucide-react';
 
 interface StyleViewerContainerProps {
   themeSettings: ThemeSettings;
@@ -41,12 +41,125 @@ const getContrastBgColor = (hex: string): string => {
   return yiq > 165 ? '#1e1e1e' : '#f8fafc';
 };
 
+// Helper to detect Korean color family name from HEX code
+export const detectKoreanColorName = (hex: string): string => {
+  let cleanHex = hex.trim().replace('#', '');
+  if (cleanHex.length === 3) {
+    cleanHex = cleanHex.split('').map(c => c + c).join('');
+  }
+  if (cleanHex.length !== 6) return '색상';
+
+  const r = parseInt(cleanHex.substring(0, 2), 16);
+  const g = parseInt(cleanHex.substring(2, 4), 16);
+  const b = parseInt(cleanHex.substring(4, 6), 16);
+
+  const rNorm = r / 255;
+  const gNorm = g / 255;
+  const bNorm = b / 255;
+
+  const max = Math.max(rNorm, gNorm, bNorm);
+  const min = Math.min(rNorm, gNorm, bNorm);
+  const delta = max - min;
+
+  let h = 0;
+  let s = 0;
+  const l = (max + min) / 2;
+
+  if (delta !== 0) {
+    s = l > 0.5 ? delta / (2 - max - min) : delta / (max + min);
+    if (max === rNorm) {
+      h = ((gNorm - bNorm) / delta + (gNorm < bNorm ? 6 : 0)) * 60;
+    } else if (max === gNorm) {
+      h = ((bNorm - rNorm) / delta + 2) * 60;
+    } else {
+      h = ((rNorm - gNorm) / delta + 4) * 60;
+    }
+  }
+
+  const sPct = s * 100;
+  const lPct = l * 100;
+
+  // Pure White & Pure Black
+  if (lPct > 95) return '화이트';
+  if (lPct < 6) return '블랙';
+
+  // Low Saturation Grayscale check
+  if (sPct < 15) {
+    if (lPct > 80) return '연회색';
+    if (lPct < 25) return '다크슬레이트';
+    if (lPct < 45) return '차콜';
+    return '회색';
+  }
+
+  // Hue classification
+  if (h >= 345 || h < 15) {
+    if (lPct > 75) return '소프트 핑크';
+    if (lPct < 35) return '버건디';
+    return '레드';
+  }
+  if (h >= 15 && h < 45) {
+    if (lPct > 75) return '소프트 오렌지';
+    if (lPct < 35) return '브라운';
+    return '오렌지';
+  }
+  if (h >= 45 && h < 70) {
+    if (lPct > 75) return '소프트 옐로우';
+    return '옐로우';
+  }
+  if (h >= 70 && h < 165) {
+    if (lPct > 75) return '소프트 그린';
+    if (lPct < 32) return '딥 그린';
+    return '그린';
+  }
+  if (h >= 165 && h < 195) {
+    if (lPct > 75) return '민트';
+    if (lPct < 32) return '딥 청록';
+    return '청록';
+  }
+  if (h >= 195 && h < 255) {
+    if (lPct > 82) return '소프트 블루';
+    if (lPct < 32) return '딥네이비';
+    if (h < 215) return '스카이블루';
+    return '블루';
+  }
+  if (h >= 255 && h < 285) {
+    if (lPct > 75) return '소프트 퍼플';
+    if (lPct < 32) return '딥 퍼플';
+    return '퍼플';
+  }
+  if (h >= 285 && h < 345) {
+    if (lPct > 75) return '소프트 핑크';
+    if (lPct < 35) return '딥 마젠타';
+    return '핑크';
+  }
+
+  return '색상';
+};
+
 export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
   themeSettings,
   setThemeSettings,
   onClose,
 }) => {
   const [activeTab, setActiveTab] = useState<TabType>('theme');
+  const [openSemanticKey, setOpenSemanticKey] = useState<string | null>(null);
+
+  // Close semantic popover menu when clicking outside
+  useEffect(() => {
+    if (!openSemanticKey) return;
+
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.semantic-popover-container')) {
+        setOpenSemanticKey(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openSemanticKey]);
 
   // Add new Custom Font Preset
   const handleAddPreset = () => {
@@ -142,32 +255,39 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
         <div className="editor-viewport">
           {/* TAB 1: Theme Colors & Base Font */}
           {activeTab === 'theme' && (() => {
-            const baseColorsList: BaseColorItem[] = themeSettings.baseColors || [
-              { id: 'base-navy', name: '딥네이비', hex: themeSettings.primaryColor || '#1e3a8a' },
-              { id: 'base-slate', name: '슬레이트', hex: themeSettings.secondaryColor || '#4b5563' },
-              { id: 'base-sky', name: '스카이블루', hex: themeSettings.accentColor || '#0284c7' },
-              { id: 'base-blue-tint', name: '소프트블루', hex: themeSettings.brandLightColor || '#eff6ff' },
-              { id: 'base-white', name: '화이트', hex: themeSettings.backgroundColor || '#ffffff' },
-              { id: 'base-light-gray', name: '연회색', hex: themeSettings.surfaceColor || '#f8fafc' },
-              { id: 'base-dark-slate', name: '다크슬레이트', hex: themeSettings.darkBgColor || '#0f172a' },
-              { id: 'base-border-gray', name: '라인회색', hex: themeSettings.borderColor || '#cbd5e1' }
+            const rawBases: (BaseColorItem | { id: string; hex: string; name?: string })[] = themeSettings.baseColors || [
+              { id: 'base-navy', hex: themeSettings.primaryColor || '#1e3a8a' },
+              { id: 'base-slate', hex: themeSettings.secondaryColor || '#475569' },
+              { id: 'base-sky', hex: themeSettings.accentColor || '#0284c7' },
+              { id: 'base-teal', hex: themeSettings.brandLightColor || '#0d9488' },
+              { id: 'base-rose', hex: '#e11d48' },
+              { id: 'base-white', hex: themeSettings.backgroundColor || '#ffffff' },
+              { id: 'base-light-gray', hex: themeSettings.surfaceColor || '#f1f5f9' },
+              { id: 'base-dark-slate', hex: themeSettings.darkBgColor || '#0f172a' }
             ];
+
+            const baseColorsList: BaseColorItem[] = rawBases.map(b => ({
+              id: b.id,
+              hex: b.hex,
+              name: detectKoreanColorName(b.hex)
+            }));
 
             const semanticMap: SemanticTokenMapping = themeSettings.semanticMappings || {
               primary: 'base-navy',
               secondary: 'base-slate',
               accent: 'base-sky',
-              brandLight: 'base-blue-tint',
+              brandLight: 'base-teal',
               backgroundColor: 'base-white',
               surfaceColor: 'base-light-gray',
               darkBgColor: 'base-dark-slate',
               textColor: 'base-dark-slate',
               subtextColor: 'base-slate',
-              borderColor: 'base-border-gray'
+              borderColor: 'base-light-gray'
             };
 
             const updateBaseColor = (id: string, newHex: string, newName?: string) => {
-              const updatedBases = baseColorsList.map(b => b.id === id ? { ...b, hex: newHex, name: newName ?? b.name } : b);
+              const autoName = newName !== undefined ? newName : detectKoreanColorName(newHex);
+              const updatedBases = baseColorsList.map(b => b.id === id ? { ...b, hex: newHex, name: autoName } : b);
               
               // Recalculate all semantic tokens bound to this base color
               const newPrimary = updatedBases.find(b => b.id === semanticMap.primary)?.hex || themeSettings.primaryColor;
@@ -261,17 +381,8 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
                   <div className="base-palette-grid">
                     {baseColorsList.map((base) => (
-                      <div key={base.id} className="pantone-swatch-card">
-                        <div className="pantone-card-header">
-                          <input
-                            type="text"
-                            className="pantone-name-input"
-                            value={base.name}
-                            onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
-                          />
-                        </div>
-
-                        <div className="pantone-top-color" style={{ backgroundColor: base.hex }} title="클릭하여 색상 선택">
+                      <div key={base.id} className="circle-swatch-card">
+                        <div className="circle-swatch-dot" style={{ backgroundColor: base.hex }} title="클릭하여 색상 선택">
                           <input
                             type="color"
                             value={base.hex.startsWith('#') && base.hex.length === 7 ? base.hex : '#000000'}
@@ -279,8 +390,14 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                           />
                         </div>
 
-                        <div className="pantone-bottom-band">
-                          <span className="pantone-hex-text">
+                        <div className="circle-swatch-info">
+                          <input
+                            type="text"
+                            className="circle-swatch-name"
+                            value={base.name}
+                            onChange={(e) => updateBaseColor(base.id, base.hex, e.target.value)}
+                          />
+                          <span className="circle-swatch-hex">
                             {base.hex}
                           </span>
                         </div>
@@ -302,33 +419,67 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
                     {semanticRoles.map((role) => {
                       const currentBaseId = semanticMap[role.key];
                       const currentBase = baseColorsList.find(b => b.id === currentBaseId) || baseColorsList[0];
+                      const isOpen = openSemanticKey === String(role.key);
+
+                      // Helper for category dot color
+                      const keyStr = String(role.key);
+                      const dotColor = ['primary', 'secondary', 'accent', 'brandLight'].includes(keyStr)
+                        ? '#0284c7'
+                        : ['backgroundColor', 'surfaceColor', 'darkBgColor'].includes(keyStr)
+                        ? '#6366f1'
+                        : ['textColor', 'subtextColor'].includes(keyStr)
+                        ? '#334155'
+                        : '#94a3b8';
 
                       return (
-                        <div key={String(role.key)} className="semantic-binding-item">
-                          <div className="flex items-center gap-2">
+                        <div key={keyStr} className="semantic-binding-item">
+                          <div className="flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: dotColor }}></span>
                             <span className="semantic-role-label">{role.label}</span>
-                            <span className="semantic-role-tag">{role.tag}</span>
+                            <span className="text-slate-300 text-xs font-medium">·</span>
+                            <span className="semantic-role-subtext">{role.tag}</span>
                           </div>
 
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-slate-400">🔗 연결 ➡️</span>
-                            <div className="semantic-select-wrapper">
+                          <div className="relative semantic-popover-container">
+                            <button
+                              type="button"
+                              className={`semantic-chip-btn ${isOpen ? 'active' : ''}`}
+                              onClick={() => setOpenSemanticKey(isOpen ? null : String(role.key))}
+                            >
                               <span
-                                className="semantic-select-swatch"
+                                className="semantic-chip-swatch"
                                 style={{ backgroundColor: currentBase?.hex || '#ffffff' }}
                               ></span>
-                              <select
-                                className="semantic-select-element"
-                                value={currentBaseId || ''}
-                                onChange={(e) => updateSemanticBinding(role.key, e.target.value)}
-                              >
-                                {baseColorsList.map((b) => (
-                                  <option key={b.id} value={b.id}>
-                                    {b.name} ({b.hex})
-                                  </option>
-                                ))}
-                              </select>
-                            </div>
+                              <span className="semantic-chip-name">{currentBase?.name || '선택 안됨'}</span>
+                              <ChevronDown size={14} className="text-slate-400 shrink-0" />
+                            </button>
+
+                            {isOpen && (
+                              <div className="semantic-popover-menu">
+                                <div className="popover-menu-title">베이스 색상 연결 선택</div>
+                                <div className="popover-menu-list">
+                                  {baseColorsList.map((b) => {
+                                    const isSelected = b.id === currentBaseId;
+                                    return (
+                                      <button
+                                        key={b.id}
+                                        type="button"
+                                        className={`popover-menu-item ${isSelected ? 'selected' : ''}`}
+                                        onClick={() => {
+                                          updateSemanticBinding(role.key, b.id);
+                                          setOpenSemanticKey(null);
+                                        }}
+                                      >
+                                        <span className="popover-item-swatch" style={{ backgroundColor: b.hex }}></span>
+                                        <span className="popover-item-name">{b.name}</span>
+                                        <span className="popover-item-hex">{b.hex}</span>
+                                        {isSelected && <Check size={14} className="text-sky-600 ml-auto shrink-0" />}
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       );
@@ -776,62 +927,35 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
 
         .base-palette-grid {
           display: grid !important;
-          grid-template-columns: repeat(4, 1fr) !important;
-          gap: 8px !important;
-          margin-top: 10px !important;
+          grid-template-columns: repeat(3, 1fr) !important;
+          gap: 14px 18px !important;
+          margin-top: 14px !important;
         }
 
-        .pantone-swatch-card {
+        .circle-swatch-card {
           display: flex !important;
-          flex-direction: column !important;
-          background: #ffffff !important;
-          border: 1px solid #cbd5e1 !important;
-          border-radius: 0 !important;
-          overflow: hidden !important;
-          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04) !important;
-          transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
-        }
-
-        .pantone-swatch-card:hover {
-          border-color: #0284c7 !important;
-          box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15) !important;
-        }
-
-        .pantone-card-header {
-          padding: 4px 6px !important;
-          background: #f8fafc !important;
-          border-bottom: 1px solid #e2e8f0 !important;
-        }
-
-        .pantone-name-input {
-          font-size: 11.5px !important;
-          font-weight: 700 !important;
-          color: #0f172a !important;
+          align-items: center !important;
+          gap: 12px !important;
           background: transparent !important;
           border: none !important;
-          outline: none !important;
-          padding: 0 !important;
-          margin: 0 !important;
-          width: 100% !important;
-          text-overflow: ellipsis !important;
-          overflow: hidden !important;
-          white-space: nowrap !important;
+          border-radius: 0 !important;
+          padding: 4px 0 !important;
+          box-shadow: none !important;
         }
 
-        .pantone-top-color {
-          width: 100% !important;
-          height: 32px !important;
+        .circle-swatch-dot {
+          width: 48px !important;
+          height: 48px !important;
+          border-radius: 50% !important;
+          border: 1px solid rgba(0, 0, 0, 0.12) !important;
           position: relative !important;
           cursor: pointer !important;
-          border-radius: 0 !important;
-          transition: filter 0.2s ease !important;
+          flex-shrink: 0 !important;
+          overflow: hidden !important;
+          box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08) !important;
         }
 
-        .pantone-top-color:hover {
-          filter: brightness(0.95) !important;
-        }
-
-        .pantone-top-color input[type="color"] {
+        .circle-swatch-dot input[type="color"] {
           position: absolute !important;
           inset: 0 !important;
           opacity: 0 !important;
@@ -840,21 +964,49 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           cursor: pointer !important;
         }
 
-        .pantone-bottom-band {
-          padding: 3px 6px !important;
-          background: #ffffff !important;
-          border-top: 1px solid #f1f5f9 !important;
-          text-align: center !important;
+        .circle-swatch-info {
+          display: flex !important;
+          flex-direction: column !important;
+          justify-content: center !important;
+          flex: 1 !important;
+          min-width: 0 !important;
         }
 
-        .pantone-hex-text {
-          font-size: 10px !important;
+        .circle-swatch-name {
+          font-size: 13.5px !important;
+          font-weight: 700 !important;
+          line-height: 1.3 !important;
+          color: #0f172a !important;
+          background: transparent !important;
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          width: 100% !important;
+          text-overflow: ellipsis !important;
+          overflow: hidden !important;
+          white-space: nowrap !important;
+        }
+
+        .circle-swatch-name:focus,
+        .circle-swatch-name:focus-visible,
+        .circle-swatch-name:active {
+          outline: none !important;
+          border: none !important;
+          box-shadow: none !important;
+          background: transparent !important;
+        }
+
+        .circle-swatch-hex {
+          font-size: 11px !important;
           font-family: monospace !important;
           font-weight: 600 !important;
+          line-height: 1.3 !important;
           color: #64748b !important;
           text-transform: uppercase !important;
-          display: block !important;
-          letter-spacing: 0.5px !important;
+          margin-top: 2px !important;
+          letter-spacing: 0.3px !important;
         }
 
         .semantic-binding-list {
@@ -881,44 +1033,118 @@ export const StyleViewerContainer: React.FC<StyleViewerContainerProps> = ({
           color: #0f172a !important;
         }
 
-        .semantic-role-tag {
-          font-size: 11px !important;
-          font-weight: 700 !important;
-          color: #0284c7 !important;
-          background: #e0f2fe !important;
-          border: 1px solid #bae6fd !important;
-          padding: 2px 8px !important;
-          border-radius: 6px !important;
-          text-transform: uppercase !important;
+        .semantic-role-subtext {
+          font-size: 11.5px !important;
+          font-weight: 500 !important;
+          color: #64748b !important;
         }
 
-        .semantic-select-wrapper {
-          display: flex !important;
+        .semantic-popover-container .semantic-chip-btn {
+          display: inline-flex !important;
           align-items: center !important;
+          gap: 8px !important;
           background: #ffffff !important;
           border: 1px solid #cbd5e1 !important;
           border-radius: 8px !important;
-          padding: 4px 10px !important;
+          padding: 5px 10px !important;
+          cursor: pointer !important;
           box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03) !important;
+          transition: all 0.2s ease !important;
         }
 
-        .semantic-select-swatch {
+        .semantic-popover-container .semantic-chip-btn:hover,
+        .semantic-popover-container .semantic-chip-btn.active {
+          border-color: #0284c7 !important;
+          background: #f8fafc !important;
+        }
+
+        .semantic-popover-container .semantic-chip-swatch {
+          width: 18px !important;
+          height: 18px !important;
+          border-radius: 50% !important;
+          border: 1px solid rgba(0, 0, 0, 0.15) !important;
+          flex-shrink: 0 !important;
+          box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .semantic-popover-container .semantic-chip-name {
+          font-size: 13px !important;
+          font-weight: 700 !important;
+          color: #0f172a !important;
+        }
+
+        .semantic-popover-container .semantic-popover-menu {
+          position: absolute !important;
+          right: 0 !important;
+          top: calc(100% + 6px) !important;
+          z-index: 50 !important;
+          width: 220px !important;
+          background: #ffffff !important;
+          border: 1px solid #cbd5e1 !important;
+          border-radius: 12px !important;
+          padding: 8px !important;
+          box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.08) !important;
+        }
+
+        .semantic-popover-container .popover-menu-title {
+          font-size: 12.5px !important;
+          font-weight: 700 !important;
+          color: #0f172a !important;
+          padding: 6px 8px 10px 8px !important;
+          border-bottom: 1px solid #e2e8f0 !important;
+          margin-bottom: 6px !important;
+        }
+
+        .semantic-popover-container .popover-menu-list {
+          display: flex !important;
+          flex-direction: column !important;
+          gap: 2px !important;
+          max-height: 200px !important;
+          overflow-y: auto !important;
+        }
+
+        .semantic-popover-container .popover-menu-item {
+          display: flex !important;
+          align-items: center !important;
+          gap: 8px !important;
+          width: 100% !important;
+          padding: 6px 8px !important;
+          border-radius: 6px !important;
+          background: transparent !important;
+          border: none !important;
+          cursor: pointer !important;
+          transition: all 0.15s ease !important;
+          text-align: left !important;
+        }
+
+        .semantic-popover-container .popover-menu-item:hover {
+          background: #f1f5f9 !important;
+        }
+
+        .semantic-popover-container .popover-menu-item.selected {
+          background: #f0f9ff !important;
+        }
+
+        .semantic-popover-container .popover-item-swatch {
           width: 16px !important;
           height: 16px !important;
           border-radius: 50% !important;
           border: 1px solid rgba(0, 0, 0, 0.15) !important;
-          margin-right: 8px !important;
           flex-shrink: 0 !important;
         }
 
-        .semantic-select-element {
+        .semantic-popover-container .popover-item-name {
           font-size: 12.5px !important;
           font-weight: 700 !important;
           color: #0f172a !important;
-          background: transparent !important;
-          border: none !important;
-          outline: none !important;
-          cursor: pointer !important;
+        }
+
+        .semantic-popover-container .popover-item-hex {
+          font-size: 10.5px !important;
+          font-family: monospace !important;
+          color: #94a3b8 !important;
+          text-transform: uppercase !important;
+          margin-left: 2px !important;
         }
 
         .form-row {

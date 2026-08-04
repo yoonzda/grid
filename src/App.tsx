@@ -6,6 +6,7 @@ import { CodeViewerContainer } from './components/CodeViewerContainer';
 import { StyleViewerContainer } from './components/StyleViewerContainer';
 import { generateCode } from './utils/exporter';
 import { BUSINESS_TEMPLATE, BUSINESS_THEME, MODERN_TEMPLATE, MODERN_THEME } from './utils/templates';
+import { MEDICAL_TEMPLATE, MEDICAL_THEME } from './utils/medicalTemplate';
 import './App.css';
 import JSZip from 'jszip';
 import { updateGoogleFontsInDOM } from './utils/fontManager';
@@ -96,7 +97,12 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
     })
   }));
 
-  // Ensure privacy page exists if not present
+  const isOnePage = pagesList.length === 1 && pagesList[0].id === 'main';
+  if (isOnePage) {
+    return processed.filter(p => p.id === 'main');
+  }
+
+  // Ensure privacy page exists if not present for multi-page templates
   let hasPrivacy = processed.some((p: Page) => p.id === 'privacy');
   if (!hasPrivacy) {
     const defaultPrivacy = BUSINESS_TEMPLATE.find(p => p.id === 'privacy');
@@ -129,9 +135,9 @@ const ensurePresets = (pagesList: Page[]): Page[] => {
 };
 
 function App() {
-  const [activeTemplate, setActiveTemplate] = useState<'business' | 'modern'>('business');
-  const [themeSettings, rawSetThemeSettings] = useState<ThemeSettings>(BUSINESS_THEME);
-
+  const [activeTemplate, setActiveTemplate] = useState<'business' | 'modern' | 'medical'>('medical');
+  const [themeSettings, rawSetThemeSettings] = useState<ThemeSettings>(MEDICAL_THEME);
+  
   const setThemeSettings = (updateAction: React.SetStateAction<ThemeSettings>) => {
     rawSetThemeSettings(prev => {
       const next = typeof updateAction === 'function' ? updateAction(prev) : updateAction;
@@ -181,7 +187,7 @@ function App() {
       };
     });
   };
-  const [pages, setPages] = useState<Page[]>(() => ensurePresets(BUSINESS_TEMPLATE));
+  const [pages, setPages] = useState<Page[]>(() => ensurePresets(MEDICAL_TEMPLATE));
   const [activePageId, setActivePageId] = useState<string>('main');
 
   const [activeElementState, setActiveElementState] = useState<{ sectionId: string; elementId: string } | null>(null);
@@ -240,26 +246,18 @@ function App() {
         return p;
       });
 
-      // Synchronize any shared section (e.g. header, footer) that changed
+      // Synchronize any shared section (e.g. header, footer) that changed across all pages
       newSections.forEach(newSec => {
-        if (newSec.isShared && newSec.sharedType) {
+        if (newSec.sharedType === 'header' || newSec.sharedType === 'footer' || newSec.isShared) {
           finalPages = finalPages.map(p => {
             if (p.id === activePageId) return p; // Skip current active page (already updated)
             return {
               ...p,
               sections: p.sections.map(s => {
-                if (s.isShared && s.sharedType === newSec.sharedType) {
+                if (s.sharedType === newSec.sharedType) {
                   return {
-                    ...s,
-                    height: newSec.height,
-                    backgroundColor: newSec.backgroundColor,
-                    backgroundImage: newSec.backgroundImage,
-                    backgroundImageName: newSec.backgroundImageName,
-                    backgroundPosition: newSec.backgroundPosition,
-                    backgroundSize: newSec.backgroundSize,
-                    backgroundRepeat: newSec.backgroundRepeat,
-                    elements: newSec.elements,
-                    guidelineWidth: newSec.guidelineWidth,
+                    ...newSec,
+                    id: s.id, // preserve section id
                   };
                 }
                 return s;
@@ -330,15 +328,18 @@ function App() {
   };
 
   // Handle Template Changes
-  const handleTemplateChange = (templateKey: 'business' | 'modern') => {
+  const handleTemplateChange = (templateKey: 'business' | 'modern' | 'medical') => {
     if (window.confirm('템플릿을 변경하시면 작성 중이던 기존 데이터가 모두 초기화됩니다. 변경하시겠습니까?')) {
       setActiveTemplate(templateKey);
       if (templateKey === 'business') {
         setPages(ensurePresets(BUSINESS_TEMPLATE));
         setThemeSettings(BUSINESS_THEME);
-      } else {
+      } else if (templateKey === 'modern') {
         setPages(ensurePresets(MODERN_TEMPLATE));
         setThemeSettings(MODERN_THEME);
+      } else if (templateKey === 'medical') {
+        setPages(ensurePresets(MEDICAL_TEMPLATE));
+        setThemeSettings(MEDICAL_THEME);
       }
       setActivePageId('main');
       setActiveElement(null);
@@ -356,6 +357,38 @@ function App() {
       setActiveFile('index.html');
     }
   }, [pages, themeSettings]);
+
+  // Dynamically update document :root CSS variables whenever themeSettings changes
+  useEffect(() => {
+    let styleTag = document.getElementById('grid-theme-root-vars');
+    if (!styleTag) {
+      styleTag = document.createElement('style');
+      styleTag.id = 'grid-theme-root-vars';
+      document.head.appendChild(styleTag);
+    }
+    styleTag.textContent = `
+      :root {
+        --theme-primary: ${themeSettings.primaryColor};
+        --theme-secondary: ${themeSettings.secondaryColor};
+        --theme-accent: ${themeSettings.accentColor || '#0284c7'};
+        --theme-brand-light: ${themeSettings.brandLightColor || '#eff6ff'};
+        --theme-bg: ${themeSettings.backgroundColor};
+        --theme-surface: ${themeSettings.surfaceColor || '#f8fafc'};
+        --theme-dark-bg: ${themeSettings.darkBgColor || '#0f172a'};
+        --theme-text: ${themeSettings.textColor};
+        --theme-subtext: ${themeSettings.subtextColor || '#475569'};
+        --theme-border: ${themeSettings.borderColor || '#cbd5e1'};
+        --theme-text-inverse: ${themeSettings.textInverseColor || '#ffffff'};
+
+        ${(themeSettings.fontPresets || []).map(p => `
+        --theme-font-preset-${p.id}-color: ${p.color};
+        --theme-font-preset-${p.id}-size: ${p.fontSize};
+        --theme-font-preset-${p.id}-font: '${p.fontFamily}', sans-serif;
+        --theme-font-preset-${p.id}-weight: ${p.fontWeight};
+        `).join('\n')}
+      }
+    `;
+  }, [themeSettings]);
 
   // Synchronize Google Fonts dynamic imports in document head
   useEffect(() => {

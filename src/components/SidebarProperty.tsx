@@ -40,6 +40,179 @@ export const getDisplayImageName = (slide: { imageSrc?: string; imageName?: stri
   return `example${(defaultIdx % 10) + 1}.jpg`;
 };
 
+const SystemColorSelectPopover: React.FC<{
+  value: string;
+  onChange: (val: string) => void;
+  themeSettings?: ThemeSettings;
+}> = ({ value, onChange, themeSettings }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const colorOptions = [
+    { value: 'var(--theme-primary)', label: '주 색상', hex: themeSettings?.primaryColor || '#1e3a8a' },
+    { value: 'var(--theme-secondary)', label: '보조 색상', hex: themeSettings?.secondaryColor || '#4b5563' },
+    { value: 'var(--theme-accent)', label: '포인트 색상', hex: themeSettings?.accentColor || '#0284c7' },
+    { value: 'var(--theme-brand-light)', label: '연한 브랜드 배경', hex: themeSettings?.brandLightColor || '#eff6ff' },
+    { value: 'var(--theme-bg)', label: '기본 배경색', hex: themeSettings?.backgroundColor || '#ffffff' },
+    { value: 'var(--theme-surface)', label: '서브 배경색', hex: themeSettings?.surfaceColor || '#f8fafc' },
+    { value: 'var(--theme-surface-elevated)', label: '플로팅 배경색', hex: themeSettings?.surfaceElevatedColor || '#f1f5f9' },
+    { value: 'var(--theme-dark-bg)', label: '어두운 배경색', hex: themeSettings?.darkBgColor || '#0f172a' },
+    { value: 'var(--theme-text)', label: '주 글자색', hex: themeSettings?.textColor || '#0f172a' },
+    { value: 'var(--theme-subtext)', label: '보조 글자색', hex: themeSettings?.subtextColor || '#475569' },
+    { value: 'var(--theme-text-inverse)', label: '반전 글자색', hex: themeSettings?.textInverseColor || '#ffffff' },
+    { value: 'var(--theme-border)', label: '기본 테두리 색상', hex: themeSettings?.borderColor || '#cbd5e1' },
+  ];
+
+  const activeOpt = colorOptions.find(o => o.value === value) || colorOptions[0];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div className="relative sys-color-popover-container" ref={containerRef}>
+      <button
+        type="button"
+        className={`sys-chip-btn ${isOpen ? 'active' : ''}`}
+        style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '8px',
+          width: '175px',
+          height: '38px',
+          justifyContent: 'space-between',
+          padding: '0 10px',
+          backgroundColor: '#ffffff',
+          border: isOpen ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+          borderRadius: '6px',
+          cursor: 'pointer',
+          boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+          transition: 'all 0.2s ease',
+        }}
+        onClick={() => setIsOpen(!isOpen)}
+        title="글로벌 시스템 색상 모듈 선택"
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+          <span
+            className="sys-chip-swatch"
+            style={{
+              width: '18px',
+              height: '18px',
+              borderRadius: '50%',
+              backgroundColor: activeOpt.hex,
+              border: '1px solid rgba(0,0,0,0.18)',
+              boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+              flexShrink: 0,
+            }}
+          ></span>
+          <span
+            className="sys-chip-name"
+            style={{
+              fontSize: '13.5px',
+              fontWeight: 600,
+              color: '#0f172a',
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+            }}
+          >
+            {activeOpt.label}
+          </span>
+        </div>
+        <ChevronDown size={15} className="text-slate-400 shrink-0" />
+      </button>
+
+      {isOpen && (
+        <div
+          className="sys-popover-menu"
+          style={{
+            position: 'absolute',
+            right: 0,
+            top: 'calc(100% + 5px)',
+            zIndex: 9999,
+            width: '215px',
+            backgroundColor: '#ffffff',
+            border: '1px solid #cbd5e1',
+            borderRadius: '10px',
+            padding: '6px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)',
+            maxHeight: '280px',
+            overflowY: 'auto',
+          }}
+        >
+          <div className="sys-popover-menu-list" style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+            {colorOptions.map((opt) => {
+              const isSelected = value === opt.value;
+              return (
+                <button
+                  key={opt.value}
+                  type="button"
+                  className={`sys-popover-menu-item ${isSelected ? 'selected' : ''}`}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    width: '100%',
+                    padding: '7px 10px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    background: isSelected ? '#f0f9ff' : 'transparent',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                    transition: 'background 0.15s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = '#f8fafc';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isSelected) e.currentTarget.style.background = 'transparent';
+                  }}
+                  onClick={() => {
+                    onChange(opt.value);
+                    setIsOpen(false);
+                  }}
+                >
+                  <span
+                    className="sys-popover-item-swatch"
+                    style={{
+                      width: '16px',
+                      height: '16px',
+                      borderRadius: '50%',
+                      backgroundColor: opt.hex,
+                      border: '1px solid rgba(0,0,0,0.18)',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.08)',
+                      flexShrink: 0,
+                    }}
+                  ></span>
+                  <span
+                    className="sys-popover-item-name"
+                    style={{
+                      fontSize: '13px',
+                      fontWeight: isSelected ? 700 : 500,
+                      color: isSelected ? '#0284c7' : '#0f172a',
+                    }}
+                  >
+                    {opt.label}
+                  </span>
+                  {isSelected && <Check size={15} className="text-sky-600 ml-auto shrink-0" />}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface SidebarPropertyProps {
   activeElement: { sectionId: string; elementId: string } | null;
   activeSectionId: string | null;
@@ -1130,87 +1303,73 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
           <div className="properties-body flex-1 overflow-auto p-4 flex flex-col gap-5">
             
-            {/* 0-1. Header Scroll & Background Settings */}
-            <div className="property-group flex flex-col gap-3">
-              <label className="group-title">헤더 스크롤 설정</label>
-              
-              <div 
-                onClick={() => updateSection({ headerTransparentAtTop: section.headerTransparentAtTop === false ? true : false })}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '4px 0',
-                  cursor: 'pointer',
-                  userSelect: 'none',
-                }}
-              >
-                <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>스크롤 전 투명 배경</span>
-                <div style={{
-                  width: '42px',
-                  height: '24px',
-                  borderRadius: '12px',
-                  backgroundColor: section.headerTransparentAtTop !== false ? '#0284c7' : '#cbd5e1',
-                  position: 'relative',
-                  transition: 'background-color 0.2s ease',
-                }}>
+            {/* 0-1. Header Scroll Settings (Displayed ONLY on MAIN Page) */}
+            {activePageId === 'main' && (
+              <div className="property-group flex flex-col gap-3">
+                <label className="group-title">헤더 스크롤 설정</label>
+                
+                <div 
+                  onClick={() => updateSection({ headerTransparentAtTop: section.headerTransparentAtTop === false ? true : false })}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '4px 0',
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>스크롤 시 배경색 적용</span>
                   <div style={{
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    backgroundColor: '#ffffff',
-                    position: 'absolute',
-                    top: '2px',
-                    left: section.headerTransparentAtTop !== false ? '20px' : '2px',
-                    transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
-                    boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                  }} />
-                </div>
-              </div>
-
-              {/* Show preview state switcher ONLY when headerTransparentAtTop is enabled */}
-              {section.headerTransparentAtTop !== false && (
-                <div className="flex flex-col gap-1.5 mt-1">
-                  <span className="input-label" style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }}>스크롤 스타일</span>
-                  <div style={{ display: 'flex', border: '1px solid #cbd5e1', borderRadius: '6px', overflow: 'hidden', background: '#ffffff' }}>
-                    <button
-                      type="button"
-                      style={{
-                        flex: 1,
-                        height: '36px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        border: 'none',
-                        borderRight: '1px solid #cbd5e1',
-                        cursor: 'pointer',
-                        backgroundColor: (previewHeaderState === 'top' || (!previewHeaderState && activePageId === 'main')) ? '#0284c7' : '#ffffff',
-                        color: (previewHeaderState === 'top' || (!previewHeaderState && activePageId === 'main')) ? '#ffffff' : '#475569',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onClick={() => setPreviewHeaderState?.('top')}
-                    >
-                      스크롤 스타일 type1
-                    </button>
-                    <button
-                      type="button"
-                      style={{
-                        flex: 1,
-                        height: '36px',
-                        fontSize: '12px',
-                        fontWeight: 600,
-                        border: 'none',
-                        cursor: 'pointer',
-                        backgroundColor: (previewHeaderState === 'scrolled' || (!previewHeaderState && activePageId !== 'main')) ? '#0284c7' : '#ffffff',
-                        color: (previewHeaderState === 'scrolled' || (!previewHeaderState && activePageId !== 'main')) ? '#ffffff' : '#475569',
-                        transition: 'all 0.15s ease',
-                      }}
-                      onClick={() => setPreviewHeaderState?.('scrolled')}
-                    >
-                      스크롤 스타일 type2
-                    </button>
+                    width: '42px',
+                    height: '24px',
+                    borderRadius: '12px',
+                    backgroundColor: section.headerTransparentAtTop !== false ? '#0284c7' : '#cbd5e1',
+                    position: 'relative',
+                    transition: 'background-color 0.2s ease',
+                  }}>
+                    <div style={{
+                      width: '20px',
+                      height: '20px',
+                      borderRadius: '50%',
+                      backgroundColor: '#ffffff',
+                      position: 'absolute',
+                      top: '2px',
+                      left: section.headerTransparentAtTop !== false ? '20px' : '2px',
+                      transition: 'left 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                    }} />
                   </div>
                 </div>
-              )}
+
+                {/* Show preview state switcher ONLY when headerTransparentAtTop is enabled */}
+                {section.headerTransparentAtTop !== false && (
+                  <div className="flex flex-col gap-1.5 mt-1">
+                    <span className="input-label" style={{ display: 'block', fontSize: '13.5px', fontWeight: 500, color: '#334155', marginBottom: '6px' }}>스크롤 스타일</span>
+                    <div className="align-buttons-row">
+                      <button
+                        type="button"
+                        className={`align-btn ${(previewHeaderState === 'top' || (!previewHeaderState && activePageId === 'main')) ? 'active' : ''}`}
+                        onClick={() => setPreviewHeaderState?.('top')}
+                      >
+                        투명
+                      </button>
+                      <button
+                        type="button"
+                        className={`align-btn ${(previewHeaderState === 'scrolled' || (!previewHeaderState && activePageId !== 'main')) ? 'active' : ''}`}
+                        onClick={() => setPreviewHeaderState?.('scrolled')}
+                      >
+                        배경색
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* 0-2. Header Style Settings (Background Color, Layout, Spacing for all pages) */}
+            <div className="property-group flex flex-col gap-3">
+              <label className="group-title">헤더 스타일</label>
 
               {/* Background Color Picker with Theme Color Variable Select & Custom Picker Switcher */}
               {(() => {
@@ -1246,7 +1405,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
 
                 return (
                   <div className="flex items-center justify-between py-1 mt-1">
-                    {/* Left Side: Label + Link Icon (Exact same style as 타이틀 하단 여백) */}
+                    {/* Left Side: Label + Link Icon */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }} className="select-none">
                         배경색
@@ -1269,37 +1428,14 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                       </button>
                     </div>
 
-                    {/* Right Side: Global System Color Select Dropdown (when linked) vs Custom Color Picker (when unlinked) */}
+                    {/* Right Side: Custom System Color Select Popover Chip vs Custom Color Picker */}
                     <div>
                       {isLinked ? (
-                        <select
-                          style={{ width: '175px', height: '38px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
-                          className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
+                        <SystemColorSelectPopover
                           value={bgVal}
-                          onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
-                          title="글로벌 시스템 색상 모듈 선택"
-                        >
-                          <optgroup label="1. 핵심 브랜드 색상">
-                            <option value="var(--theme-primary)">주 색상 ({themeSettings?.primaryColor || '#1e3a8a'})</option>
-                            <option value="var(--theme-secondary)">보조 색상 ({themeSettings?.secondaryColor || '#4b5563'})</option>
-                            <option value="var(--theme-accent)">포인트 색상 ({themeSettings?.accentColor || '#0284c7'})</option>
-                            <option value="var(--theme-brand-light)">연한 브랜드 배경 ({themeSettings?.brandLightColor || '#eff6ff'})</option>
-                          </optgroup>
-                          <optgroup label="2. 캔버스 & 레이어 배경">
-                            <option value="var(--theme-bg)">기본 배경색 ({themeSettings?.backgroundColor || '#ffffff'})</option>
-                            <option value="var(--theme-surface)">서브 배경색 ({themeSettings?.surfaceColor || '#f8fafc'})</option>
-                            <option value="var(--theme-surface-elevated)">플로팅 배경색 ({themeSettings?.surfaceElevatedColor || '#f1f5f9'})</option>
-                            <option value="var(--theme-dark-bg)">어두운 배경색 ({themeSettings?.darkBgColor || '#0f172a'})</option>
-                          </optgroup>
-                          <optgroup label="3. 텍스트 & 콘텐츠">
-                            <option value="var(--theme-text)">주 글자색 ({themeSettings?.textColor || '#0f172a'})</option>
-                            <option value="var(--theme-subtext)">보조 글자색 ({themeSettings?.subtextColor || '#475569'})</option>
-                            <option value="var(--theme-text-inverse)">반전 글자색 ({themeSettings?.textInverseColor || '#ffffff'})</option>
-                          </optgroup>
-                          <optgroup label="4. 테두리 & 라인">
-                            <option value="var(--theme-border)">기본 테두리 색상 ({themeSettings?.borderColor || '#cbd5e1'})</option>
-                          </optgroup>
-                        </select>
+                          onChange={(val) => updateSection({ backgroundColor: val, headerScrollBgColor: val })}
+                          themeSettings={themeSettings}
+                        />
                       ) : (
                         <div className="color-picker-wrapper">
                           <input
@@ -1312,6 +1448,288 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                             value={section.backgroundColor}
                             onChange={(e) => updateSection({ backgroundColor: e.target.value, headerScrollBgColor: e.target.value })}
                           />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Sub-item 1: Alignment Layout presets (배치 스타일 - Select Format) */}
+              <div className="flex items-center justify-between py-1 mt-1 border-t border-slate-100 pt-2.5">
+                <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }} className="select-none">
+                  배치 스타일
+                </span>
+                <select
+                  style={{ width: '175px', height: '38px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
+                  className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
+                  value={section.headerLayout || 'spread-center'}
+                  onChange={(e) => updateSection({ headerLayout: e.target.value as any })}
+                  title="배치 스타일 선택"
+                >
+                  <option value="spread-center">양끝 정렬 및 메뉴 중앙</option>
+                  <option value="spread-between">양끝 분할 정렬</option>
+                  <option value="left">좌측 밀착 정렬</option>
+                  <option value="center">가로 중앙 정렬</option>
+                  <option value="right">우측 밀착 정렬</option>
+                  <option value="even-space">균등 간격 정렬</option>
+                </select>
+              </div>
+
+              {/* Item 3: 상하 여백 */}
+              {(() => {
+                const presets = (themeSettings?.spacingPresets && themeSettings.spacingPresets.length > 0) ? themeSettings.spacingPresets : DEFAULT_SPACING_PRESETS;
+                const rawVarId = section.headerPaddingYVarId;
+                const isExplicitUnlinked = rawVarId === 'none' || (rawVarId === undefined && section.headerPaddingY !== undefined);
+                const varId = isExplicitUnlinked ? undefined : (rawVarId || 'space-md');
+                const activePreset = presets.find(p => p.id === varId);
+                const resolvedVal = activePreset ? activePreset.value : (section.headerPaddingY ?? 16);
+                const isLinked = !!activePreset;
+
+                return (
+                  <div className="flex items-center justify-between py-1 mt-1 border-t border-slate-100 pt-2.5">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }} className="select-none">
+                        상하 여백
+                      </span>
+                      <button
+                        type="button"
+                        style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                        onClick={() => {
+                          if (isLinked) {
+                            updateSection({ headerPaddingYVarId: 'none', headerPaddingY: resolvedVal });
+                          } else {
+                            const currentPx = section.headerPaddingY ?? 16;
+                            const matched = presets.find(p => p.value === currentPx) || presets.find(p => p.id === 'space-md') || presets[0];
+                            if (matched) {
+                              updateSection({ headerPaddingYVarId: matched.id, headerPaddingY: matched.value });
+                            }
+                          }
+                        }}
+                        title={isLinked ? `글로벌 레이아웃 간격 변수 연동 중 (${activePreset?.name} ${resolvedVal}px) - 클릭하여 해제` : '개별 픽셀 고정 모드 - 클릭하여 글로벌 레이아웃 간격 연동'}
+                      >
+                        <Link size={16} style={{ color: isLinked ? '#0284c7' : '#94a3b8', strokeWidth: isLinked ? 2.5 : 2 }} />
+                      </button>
+                    </div>
+
+                    <div>
+                      {isLinked ? (
+                        <select
+                          style={{ width: '175px', height: '38px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
+                          className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
+                          value={varId}
+                          onChange={(e) => {
+                            const found = presets.find(p => p.id === e.target.value);
+                            if (found) {
+                              updateSection({ headerPaddingYVarId: found.id, headerPaddingY: found.value });
+                            }
+                          }}
+                          title={activePreset ? `글로벌 레이아웃 간격 변수: ${activePreset.name} (${resolvedVal}px)` : '글로벌 레이아웃 간격 변수 선택'}
+                        >
+                          {presets.map(p => (
+                            <option key={p.id} value={p.id}>{p.name.split(' ')[0]}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <input
+                            type="number"
+                            style={{ width: '88px', height: '38px', textAlign: 'right', padding: '4px 8px', fontSize: '13.5px', fontWeight: 600, color: '#0f172a' }}
+                            className="border border-slate-300 rounded focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none bg-white"
+                            min={0}
+                            max={120}
+                            step={2}
+                            value={section.headerPaddingY ?? 16}
+                            onChange={(e) => {
+                              const rawVal = e.target.value;
+                              if (rawVal === '') {
+                                updateSection({ headerPaddingY: 0 });
+                                return;
+                              }
+                              const val = parseInt(rawVal, 10);
+                              if (!isNaN(val)) {
+                                const clamped = Math.min(200, Math.max(0, val));
+                                updateSection({ headerPaddingY: clamped });
+                              }
+                            }}
+                          />
+                          <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '22px', textAlign: 'right' }}>
+                            px
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Item 4: 요소 간격 */}
+              {(() => {
+                const presets = (themeSettings?.spacingPresets && themeSettings.spacingPresets.length > 0) ? themeSettings.spacingPresets : DEFAULT_SPACING_PRESETS;
+                const rawVarId = section.headerGapVarId;
+                const isExplicitUnlinked = rawVarId === 'none' || (rawVarId === undefined && section.headerGap !== undefined);
+                const varId = isExplicitUnlinked ? undefined : (rawVarId || 'space-2xl');
+                const activePreset = presets.find(p => p.id === varId);
+                const resolvedVal = activePreset ? activePreset.value : (section.headerGap ?? 48);
+                const isLinked = !!activePreset;
+
+                return (
+                  <div className="flex items-center justify-between py-1 mt-1 border-t border-slate-100 pt-2.5">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }} className="select-none">
+                        요소 간격
+                      </span>
+                      <button
+                        type="button"
+                        style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                        onClick={() => {
+                          if (isLinked) {
+                            updateSection({ headerGapVarId: 'none', headerGap: resolvedVal });
+                          } else {
+                            const currentPx = section.headerGap ?? 48;
+                            const matched = presets.find(p => p.value === currentPx) || presets.find(p => p.id === 'space-2xl') || presets[0];
+                            if (matched) {
+                              updateSection({ headerGapVarId: matched.id, headerGap: matched.value });
+                            }
+                          }
+                        }}
+                        title={isLinked ? `글로벌 레이아웃 간격 변수 연동 중 (${activePreset?.name} ${resolvedVal}px) - 클릭하여 해제` : '개별 픽셀 고정 모드 - 클릭하여 글로벌 레이아웃 간격 연동'}
+                      >
+                        <Link size={16} style={{ color: isLinked ? '#0284c7' : '#94a3b8', strokeWidth: isLinked ? 2.5 : 2 }} />
+                      </button>
+                    </div>
+
+                    <div>
+                      {isLinked ? (
+                        <select
+                          style={{ width: '175px', height: '38px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
+                          className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
+                          value={varId}
+                          onChange={(e) => {
+                            const found = presets.find(p => p.id === e.target.value);
+                            if (found) {
+                              updateSection({ headerGapVarId: found.id, headerGap: found.value });
+                            }
+                          }}
+                          title={activePreset ? `글로벌 레이아웃 간격 변수: ${activePreset.name} (${resolvedVal}px)` : '글로벌 레이아웃 간격 변수 선택'}
+                        >
+                          {presets.map(p => (
+                            <option key={p.id} value={p.id}>{p.name.split(' ')[0]}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <input
+                            type="number"
+                            style={{ width: '88px', height: '38px', textAlign: 'right', padding: '4px 8px', fontSize: '13.5px', fontWeight: 600, color: '#0f172a' }}
+                            className="border border-slate-300 rounded focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none bg-white"
+                            min={0}
+                            max={150}
+                            step={2}
+                            value={section.headerGap ?? 48}
+                            onChange={(e) => {
+                              const rawVal = e.target.value;
+                              if (rawVal === '') {
+                                updateSection({ headerGap: 0 });
+                                return;
+                              }
+                              const val = parseInt(rawVal, 10);
+                              if (!isNaN(val)) {
+                                const clamped = Math.min(300, Math.max(0, val));
+                                updateSection({ headerGap: clamped });
+                              }
+                            }}
+                          />
+                          <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '22px', textAlign: 'right' }}>
+                            px
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Item 5: 메뉴 간격 */}
+              {section.headerShowMenu !== false && (() => {
+                const presets = (themeSettings?.spacingPresets && themeSettings.spacingPresets.length > 0) ? themeSettings.spacingPresets : DEFAULT_SPACING_PRESETS;
+                const rawVarId = section.headerMenuGapVarId;
+                const isExplicitUnlinked = rawVarId === 'none' || (rawVarId === undefined && section.headerMenuGap !== undefined);
+                const varId = isExplicitUnlinked ? undefined : (rawVarId || 'space-xl');
+                const activePreset = presets.find(p => p.id === varId);
+                const resolvedVal = activePreset ? activePreset.value : (section.headerMenuGap ?? 28);
+                const isLinked = !!activePreset;
+
+                return (
+                  <div className="flex items-center justify-between py-1 mt-1 border-t border-slate-100 pt-2.5">
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ fontSize: '13.5px', fontWeight: 500, color: '#334155' }} className="select-none">
+                        메뉴 간격
+                      </span>
+                      <button
+                        type="button"
+                        style={{ background: 'none', border: 'none', padding: '2px', cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                        onClick={() => {
+                          if (isLinked) {
+                            updateSection({ headerMenuGapVarId: 'none', headerMenuGap: resolvedVal });
+                          } else {
+                            const currentPx = section.headerMenuGap ?? 28;
+                            const matched = presets.find(p => p.value === currentPx) || presets.find(p => p.id === 'space-xl') || presets[0];
+                            if (matched) {
+                              updateSection({ headerMenuGapVarId: matched.id, headerMenuGap: matched.value });
+                            }
+                          }
+                        }}
+                        title={isLinked ? `글로벌 레이아웃 간격 변수 연동 중 (${activePreset?.name} ${resolvedVal}px) - 클릭하여 해제` : '개별 픽셀 고정 모드 - 클릭하여 글로벌 레이아웃 간격 연동'}
+                      >
+                        <Link size={16} style={{ color: isLinked ? '#0284c7' : '#94a3b8', strokeWidth: isLinked ? 2.5 : 2 }} />
+                      </button>
+                    </div>
+
+                    <div>
+                      {isLinked ? (
+                        <select
+                          style={{ width: '175px', height: '38px', textAlign: 'left', fontSize: '12px', fontWeight: 600, color: '#0f172a' }}
+                          className="border border-slate-300 rounded px-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none cursor-pointer bg-white"
+                          value={varId}
+                          onChange={(e) => {
+                            const found = presets.find(p => p.id === e.target.value);
+                            if (found) {
+                              updateSection({ headerMenuGapVarId: found.id, headerMenuGap: found.value });
+                            }
+                          }}
+                          title={activePreset ? `글로벌 레이아웃 간격 변수: ${activePreset.name} (${resolvedVal}px)` : '글로벌 레이아웃 간격 변수 선택'}
+                        >
+                          {presets.map(p => (
+                            <option key={p.id} value={p.id}>{p.name.split(' ')[0]}</option>
+                          ))}
+                        </select>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <input
+                            type="number"
+                            style={{ width: '88px', height: '38px', textAlign: 'right', padding: '4px 8px', fontSize: '13.5px', fontWeight: 600, color: '#0f172a' }}
+                            className="border border-slate-300 rounded focus:border-sky-500 focus:ring-1 focus:ring-sky-500 outline-none bg-white"
+                            min={0}
+                            max={100}
+                            step={2}
+                            value={section.headerMenuGap ?? 28}
+                            onChange={(e) => {
+                              const rawVal = e.target.value;
+                              if (rawVal === '') {
+                                updateSection({ headerMenuGap: 0 });
+                                return;
+                              }
+                              const val = parseInt(rawVal, 10);
+                              if (!isNaN(val)) {
+                                const clamped = Math.min(200, Math.max(0, val));
+                                updateSection({ headerMenuGap: clamped });
+                              }
+                            }}
+                          />
+                          <span style={{ fontSize: '13.5px', fontWeight: 600, color: '#334155', width: '22px', textAlign: 'right' }}>
+                            px
+                          </span>
                         </div>
                       )}
                     </div>
@@ -1410,24 +1828,225 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 <label className="group-title">브랜드 로고 설정</label>
                 
                 <div className="input-block">
-                  <span className="input-label">로고 표시 타입</span>
-                  <select
-                    value={section.headerLogoType || 'text'}
-                    onChange={(e) => updateSection({ headerLogoType: e.target.value as any })}
-                  >
-                    <option value="text">텍스트 브랜드명</option>
-                    <option value="image">이미지 로고 파일</option>
-                  </select>
+                  <span className="input-label">로고 유형</span>
+                  <div className="align-buttons-row">
+                    {[
+                      { id: 'text', label: '텍스트' },
+                      { id: 'image', label: '이미지' }
+                    ].map((typeItem) => (
+                      <button
+                        key={typeItem.id}
+                        type="button"
+                        className={`align-btn ${(section.headerLogoType || 'text') === typeItem.id ? 'active' : ''}`}
+                        onClick={() => updateSection({ headerLogoType: typeItem.id as any })}
+                      >
+                        {typeItem.label}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {section.headerLogoType === 'image' ? (
                   <>
-                    <div className="input-block">
-                      <span className="input-label">로고 이미지 등록</span>
-                      <div className="flex flex-col gap-2" style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div className="flex items-center gap-2" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <label className="image-upload-label" style={{ flex: 1, textAlign: 'center', padding: '6px', background: '#0284c7', color: 'white', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: 600 }}>
-                            파일 선택
+                    {activePageId === 'main' && section.headerTransparentAtTop !== false ? (
+                      /* Main Page + Transparent At Top Enabled: Clean 2-Column Square Thumbnail Pickers */
+                      <div className="input-block">
+                        <span className="input-label" style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px', display: 'block' }}>로고 이미지</span>
+                        <div className="grid-inputs-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                          {/* Left Column: Transparent State Image Uploader (Square Box) */}
+                          <div className="grid-input-item" style={{ width: '100%', boxSizing: 'border-box' }}>
+                            <span className="input-label" style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '6px', display: 'block' }}>투명 배경 로고</span>
+                            <div
+                              style={{
+                                position: 'relative',
+                                width: '100%',
+                                height: '115px',
+                                borderRadius: '8px',
+                                border: section.headerLogoImg ? '2px solid #0284c7' : '2px dashed var(--figma-border, #cbd5e1)',
+                                backgroundColor: section.headerLogoImg ? '#0f172a' : 'rgba(241, 245, 249, 0.5)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                overflow: 'hidden',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <label style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '8px', boxSizing: 'border-box' }}>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  style={{ display: 'none' }}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      updateSection({
+                                        headerLogoImg: reader.result as string,
+                                        headerLogoImgName: file.name,
+                                      });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }}
+                                />
+                                {section.headerLogoImg ? (
+                                  <img
+                                    src={section.headerLogoImg}
+                                    alt="투명 배경 로고"
+                                    style={{ maxWidth: '92%', maxHeight: '92%', objectFit: 'contain' }}
+                                  />
+                                ) : (
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: '#64748b' }}>
+                                    <span style={{ fontSize: '28px', lineHeight: 1, fontWeight: 300 }}>+</span>
+                                    <span style={{ fontSize: '12px', fontWeight: 600 }}>등록</span>
+                                  </div>
+                                )}
+                              </label>
+
+                              {section.headerLogoImg && (
+                                <button
+                                  type="button"
+                                  title="이미지 삭제"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateSection({ headerLogoImg: undefined, headerLogoImgName: undefined });
+                                  }}
+                                  style={{
+                                    position: 'absolute',
+                                    top: '6px',
+                                    right: '6px',
+                                    width: '22px',
+                                    height: '22px',
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    lineHeight: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    zIndex: 5,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Right Column: Scrolled State Image Uploader (Square Box) */}
+                          <div className="grid-input-item" style={{ width: '100%', boxSizing: 'border-box' }}>
+                            <span className="input-label" style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '6px', display: 'block' }}>배경색 로고</span>
+                            <div
+                              style={{
+                                position: 'relative',
+                                width: '100%',
+                                height: '115px',
+                                borderRadius: '8px',
+                                border: section.headerScrolledLogoImg ? '2px solid #0d9488' : '2px dashed var(--figma-border, #cbd5e1)',
+                                backgroundColor: section.headerScrolledLogoImg ? '#ffffff' : 'rgba(241, 245, 249, 0.5)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                overflow: 'hidden',
+                                transition: 'all 0.2s ease',
+                              }}
+                            >
+                              <label style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '8px', boxSizing: 'border-box' }}>
+                                <input
+                                  type="file"
+                                  accept="image/*"
+                                  style={{ display: 'none' }}
+                                  onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (!file) return;
+                                    const reader = new FileReader();
+                                    reader.onloadend = () => {
+                                      updateSection({
+                                        headerScrolledLogoImg: reader.result as string,
+                                        headerScrolledLogoImgName: file.name,
+                                      });
+                                    };
+                                    reader.readAsDataURL(file);
+                                  }}
+                                />
+                                {section.headerScrolledLogoImg ? (
+                                  <img
+                                    src={section.headerScrolledLogoImg}
+                                    alt="배경색 로고"
+                                    style={{ maxWidth: '92%', maxHeight: '92%', objectFit: 'contain' }}
+                                  />
+                                ) : (
+                                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: '#64748b' }}>
+                                    <span style={{ fontSize: '28px', lineHeight: 1, fontWeight: 300 }}>+</span>
+                                    <span style={{ fontSize: '12px', fontWeight: 600 }}>등록</span>
+                                  </div>
+                                )}
+                              </label>
+
+                              {section.headerScrolledLogoImg && (
+                                <button
+                                  type="button"
+                                  title="이미지 삭제"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    updateSection({ headerScrolledLogoImg: undefined, headerScrolledLogoImgName: undefined });
+                                  }}
+                                  style={{
+                                    position: 'absolute',
+                                    top: '6px',
+                                    right: '6px',
+                                    width: '22px',
+                                    height: '22px',
+                                    borderRadius: '50%',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    fontSize: '11px',
+                                    fontWeight: 700,
+                                    lineHeight: 1,
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    cursor: 'pointer',
+                                    zIndex: 5,
+                                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* Subpages or Header Without Transparent Option: Single Square Thumbnail Picker */
+                      <div className="input-block">
+                        <span className="input-label" style={{ fontSize: '13px', fontWeight: 600, marginBottom: '8px', display: 'block' }}>로고 이미지</span>
+                        <div
+                          style={{
+                            position: 'relative',
+                            width: '120px',
+                            height: '115px',
+                            borderRadius: '8px',
+                            border: section.headerLogoImg ? '2px solid #0284c7' : '2px dashed var(--figma-border, #cbd5e1)',
+                            backgroundColor: section.headerLogoImg ? '#ffffff' : 'rgba(241, 245, 249, 0.5)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            cursor: 'pointer',
+                            overflow: 'hidden',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <label style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', padding: '8px', boxSizing: 'border-box' }}>
                             <input
                               type="file"
                               accept="image/*"
@@ -1445,31 +2064,62 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                                 reader.readAsDataURL(file);
                               }}
                             />
+                            {section.headerLogoImg ? (
+                              <img
+                                src={section.headerLogoImg}
+                                alt="로고 이미지"
+                                style={{ maxWidth: '92%', maxHeight: '92%', objectFit: 'contain' }}
+                              />
+                            ) : (
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px', color: '#64748b' }}>
+                                <span style={{ fontSize: '28px', lineHeight: 1, fontWeight: 300 }}>+</span>
+                                <span style={{ fontSize: '12px', fontWeight: 600 }}>등록</span>
+                              </div>
+                            )}
                           </label>
+
                           {section.headerLogoImg && (
                             <button
-                              className="del-el-btn"
-                              style={{ padding: '6px', height: 'auto', flex: 'none' }}
-                              onClick={() => updateSection({ headerLogoImg: undefined, headerLogoImgName: undefined })}
+                              type="button"
+                              title="이미지 삭제"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                updateSection({ headerLogoImg: undefined, headerLogoImgName: undefined });
+                              }}
+                              style={{
+                                position: 'absolute',
+                                top: '6px',
+                                right: '6px',
+                                width: '22px',
+                                height: '22px',
+                                borderRadius: '50%',
+                                backgroundColor: 'rgba(239, 68, 68, 0.9)',
+                                color: '#ffffff',
+                                border: 'none',
+                                fontSize: '11px',
+                                fontWeight: 700,
+                                lineHeight: 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                                zIndex: 5,
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                              }}
                             >
-                              삭제
+                              ✕
                             </button>
                           )}
                         </div>
-                        {section.headerLogoImgName && (
-                          <span className="text-[10px] text-gray-400 truncate" style={{ fontSize: '10px', color: '#9ca3af', display: 'block', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                            선택됨: {section.headerLogoImgName}
-                          </span>
-                        )}
                       </div>
-                    </div>
-                    <div className="input-block mt-1">
-                      <span className="input-label">로고 너비 (Width): {section.headerLogoWidth || 120}px</span>
+                    )}
+                    <div className="input-block mt-2">
+                      <span className="input-label" style={{ fontSize: '12px', fontWeight: 600 }}>로고 최대 높이 (Height): {section.headerLogoWidth || 40}px</span>
                       <input
                         type="range"
-                        min="30"
-                        max="300"
-                        value={section.headerLogoWidth || 120}
+                        min="20"
+                        max="100"
+                        value={section.headerLogoWidth || 40}
                         onChange={(e) => updateSection({ headerLogoWidth: parseInt(e.target.value) })}
                       />
                     </div>
@@ -1494,145 +2144,67 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                         />
                       </div>
                       <div className="grid-input-item">
-                        <span className="input-label">글자 색상</span>
+                        <div className="flex items-center justify-between">
+                          <span className="input-label">글자 색상</span>
+                          {activePageId === 'main' && section.headerTransparentAtTop !== false && (
+                            <span style={{ fontSize: '10px', fontWeight: 600, color: (previewHeaderState === 'scrolled') ? '#0284c7' : '#64748b', backgroundColor: (previewHeaderState === 'scrolled') ? '#e0f2fe' : '#f1f5f9', padding: '1px 5px', borderRadius: '3px' }}>
+                              {previewHeaderState === 'scrolled' ? '배경색 상태' : '투명 상태'}
+                            </span>
+                          )}
+                        </div>
                         <div className="color-picker-wrapper">
-                          <input
-                            type="color"
-                            value={section.headerLogoColor?.startsWith('#') ? section.headerLogoColor : '#ffffff'}
-                            onChange={(e) => updateSection({ headerLogoColor: e.target.value })}
-                          />
-                          <input
-                            type="text"
-                            value={section.headerLogoColor || '#ffffff'}
-                            onChange={(e) => updateSection({ headerLogoColor: e.target.value })}
-                          />
+                          {(() => {
+                            const isScrolledTab = previewHeaderState === 'scrolled';
+                            const curColor = isScrolledTab ? (section.headerScrolledLogoColor || 'var(--theme-text-inverse)') : (section.headerLogoColor || 'var(--theme-text-inverse)');
+                            const resolvedColor = curColor.startsWith('var(')
+                              ? (curColor === 'var(--theme-primary)' ? (themeSettings?.primaryColor || '#1e3a8a') : (themeSettings?.textInverseColor || '#ffffff'))
+                              : curColor;
+                            return (
+                              <>
+                                <input
+                                  type="color"
+                                  value={resolvedColor.startsWith('#') && resolvedColor.length === 7 ? resolvedColor : '#ffffff'}
+                                  onChange={(e) => updateSection(isScrolledTab ? { headerScrolledLogoColor: e.target.value } : { headerLogoColor: e.target.value })}
+                                />
+                                <input
+                                  type="text"
+                                  value={curColor}
+                                  onChange={(e) => updateSection(isScrolledTab ? { headerScrolledLogoColor: e.target.value } : { headerLogoColor: e.target.value })}
+                                />
+                              </>
+                            );
+                          })()}
                         </div>
                       </div>
                     </div>
+                    {/* Logo Font Selector (Shown ONLY when Logo Type is Text) */}
+                    <div className="input-block mt-2">
+                      <span className="input-label">글꼴</span>
+                      <FontCustomSelect
+                        currentFontName={section.headerLogoFont || 'Inter'}
+                        onSelectFont={(fontName) => {
+                          updateSection({ headerLogoFont: fontName });
+                          setPreviewHeaderLogoFont?.(null);
+                        }}
+                        onHoverFont={(fontName) => {
+                          setPreviewHeaderLogoFont?.(fontName);
+                        }}
+                      />
+                    </div>
                   </>
                 )}
-                {/* Logo Font Selector */}
-                <div className="input-block mt-2">
-                  <span className="input-label">글꼴</span>
-                  <FontCustomSelect
-                    currentFontName={section.headerLogoFont || 'Inter'}
-                    onSelectFont={(fontName) => {
-                      updateSection({ headerLogoFont: fontName });
-                      setPreviewHeaderLogoFont?.(null);
-                    }}
-                    onHoverFont={(fontName) => {
-                      setPreviewHeaderLogoFont?.(fontName);
-                    }}
-                  />
-                </div>
               </div>
             )}
 
-            {/* 2. Alignment Layout presets */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">배치 스타일</label>
-              <div style={{ display: 'flex', flexDirection: 'column' }}>
-                {[
-                  { value: 'spread-center', label: '양끝 정렬 및 메뉴 중앙' },
-                  { value: 'spread-between', label: '양끝 분할 정렬' },
-                  { value: 'left', label: '좌측 밀착 정렬' },
-                  { value: 'center', label: '가로 중앙 정렬' },
-                  { value: 'right', label: '우측 밀착 정렬' },
-                  { value: 'even-space', label: '균등 간격 정렬' },
-                ].map((opt, idx, arr) => {
-                  const currentLayout = section.headerLayout || 'spread-center';
-                  const isSelected = currentLayout === opt.value;
-                  const isLast = idx === arr.length - 1;
-                  return (
-                    <div
-                      key={opt.value}
-                      onClick={() => updateSection({ headerLayout: opt.value as any })}
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '10px',
-                        padding: '12px 8px',
-                        margin: '0 -8px',
-                        borderRadius: '4px',
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                        backgroundColor: isSelected ? '#f0f9ff' : 'transparent',
-                        borderBottom: isLast ? 'none' : '1px solid #f1f5f9',
-                      }}
-                      onMouseEnter={(e) => {
-                        if (!isSelected) e.currentTarget.style.backgroundColor = '#f8fafc';
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent';
-                      }}
-                    >
-                      {/* Left Check Icon Container */}
-                      <div style={{ width: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        {isSelected && (
-                          <Check size={18} strokeWidth={2.5} style={{ color: '#0284c7' }} />
-                        )}
-                      </div>
 
-                      {/* Label Text */}
-                      <span style={{
-                        fontSize: '13.5px',
-                        fontWeight: isSelected ? 700 : 500,
-                        color: isSelected ? '#0284c7' : '#334155',
-                        letterSpacing: '-0.2px',
-                        flex: 1,
-                      }}>
-                        {opt.label}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* 3. Spacing & Margin Settings */}
-            <div className="property-group flex flex-col gap-2">
-              <label className="group-title">헤더 여백 및 간격 설정</label>
-              <div className="input-block">
-                <span className="input-label">상하 여백 (Padding Y): {section.headerPaddingY ?? 16}px</span>
-                <input
-                  type="range"
-                  min="0"
-                  max="80"
-                  step="2"
-                  value={section.headerPaddingY ?? 16}
-                  onChange={(e) => updateSection({ headerPaddingY: parseInt(e.target.value) })}
-                />
-              </div>
-              <div className="input-block mt-1">
-                <span className="input-label">요소 간격 (Gap): {section.headerGap ?? 40}px</span>
-                <input
-                  type="range"
-                  min="10"
-                  max="100"
-                  step="5"
-                  value={section.headerGap ?? 40}
-                  onChange={(e) => updateSection({ headerGap: parseInt(e.target.value) })}
-                />
-              </div>
-              {section.headerShowMenu !== false && (
-                <div className="input-block mt-1">
-                  <span className="input-label">메뉴 내부 간격: {section.headerMenuGap ?? 24}px</span>
-                  <input
-                    type="range"
-                    min="10"
-                    max="80"
-                    step="2"
-                    value={section.headerMenuGap ?? 24}
-                    onChange={(e) => updateSection({ headerMenuGap: parseInt(e.target.value) })}
-                  />
-                </div>
-              )}
-            </div>
 
             {/* 4. Menu Link list */}
             {section.headerShowMenu !== false && (
               <div className="property-group flex flex-col gap-2">
-                <label className="group-title">메뉴 링크 개별 설정</label>
+                <div className="flex items-center justify-between">
+                  <label className="group-title">네비게이션 메뉴 설정</label>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>항목 {section.headerMenuItems?.length || 0}개</span>
+                </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                   {menuItems.map((item) => (
                     <div key={item.id} style={{ display: 'flex', gap: '6px', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.02)', padding: '6px', border: '1px solid var(--figma-border)', borderRadius: '4px' }}>
@@ -1694,18 +2266,36 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     </select>
                   </div>
                   <div className="grid-input-item">
-                    <span className="input-label">글자 색상</span>
+                    <div className="flex items-center justify-between">
+                      <span className="input-label">글자 색상</span>
+                      {activePageId === 'main' && section.headerTransparentAtTop !== false && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: (previewHeaderState === 'scrolled') ? '#0284c7' : '#64748b', backgroundColor: (previewHeaderState === 'scrolled') ? '#e0f2fe' : '#f1f5f9', padding: '1px 5px', borderRadius: '3px' }}>
+                          {previewHeaderState === 'scrolled' ? '배경색 상태' : '투명 상태'}
+                        </span>
+                      )}
+                    </div>
                     <div className="color-picker-wrapper">
-                      <input
-                        type="color"
-                        value={section.headerMenuColor?.startsWith('#') ? section.headerMenuColor : '#cbd5e1'}
-                        onChange={(e) => updateSection({ headerMenuColor: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        value={section.headerMenuColor || '#cbd5e1'}
-                        onChange={(e) => updateSection({ headerMenuColor: e.target.value })}
-                      />
+                      {(() => {
+                        const isScrolledTab = previewHeaderState === 'scrolled';
+                        const curColor = isScrolledTab ? (section.headerScrolledMenuColor || 'var(--theme-text-inverse)') : (section.headerMenuColor || 'var(--theme-text-inverse)');
+                        const resolvedColor = curColor.startsWith('var(')
+                          ? (curColor === 'var(--theme-text)' ? (themeSettings?.textColor || '#0f172a') : (themeSettings?.textInverseColor || '#ffffff'))
+                          : curColor;
+                        return (
+                          <>
+                            <input
+                              type="color"
+                              value={resolvedColor.startsWith('#') && resolvedColor.length === 7 ? resolvedColor : '#cbd5e1'}
+                              onChange={(e) => updateSection(isScrolledTab ? { headerScrolledMenuColor: e.target.value } : { headerMenuColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={curColor}
+                              onChange={(e) => updateSection(isScrolledTab ? { headerScrolledMenuColor: e.target.value } : { headerMenuColor: e.target.value })}
+                            />
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>
@@ -1735,23 +2325,32 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                 
                 <div className="grid-inputs-row">
                   <div className="grid-input-item">
-                    <span className="input-label">배경색</span>
+                    <div className="flex items-center justify-between">
+                      <span className="input-label">배경색</span>
+                      {activePageId === 'main' && section.headerTransparentAtTop !== false && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: (previewHeaderState === 'scrolled') ? '#0284c7' : '#64748b', backgroundColor: (previewHeaderState === 'scrolled') ? '#e0f2fe' : '#f1f5f9', padding: '1px 5px', borderRadius: '3px' }}>
+                          {previewHeaderState === 'scrolled' ? '배경색 상태' : '투명 상태'}
+                        </span>
+                      )}
+                    </div>
                     <div className="color-picker-wrapper">
                       {(() => {
-                        const defaultBg = section.headerBtnBgColor === 'var(--theme-secondary)' || !section.headerBtnBgColor
+                        const isScrolledTab = previewHeaderState === 'scrolled';
+                        const curBg = isScrolledTab ? (section.headerScrolledBtnBgColor || section.headerBtnBgColor || 'var(--theme-secondary)') : (section.headerBtnBgColor || 'var(--theme-secondary)');
+                        const resolvedBg = curBg.startsWith('var(')
                           ? (themeSettings?.secondaryColor || '#3b82f6')
-                          : section.headerBtnBgColor;
+                          : curBg;
                         return (
                           <>
                             <input
                               type="color"
-                              value={defaultBg.startsWith('#') && defaultBg.length === 7 ? defaultBg : '#3b82f6'}
-                              onChange={(e) => updateSection({ headerBtnBgColor: e.target.value })}
+                              value={resolvedBg.startsWith('#') && resolvedBg.length === 7 ? resolvedBg : '#3b82f6'}
+                              onChange={(e) => updateSection(isScrolledTab ? { headerScrolledBtnBgColor: e.target.value } : { headerBtnBgColor: e.target.value })}
                             />
                             <input
                               type="text"
-                              value={section.headerBtnBgColor || 'var(--theme-secondary)'}
-                              onChange={(e) => updateSection({ headerBtnBgColor: e.target.value })}
+                              value={curBg}
+                              onChange={(e) => updateSection(isScrolledTab ? { headerScrolledBtnBgColor: e.target.value } : { headerBtnBgColor: e.target.value })}
                             />
                           </>
                         );
@@ -1759,18 +2358,36 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                     </div>
                   </div>
                   <div className="grid-input-item">
-                    <span className="input-label">글자색</span>
+                    <div className="flex items-center justify-between">
+                      <span className="input-label">글자색</span>
+                      {activePageId === 'main' && section.headerTransparentAtTop !== false && (
+                        <span style={{ fontSize: '10px', fontWeight: 600, color: (previewHeaderState === 'scrolled') ? '#0284c7' : '#64748b', backgroundColor: (previewHeaderState === 'scrolled') ? '#e0f2fe' : '#f1f5f9', padding: '1px 5px', borderRadius: '3px' }}>
+                          {previewHeaderState === 'scrolled' ? '배경색 상태' : '투명 상태'}
+                        </span>
+                      )}
+                    </div>
                     <div className="color-picker-wrapper">
-                      <input
-                        type="color"
-                        value={section.headerBtnTextColor?.startsWith('#') ? section.headerBtnTextColor : '#ffffff'}
-                        onChange={(e) => updateSection({ headerBtnTextColor: e.target.value })}
-                      />
-                      <input
-                        type="text"
-                        value={section.headerBtnTextColor || '#ffffff'}
-                        onChange={(e) => updateSection({ headerBtnTextColor: e.target.value })}
-                      />
+                      {(() => {
+                        const isScrolledTab = previewHeaderState === 'scrolled';
+                        const curText = isScrolledTab ? (section.headerScrolledBtnTextColor || section.headerBtnTextColor || 'var(--theme-text-inverse)') : (section.headerBtnTextColor || 'var(--theme-text-inverse)');
+                        const resolvedText = curText.startsWith('var(')
+                          ? (themeSettings?.textInverseColor || '#ffffff')
+                          : curText;
+                        return (
+                          <>
+                            <input
+                              type="color"
+                              value={resolvedText.startsWith('#') && resolvedText.length === 7 ? resolvedText : '#ffffff'}
+                              onChange={(e) => updateSection(isScrolledTab ? { headerScrolledBtnTextColor: e.target.value } : { headerBtnTextColor: e.target.value })}
+                            />
+                            <input
+                              type="text"
+                              value={curText}
+                              onChange={(e) => updateSection(isScrolledTab ? { headerScrolledBtnTextColor: e.target.value } : { headerBtnTextColor: e.target.value })}
+                            />
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
                 </div>

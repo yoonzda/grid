@@ -203,6 +203,14 @@ textarea {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.input-label {
+  display: block;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: #334155;
+  margin-bottom: 4px;
+}
+
 input[type="text"]:hover,
 input[type="number"]:hover,
 select:hover,
