@@ -4,6 +4,7 @@ import { ElementWrapper } from './ElementWrapper';
 import { useGridSnap } from '../hooks/useGridSnap';
 import { getFontFamilyByFamilyName } from '../utils/fontManager';
 import { DEFAULT_SPACING_PRESETS } from '../utils/templates';
+import { Menu, X as CloseIcon } from 'lucide-react';
 
 export const extractYouTubeId = (url?: string): string | null => {
   if (!url) return null;
@@ -579,6 +580,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [activeDragContainerWidth, setActiveDragContainerWidth] = useState<number>(1200);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'section' | 'element'; sectionId: string; elementId?: string } | null>(null);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState<boolean>(false);
 
   // Close context menu on left click (outside menu), scroll, or escape key
   useEffect(() => {
@@ -792,7 +794,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
     const logoStyle: React.CSSProperties = {
       color: activeLogoColor,
       fontSize: sec.headerLogoSize || '20px',
-      fontWeight: 800,
+      fontWeight: sec.headerLogoWeight ?? 400,
       fontFamily: getFontFamilyByFamilyName(activeLogoFont),
       cursor: 'pointer',
       margin: 0,
@@ -918,7 +920,177 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       </div>
     );
 
-    // 1. 'spread-center' Layout: Absolute horizontal center for navigation menu
+    // 1. MOBILE VIEWPORT HEADER (max 767px) - Popular App Style with Hamburger Drawer
+    if (viewportMode === 'mo') {
+      return (
+        <div 
+          className="header-flex-wrapper mobile-header-view"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            height: '100%',
+            padding: '0 16px',
+            boxSizing: 'border-box',
+            position: 'relative',
+            pointerEvents: 'auto',
+          }}
+        >
+          <div className="header-left-col flex items-center">
+            {logoNode}
+          </div>
+          <div className="header-right-col flex items-center gap-2">
+            {sec.headerShowBtn !== false && (
+              <button 
+                style={{
+                  ...btnStyle,
+                  fontSize: '12px',
+                  padding: '6px 12px',
+                  borderRadius: '20px',
+                  lineHeight: '1.2'
+                }}
+              >
+                {sec.headerBtnText || '예약'}
+              </button>
+            )}
+            <button
+              className="mobile-hamburger-btn"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsMobileMenuOpen(!isMobileMenuOpen);
+              }}
+              style={{
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '6px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: activeMenuColor,
+                borderRadius: '6px'
+              }}
+              title="메뉴 열기/닫기"
+            >
+              {isMobileMenuOpen ? <CloseIcon size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+
+          {/* Mobile Dropdown Menu Drawer Preview */}
+          {isMobileMenuOpen && (
+            <div
+              className="mobile-nav-dropdown active"
+              style={{
+                position: 'absolute',
+                top: '100%',
+                left: 0,
+                width: '100%',
+                backgroundColor: sec.backgroundColor || '#ffffff',
+                boxShadow: '0 12px 30px rgba(0,0,0,0.15)',
+                zIndex: 100,
+                padding: '16px 20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '10px',
+                borderBottom: '1px solid #e2e8f0',
+                boxSizing: 'border-box'
+              }}
+            >
+              {(sec.headerMenuItems || []).map((item) => (
+                <a
+                  key={item.id}
+                  href="#"
+                  onClick={(e) => e.preventDefault()}
+                  style={{
+                    ...menuStyle,
+                    fontSize: '14px',
+                    padding: '8px 0',
+                    borderBottom: '1px solid #f1f5f9',
+                    display: 'block'
+                  }}
+                >
+                  {item.name}
+                </a>
+              ))}
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    // 2. TABLET VIEWPORT HEADER (768px ~ 1279px) - Compact Modern Tablet Bar
+    if (viewportMode === 'tab') {
+      const tabletMenuNode = sec.headerShowMenu !== false && (
+        <nav 
+          className="header-menu-container" 
+          style={{ 
+            display: 'flex', 
+            gap: '16px', 
+            alignItems: 'center',
+            cursor: 'pointer',
+          }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveSectionId(sec.id);
+            setActiveElement(null);
+          }}
+        >
+          {(sec.headerMenuItems || []).map((item) => (
+            <a 
+              key={item.id} 
+              href="#" 
+              onClick={(e) => e.preventDefault()} 
+              style={{
+                ...menuStyle,
+                fontSize: '13.5px',
+              }}
+              className="header-menu-link-preview"
+            >
+              {item.name}
+            </a>
+          ))}
+        </nav>
+      );
+
+      const tabletBtnNode = sec.headerShowBtn !== false && (
+        <div 
+          className="header-btn-container" 
+          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveSectionId(sec.id);
+            setActiveElement(null);
+          }}
+        >
+          <button style={{ ...btnStyle, fontSize: '13px', padding: '8px 16px' }}>
+            {sec.headerBtnText || '문의하기'}
+          </button>
+        </div>
+      );
+
+      return (
+        <div 
+          className="header-flex-wrapper tablet-header-view"
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            width: '100%',
+            height: '100%',
+            padding: '0 20px',
+            boxSizing: 'border-box',
+            pointerEvents: 'auto',
+          }}
+        >
+          {logoNode}
+          {tabletMenuNode}
+          {tabletBtnNode}
+        </div>
+      );
+    }
+
+    // 3. DESKTOP PC VIEWPORT HEADER (min 1280px)
     if (layout === 'spread-center') {
       return (
         <div 
@@ -956,7 +1128,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
       );
     }
 
-    // 2. Standard flow alignment layouts ('spread-between', 'left', 'center', 'right', 'even-space')
+    // Standard desktop layout
     let justifyStyle = 'flex-start';
     if (layout === 'spread-between') justifyStyle = 'space-between';
     if (layout === 'right') justifyStyle = 'flex-end';
@@ -1436,15 +1608,90 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
               });
             }}
           >
+            {/* Section Background Overlay Layer (Customizable multi-stop gradient & opacity) */}
+            {(() => {
+              const overlayType = sec.sectionOverlayType || (sec.id === 'sec-main-hero' ? 'gradient' : 'none');
+              if (overlayType === 'none') return null;
+
+              const hexToRgba = (hexStr: string, alpha: number) => {
+                let clean = (hexStr || '#000000').replace('#', '');
+                if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
+                const num = parseInt(clean, 16);
+                if (isNaN(num)) return `rgba(0, 0, 0, ${alpha})`;
+                const r = (num >> 16) & 255;
+                const g = (num >> 8) & 255;
+                const b = num & 255;
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+              };
+
+              let overlayBgStyle = '';
+              if (overlayType === 'solid') {
+                const startColor = sec.sectionOverlayColor || '#000000';
+                const startOpacity = sec.sectionOverlayStartOpacity !== undefined ? sec.sectionOverlayStartOpacity : 0.55;
+                overlayBgStyle = hexToRgba(startColor, startOpacity);
+              } else if (overlayType === 'gradient') {
+                const angle = sec.sectionOverlayAngle !== undefined ? sec.sectionOverlayAngle : 90;
+                let stops = sec.sectionOverlayStops;
+                if (!stops || stops.length === 0) {
+                  const startColor = sec.sectionOverlayColor || '#000000';
+                  const startOpacity = sec.sectionOverlayStartOpacity !== undefined ? sec.sectionOverlayStartOpacity : 0.55;
+                  const startPos = sec.sectionOverlayStartPos !== undefined ? sec.sectionOverlayStartPos : 0;
+                  const isMidEnabled = sec.sectionOverlayEnableMidStop !== false && (sec.id === 'sec-main-hero' || sec.sectionOverlayEnableMidStop === true);
+                  const midColor = sec.sectionOverlayMidColor || startColor;
+                  const midOpacity = sec.sectionOverlayMidOpacity !== undefined ? sec.sectionOverlayMidOpacity : 0.30;
+                  const midPos = sec.sectionOverlayMidPos !== undefined ? sec.sectionOverlayMidPos : 50;
+                  const endColor = sec.sectionOverlayEndColor || startColor;
+                  const endOpacity = sec.sectionOverlayEndOpacity !== undefined ? sec.sectionOverlayEndOpacity : 0;
+                  const endPos = sec.sectionOverlayEndPos !== undefined ? sec.sectionOverlayEndPos : 100;
+
+                  stops = [
+                    { id: 'stop-start', color: startColor, opacity: startOpacity, pos: startPos },
+                  ];
+                  if (isMidEnabled) {
+                    stops.push({ id: 'stop-mid', color: midColor, opacity: midOpacity, pos: midPos });
+                  }
+                  stops.push({ id: 'stop-end', color: endColor, opacity: endOpacity, pos: endPos });
+                }
+
+                const sorted = [...stops].sort((a, b) => a.pos - b.pos);
+                const stopExpr = sorted.map(s => `${hexToRgba(s.color, s.opacity)} ${s.pos}%`).join(', ');
+                overlayBgStyle = `linear-gradient(${angle}deg, ${stopExpr})`;
+              }
+
+              return (
+                <div
+                  className="section-overlay-layer"
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    background: overlayBgStyle,
+                    pointerEvents: 'none',
+                    zIndex: 1,
+                  }}
+                />
+              );
+            })()}
+
+            {/* Scroll Down Indicator with Long Arrow & Smooth Animation */}
+            {(sec.showScrollDown !== false && (sec.showScrollDown || sec.id === 'sec-main-hero')) && (
+              <div className="scroll-down-indicator">
+                <span className="scroll-text">SCROLL DOWN</span>
+                <div className="scroll-arrow-box">
+                  <div className="scroll-arrow-line"></div>
+                  <div className="scroll-arrow-head">↓</div>
+                </div>
+              </div>
+            )}
+
             {/* 1. Left Dimmed Margin Shading Layer */}
-            {gWidth !== '100%' && (
+            {viewportMode === 'pc' && gWidth !== '100%' && (
               <div className="side-margin-shading left" style={{ width: getMarginPercent(gWidth) }}>
                 <div className="margin-border-line right-border"></div>
               </div>
             )}
 
             {/* Visual Guide Overlay for Guideline Width Hover Preview (Diagonal Hatched Pattern, No Side Borders) */}
-            {isSelected && hoveredGuidelineWidth && (
+            {viewportMode === 'pc' && isSelected && hoveredGuidelineWidth && (
               <div 
                 style={{
                   position: 'absolute',
@@ -1538,6 +1785,8 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                   ? (presets.find((p: any) => p.id === sec.headerPaddingYVarId)?.value ?? sec.headerPaddingY ?? 16)
                   : (sec.headerPaddingY ?? 16);
                 return { 
+                  position: 'relative',
+                  zIndex: 2,
                   width: getContentPercent(gWidth), 
                   height: 'auto',
                   minHeight: 'auto',
@@ -1545,18 +1794,22 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                   paddingBottom: sec.sharedType === 'header' ? `${headerPadY}px` : 0,
                 };
               })() : {
+                position: 'relative',
+                zIndex: 2,
                 width: getContentPercent(gWidth), 
-                height: 'auto',
-                minHeight: 'auto',
+                height: sec.heightMode === 'full' ? '100%' : 'auto',
+                minHeight: sec.heightMode === 'full' ? '100vh' : 'auto',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'center',
               }}
             >
               {/* Grid column guidelines */}
-              <div className="grid-guides-overlay">
-                {renderGridCols()}
-              </div>
+              {viewportMode === 'pc' && (
+                <div className="grid-guides-overlay">
+                  {renderGridCols()}
+                </div>
+              )}
 
               {/* Elements container utilizing real CSS Grid for placement layout */}
               <div 
@@ -1578,14 +1831,15 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
                     justifyContent: activeAlign === 'start' ? 'flex-start' : activeAlign === 'end' ? 'flex-end' : activeAlign === 'space-between' ? 'space-between' : 'center',
                     paddingTop: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)',
                     paddingBottom: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)',
-                    height: 'auto',
-                    minHeight: 'auto',
+                    height: sec.heightMode === 'full' ? '100%' : 'auto',
+                    minHeight: sec.heightMode === 'full' ? '100vh' : 'auto',
                     boxSizing: 'border-box',
                     transition: 'all 0.35s cubic-bezier(0.4, 0, 0.2, 1)'
                   };
                 })() : { 
-                  height: 'auto',
-                  minHeight: 'auto',
+                  height: sec.heightMode === 'full' ? '100%' : 'auto',
+                  minHeight: sec.heightMode === 'full' ? '100vh' : 'auto',
+                  alignContent: sec.heightMode === 'full' ? 'center' : 'start',
                   paddingTop: sec.paddingTop !== undefined ? `${sec.paddingTop}px` : 'var(--theme-default-section-padding)',
                   paddingBottom: sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : 'var(--theme-default-section-padding)',
                   boxSizing: 'border-box',
@@ -1665,7 +1919,7 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
             </div>
 
             {/* 3. Right Dimmed Margin Shading Layer */}
-            {gWidth !== '100%' && (
+            {viewportMode === 'pc' && gWidth !== '100%' && (
               <div className="side-margin-shading right" style={{ width: getMarginPercent(gWidth) }}>
                 <div className="margin-border-line left-border"></div>
               </div>
@@ -1982,6 +2236,85 @@ export const CanvasGrid: React.FC<CanvasGridProps> = ({
           gap: 16px;
           pointer-events: none;
           z-index: 2;
+        }
+
+        /* Modern Animated Scroll Down Indicator */
+        .scroll-down-indicator {
+          position: absolute;
+          right: 36px;
+          bottom: 36px;
+          z-index: 30;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          pointer-events: none;
+          user-select: none;
+        }
+
+        .scroll-down-indicator .scroll-text {
+          writing-mode: vertical-rl;
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 10.5px;
+          font-weight: 600;
+          letter-spacing: 3px;
+          font-family: 'Inter', sans-serif;
+          text-transform: uppercase;
+        }
+
+        .scroll-down-indicator .scroll-arrow-box {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 2px;
+        }
+
+        .scroll-down-indicator .scroll-arrow-line {
+          width: 1px;
+          height: 44px;
+          background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), #E58E12, #ffffff);
+          position: relative;
+          overflow: hidden;
+          animation: arrowLinePulse 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+        }
+
+        .scroll-down-indicator .scroll-arrow-head {
+          color: #FFFFFF;
+          font-size: 11px;
+          font-weight: 700;
+          line-height: 1;
+          opacity: 0.9;
+          animation: arrowHeadBounce 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+        }
+
+        @keyframes arrowLinePulse {
+          0% {
+            transform: scaleY(0.4);
+            transform-origin: top;
+            opacity: 0.4;
+          }
+          50% {
+            transform: scaleY(1);
+            transform-origin: top;
+            opacity: 1;
+          }
+          100% {
+            transform: scaleY(0.4);
+            transform-origin: bottom;
+            opacity: 0.4;
+          }
+        }
+
+        @keyframes arrowHeadBounce {
+          0%, 100% {
+            transform: translateY(0);
+            opacity: 0.6;
+          }
+          50% {
+            transform: translateY(6px);
+            opacity: 1;
+            color: #E58E12;
+          }
         }
 
         /* Smart Alignment Guides */

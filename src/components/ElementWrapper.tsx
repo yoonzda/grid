@@ -97,7 +97,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
     };
 
     if (element.type === 'title') {
-      const isHtml = typeof element.content === 'string' && (element.content.trim().startsWith('<') || element.content.includes('<div') || element.content.includes('<p'));
+      const isHtml = typeof element.content === 'string' && (element.content.trim().startsWith('<') || element.content.includes('<div') || element.content.includes('<p') || element.content.includes('<span'));
 
       if (isHtml) {
         return (
@@ -303,12 +303,12 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       const hasTitlePreset = !!element.colTitlePresetId;
       const hasTextPreset = !!element.colTextPresetId;
 
-      const titleColor = hasTitlePreset ? undefined : (element.colTitleColor || 'var(--theme-primary)');
-      const titleSize = hasTitlePreset ? undefined : (element.colTitleSize || '18px');
+      const titleColor = hasTitlePreset ? undefined : (element.colTitleColor || '#ffffff');
+      const titleSize = hasTitlePreset ? undefined : (element.colTitleSize || '17px');
       const titleFont = hasTitlePreset ? undefined : fontStyle;
 
-      const textColor = hasTextPreset ? undefined : (element.colTextColor || 'var(--theme-text)');
-      const textSize = hasTextPreset ? undefined : (element.colTextSize || '14px');
+      const textColor = hasTextPreset ? undefined : (element.colTextColor || '#e2e8f0');
+      const textSize = hasTextPreset ? undefined : (element.colTextSize || '13.5px');
       const textFont = hasTextPreset ? undefined : fontStyle;
 
       const iconColor = element.colIconColor || 'var(--theme-primary)';
@@ -317,9 +317,26 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
 
       const elAlign = element.align || 'left';
 
-      const renderColumn = (title?: string, text?: string, iconSvg?: string) => {
+      const showDividers = !!element.colShowDividers;
+      const renderColumn = (title?: string, text?: string, iconSvg?: string, isLast?: boolean) => {
+        const hasBorderRight = showDividers && !isLast;
         return (
-          <div className="three-column-col" style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: elAlign === 'left' ? 'flex-start' : elAlign === 'right' ? 'flex-end' : 'center', textAlign: elAlign, minWidth: 0, gap: `${element.colContentGap ?? 8}px` }}>
+          <div 
+            className="three-column-col" 
+            style={{ 
+              flex: '1 1 0px', 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: elAlign === 'left' ? 'flex-start' : elAlign === 'right' ? 'flex-end' : 'center', 
+              textAlign: elAlign, 
+              minWidth: '150px',
+              maxWidth: '220px',
+              gap: `${element.colContentGap ?? 8}px`,
+              borderRight: hasBorderRight ? '1px solid rgba(255, 255, 255, 0.22)' : 'none',
+              paddingRight: hasBorderRight ? `${element.colGap ?? 28}px` : '0',
+              boxSizing: 'border-box',
+            }}
+          >
             {iconSvg && (
               showIconBg ? (
                 <div className="three-col-icon-circle" style={{
@@ -347,7 +364,7 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
             </h3>
             <p 
               className={hasTextPreset ? `font-preset-${element.colTextPresetId}` : ''}
-              style={{ margin: 0, fontSize: textSize, color: textColor, fontFamily: textFont, lineHeight: 1.5, width: '100%', wordBreak: 'break-word' }}
+              style={{ margin: 0, fontSize: textSize, color: textColor, fontFamily: textFont, lineHeight: 1.5, width: '100%', wordBreak: 'break-word', whiteSpace: 'pre-line' }}
             >
               {text || '본문 내용을 입력하세요.'}
             </p>
@@ -356,10 +373,10 @@ export const ElementWrapper: React.FC<ElementWrapperProps> = ({
       };
 
       return (
-        <div className="canvas-three-column-inner" style={{ display: 'flex', gap: `${element.colGap ?? 24}px`, width: '100%', padding: '12px 0' }}>
-          {renderColumn(element.col1Title, element.col1Text, col1IconSvg)}
-          {renderColumn(element.col2Title, element.col2Text, col2IconSvg)}
-          {renderColumn(element.col3Title, element.col3Text, col3IconSvg)}
+        <div className="canvas-three-column-inner" style={{ display: 'inline-flex', gap: `${element.colGap ?? 28}px`, width: 'fit-content', maxWidth: '100%', padding: '12px 0' }}>
+          {renderColumn(element.col1Title, element.col1Text, col1IconSvg, false)}
+          {renderColumn(element.col2Title, element.col2Text, col2IconSvg, false)}
+          {renderColumn(element.col3Title, element.col3Text, col3IconSvg, true)}
         </div>
       );
     }

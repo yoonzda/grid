@@ -71,13 +71,13 @@ export interface EditorElement {
   // 3-column properties
   col1Title?: string;
   col1Text?: string;
-  col1Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
+  col1Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home' | 'heart' | 'shield' | 'handshake';
   col2Title?: string;
   col2Text?: string;
-  col2Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
+  col2Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home' | 'heart' | 'shield' | 'handshake';
   col3Title?: string;
   col3Text?: string;
-  col3Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home';
+  col3Icon?: 'none' | 'arrow' | 'mail' | 'link' | 'phone' | 'home' | 'heart' | 'shield' | 'handshake';
 
   // 3-column styling properties
   colTitleColor?: string;
@@ -91,6 +91,7 @@ export interface EditorElement {
   colTextPresetId?: string;
   colGap?: number;
   colContentGap?: number;
+  colShowDividers?: boolean;
 
   // Legal Document / Accordion properties
   legalArticles?: LegalArticleItem[];
@@ -233,12 +234,40 @@ export interface Section {
   headerLogoColor?: string;
   headerScrolledLogoColor?: string;
   headerLogoSize?: string;
+  headerLogoWeight?: string | number; // Default '400' (Regular)
   headerLogoType?: 'text' | 'image';
   headerLogoImg?: string;
   headerLogoImgName?: string;
   headerScrolledLogoImg?: string;
   headerScrolledLogoImgName?: string;
   headerLogoWidth?: number;
+  
+  // Figma/Photoshop-Style Multi-Stop Gradient Overlay Properties
+  sectionOverlayType?: 'none' | 'solid' | 'gradient';
+  sectionOverlayColor?: string; // Default '#000000'
+  sectionOverlayAngle?: number; // 0 ~ 360 deg (default 90 = left-to-right)
+  sectionOverlayDirection?: string;
+  
+  // Stop 1 (Start)
+  sectionOverlayStartOpacity?: number; // 0 ~ 1.0 (default 0.85)
+  sectionOverlayStartPos?: number; // 0 ~ 100 % (default 0)
+
+  // Stop 2 (Middle - Optional)
+  sectionOverlayEnableMidStop?: boolean; // Default true for hero section
+  sectionOverlayMidColor?: string; // Default '#000000'
+  sectionOverlayMidOpacity?: number; // 0 ~ 1.0 (default 0.6)
+  sectionOverlayMidPos?: number; // 0 ~ 100 % (default 50)
+
+  // Stop 3 (End)
+  sectionOverlayEndColor?: string; // Default '#000000'
+  sectionOverlayEndOpacity?: number; // 0 ~ 1.0 (default 0)
+  sectionOverlayEndPos?: number; // 0 ~ 100 % (default 100)
+
+  // Dynamic Photoshop/Figma Multi-Stop Array
+  sectionOverlayStops?: Array<{ id: string; color: string; opacity: number; pos: number }>;
+
+  // Scroll Down Indicator
+  showScrollDown?: boolean;
   
   headerMenuItems?: HeaderMenuItem[];
   headerMenuColor?: string;

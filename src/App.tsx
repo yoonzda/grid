@@ -188,6 +188,11 @@ function App() {
     });
   };
   const [pages, setPages] = useState<Page[]>(() => ensurePresets(MEDICAL_TEMPLATE));
+
+  // Sync latest template updates on HMR
+  useEffect(() => {
+    setPages(ensurePresets(MEDICAL_TEMPLATE));
+  }, []);
   const [activePageId, setActivePageId] = useState<string>('main');
 
   const [activeElementState, setActiveElementState] = useState<{ sectionId: string; elementId: string } | null>(null);

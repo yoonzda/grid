@@ -485,6 +485,7 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
   const [showSectionDetail, setShowSectionDetail] = useState<boolean>(true);
   const [expandedArticleId, setExpandedArticleId] = useState<string | null>(null);
   const [openPresetAccordionIndex, setOpenPresetAccordionIndex] = useState<number | null>(0);
+  const [activeOverlayStopId, setActiveOverlayStopId] = useState<string>('stop-start');
 
   useEffect(() => {
     if (activeSectionId && !activeElement) {
@@ -3931,6 +3932,318 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
             </div>
           )}
 
+          {/* Background Overlay Customization (Flat Design System - No Outer Cards) */}
+          <div className="property-group flex flex-col gap-2">
+            <label className="group-title">오버레이 레이어 설정</label>
+            
+            {/* Overlay Mode Tabs */}
+            <div className="align-buttons-row">
+              {[
+                { id: 'none', label: '없음' },
+                { id: 'solid', label: '단색' },
+                { id: 'gradient', label: '그라데이션' }
+              ].map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={`align-btn ${(section.sectionOverlayType || (section.id === 'sec-main-hero' ? 'gradient' : 'none')) === item.id ? 'active' : ''}`}
+                  onClick={() => updateSection({ sectionOverlayType: item.id as any })}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {(section.sectionOverlayType || (section.id === 'sec-main-hero' ? 'gradient' : 'none')) !== 'none' && (() => {
+            const oType = section.sectionOverlayType || (section.id === 'sec-main-hero' ? 'gradient' : 'none');
+            const angle = section.sectionOverlayAngle !== undefined ? section.sectionOverlayAngle : 90;
+
+            const hexToRgba = (hexStr: string, alpha: number) => {
+              let clean = (hexStr || '#000000').replace('#', '');
+              if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
+              const num = parseInt(clean, 16);
+              if (isNaN(num)) return `rgba(0, 0, 0, ${alpha})`;
+              const r = (num >> 16) & 255;
+              const g = (num >> 8) & 255;
+              const b = num & 255;
+              return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+
+            // Get normalized stops
+            const getStops = () => {
+              if (section.sectionOverlayStops && section.sectionOverlayStops.length > 0) {
+                return [...section.sectionOverlayStops].sort((a, b) => a.pos - b.pos);
+              }
+              const sColor = section.sectionOverlayColor || '#000000';
+              const sOpacity = section.sectionOverlayStartOpacity !== undefined ? section.sectionOverlayStartOpacity : 0.55;
+              const sPos = section.sectionOverlayStartPos !== undefined ? section.sectionOverlayStartPos : 0;
+
+              const isMid = section.sectionOverlayEnableMidStop !== false && (section.id === 'sec-main-hero' || section.sectionOverlayEnableMidStop === true);
+              const mColor = section.sectionOverlayMidColor || sColor;
+              const mOpacity = section.sectionOverlayMidOpacity !== undefined ? section.sectionOverlayMidOpacity : 0.30;
+              const mPos = section.sectionOverlayMidPos !== undefined ? section.sectionOverlayMidPos : 50;
+
+              const eColor = section.sectionOverlayEndColor || sColor;
+              const eOpacity = section.sectionOverlayEndOpacity !== undefined ? section.sectionOverlayEndOpacity : 0;
+              const ePos = section.sectionOverlayEndPos !== undefined ? section.sectionOverlayEndPos : 100;
+
+              const list = [
+                { id: 'stop-start', color: sColor, opacity: sOpacity, pos: sPos },
+              ];
+              if (isMid) {
+                list.push({ id: 'stop-mid', color: mColor, opacity: mOpacity, pos: mPos });
+              }
+              list.push({ id: 'stop-end', color: eColor, opacity: eOpacity, pos: ePos });
+              return list.sort((a, b) => a.pos - b.pos);
+            };
+
+            const stops = getStops();
+            const activeStop = stops.find(s => s.id === activeOverlayStopId) || stops[0];
+
+            // Build preview gradient CSS
+            const stopCssList = stops.map(s => `${hexToRgba(s.color, s.opacity)} ${s.pos}%`).join(', ');
+            const previewBg = oType === 'solid'
+              ? hexToRgba(stops[0].color, stops[0].opacity)
+              : `linear-gradient(90deg, ${stopCssList})`;
+
+            // Add stop on ramp click
+            const handleRampClick = (e: React.MouseEvent<HTMLDivElement>) => {
+              if (oType !== 'gradient') return;
+              const rect = e.currentTarget.getBoundingClientRect();
+              const clickX = e.clientX - rect.left;
+              const pos = Math.max(0, Math.min(100, Math.round((clickX / rect.width) * 100)));
+
+              const newStopId = `stop-${Date.now()}`;
+              const newStop = {
+                id: newStopId,
+                color: '#000000',
+                opacity: 0.5,
+                pos: pos
+              };
+
+              const newStops = [...stops, newStop].sort((a, b) => a.pos - b.pos);
+              updateSection({ sectionOverlayStops: newStops });
+              setActiveOverlayStopId(newStopId);
+            };
+
+            const updateStopProperty = (field: 'color' | 'opacity' | 'pos', value: any) => {
+              const updated = stops.map(s => (s.id === activeStop.id ? { ...s, [field]: value } : s));
+              updateSection({ sectionOverlayStops: updated });
+            };
+
+            const deleteStop = () => {
+              if (stops.length <= 2) return;
+              const updated = stops.filter(s => s.id !== activeStop.id);
+              updateSection({ sectionOverlayStops: updated });
+              setActiveOverlayStopId(updated[0].id);
+            };
+
+            return (
+              <>
+                {/* 1. Interactive Photoshop/Figma Gradient Ramp Bar with Centered Pins */}
+                {oType === 'gradient' && (
+                  <div className="property-group flex flex-col gap-2">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label className="group-title">그라데이션 색상 바</label>
+                      <span style={{ fontWeight: 600, color: '#0284c7', fontSize: '11px' }}>
+                        위치: {activeStop.pos}%
+                      </span>
+                    </div>
+
+                    {/* Gradient Ramp Bar (28px height, Vertically Centered Pins) */}
+                    <div 
+                      onClick={handleRampClick}
+                      style={{
+                        position: 'relative',
+                        height: '28px',
+                        width: '100%',
+                        borderRadius: '6px',
+                        border: '1px solid #94a3b8',
+                        background: previewBg,
+                        boxShadow: 'inset 0 1px 4px rgba(0,0,0,0.18)',
+                        cursor: 'crosshair',
+                        marginTop: '2px',
+                        marginBottom: '4px',
+                      }}
+                      title="클릭하여 새로운 그라데이션 색상 스톱 추가"
+                    >
+                      {/* Vertically Centered Circle Pin Handles Across the Ramp Bar */}
+                      {stops.map((st, idx) => {
+                        const isActive = st.id === activeStop.id;
+                        return (
+                          <div
+                            key={st.id}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveOverlayStopId(st.id);
+                            }}
+                            style={{
+                              position: 'absolute',
+                              top: '50%',
+                              left: `${st.pos}%`,
+                              transform: `translate(-50%, -50%) scale(${isActive ? 1.25 : 1})`,
+                              width: '18px',
+                              height: '18px',
+                              borderRadius: '50%',
+                              border: '2.5px solid #ffffff',
+                              backgroundColor: st.color,
+                              boxShadow: isActive
+                                ? '0 0 0 2px #0284c7, 0 3px 6px rgba(0,0,0,0.35)'
+                                : '0 2px 4px rgba(0,0,0,0.3)',
+                              cursor: 'pointer',
+                              zIndex: isActive ? 10 : 2,
+                              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+                            }}
+                            title={`스톱 ${idx + 1}: ${st.pos}% (클릭하여 선택)`}
+                          />
+                        );
+                      })}
+                    </div>
+                    <p style={{ fontSize: '10.5px', color: '#64748b', margin: 0 }}>
+                      * 색상 바를 클릭하면 새로운 스톱이 추가됩니다.
+                    </p>
+                  </div>
+                )}
+
+                {/* 2. Active Stop Settings (Flat Layout) */}
+                {oType === 'solid' ? (
+                  <div className="property-group flex flex-col gap-2">
+                    <label className="group-title">단색 오버레이 설정</label>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>색상</span>
+                      <div className="color-picker-wrapper" style={{ width: '160px', height: '36px' }}>
+                        <input
+                          type="color"
+                          value={activeStop.color}
+                          onChange={(e) => updateStopProperty('color', e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          value={activeStop.color}
+                          onChange={(e) => updateStopProperty('color', e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>투명도 ({Math.round(activeStop.opacity * 100)}%)</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={activeStop.opacity}
+                        onChange={(e) => updateStopProperty('opacity', parseFloat(e.target.value))}
+                        style={{ width: '160px' }}
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="property-group flex flex-col gap-2.5">
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <label className="group-title">
+                        선택된 스톱 설정 ({activeStop.pos}%)
+                      </label>
+                      {stops.length > 2 && (
+                        <button
+                          type="button"
+                          onClick={deleteStop}
+                          style={{ fontSize: '11px', fontWeight: 600, color: '#ef4444', background: 'none', border: 'none', cursor: 'pointer' }}
+                        >
+                          스톱 삭제
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Flat Row 1: Color */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>색상</span>
+                      <div className="color-picker-wrapper" style={{ width: '160px', height: '36px' }}>
+                        <input
+                          type="color"
+                          value={activeStop.color}
+                          onChange={(e) => updateStopProperty('color', e.target.value)}
+                        />
+                        <input
+                          type="text"
+                          value={activeStop.color}
+                          onChange={(e) => updateStopProperty('color', e.target.value)}
+                          style={{ fontSize: '12px' }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Flat Row 2: Opacity */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>투명도 ({Math.round(activeStop.opacity * 100)}%)</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.05"
+                        value={activeStop.opacity}
+                        onChange={(e) => updateStopProperty('opacity', parseFloat(e.target.value))}
+                        style={{ width: '160px' }}
+                      />
+                    </div>
+
+                    {/* Flat Row 3: Position */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#334155' }}>스톱 위치 ({activeStop.pos}%)</span>
+                      <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={activeStop.pos}
+                        onChange={(e) => updateStopProperty('pos', parseInt(e.target.value))}
+                        style={{ width: '160px' }}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. Gradient Angle Row (Flat Layout) */}
+                {oType === 'gradient' && (
+                  <div className="property-group flex flex-col gap-2">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <label className="group-title">그라데이션 각도</label>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#0284c7' }}>{angle}°</span>
+                    </div>
+
+                    <input
+                      type="range"
+                      min="0"
+                      max="360"
+                      step="5"
+                      value={angle}
+                      onChange={(e) => updateSection({ sectionOverlayAngle: parseInt(e.target.value) })}
+                      style={{ width: '100%' }}
+                    />
+
+                    <div className="align-buttons-row">
+                      {[
+                        { deg: 90, label: '90° (좌➔우)' },
+                        { deg: 180, label: '180° (위➔아래)' },
+                        { deg: 270, label: '270° (우➔좌)' },
+                        { deg: 0, label: '0° (아래➔위)' },
+                      ].map(preset => (
+                        <button
+                          key={preset.deg}
+                          type="button"
+                          className={`align-btn ${angle === preset.deg ? 'active' : ''}`}
+                          onClick={() => updateSection({ sectionOverlayAngle: preset.deg })}
+                        >
+                          {preset.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+
           {/* Background Image Options: Hide for main-slide */}
           {!isMainSlide && section.backgroundImage && (
             <div className="flex flex-col gap-5">
@@ -4952,6 +5265,17 @@ export const SidebarProperty: React.FC<SidebarPropertyProps> = ({
                   step="2"
                   value={element.colContentGap ?? 8}
                   onChange={(e) => updateElement({ colContentGap: parseInt(e.target.value) })}
+                />
+              </div>
+
+              {/* Column Divider Lines Toggle */}
+              <div className="input-block" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <span className="input-label" style={{ margin: 0 }}>열 세로 구분선 표시 (Vertical Dividers)</span>
+                <input
+                  type="checkbox"
+                  checked={!!element.colShowDividers}
+                  onChange={(e) => updateElement({ colShowDividers: e.target.checked })}
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
                 />
               </div>
 

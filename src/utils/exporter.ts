@@ -452,7 +452,7 @@ body {
         styleCss += `  color: var(--header-${sec.id}-logo-color);\n`;
         styleCss += `  font-size: var(--header-${sec.id}-logo-size);\n`;
         styleCss += `  font-family: var(--header-${sec.id}-logo-font);\n`;
-        styleCss += `  font-weight: 800;\n`;
+        styleCss += `  font-weight: ${sec.headerLogoWeight || 400};\n`;
         styleCss += `  text-decoration: none;\n`;
         styleCss += `  margin: 0;\n`;
         styleCss += `  display: flex;\n`;
@@ -654,8 +654,135 @@ body {
       styleCss += `  justify-content: ${vertAlign};\n`;
       styleCss += `  box-sizing: border-box;\n`;
       styleCss += `  padding-top: ${sec.paddingTop !== undefined ? `${sec.paddingTop}px` : '0px'};\n`;
-      styleCss += `  padding-bottom: ${sec.paddingBottom !== undefined ? `${sec.paddingBottom}px` : '0px'};\n`;
       styleCss += `}\n`;
+
+      if (sec.heightMode === 'full') {
+        styleCss += `.section-${sec.id} .section-content {\n`;
+        styleCss += `  min-height: 100vh;\n`;
+        styleCss += `  align-content: center;\n`;
+        styleCss += `}\n`;
+      }
+
+      const overlayType = sec.sectionOverlayType || (sec.id === 'sec-main-hero' ? 'gradient' : 'none');
+      if (overlayType !== 'none') {
+        const hexToRgba = (hexStr: string, alpha: number) => {
+          let clean = (hexStr || '#000000').replace('#', '');
+          if (clean.length === 3) clean = clean.split('').map(c => c + c).join('');
+          const num = parseInt(clean, 16);
+          if (isNaN(num)) return `rgba(0, 0, 0, ${alpha})`;
+          const r = (num >> 16) & 255;
+          const g = (num >> 8) & 255;
+          const b = num & 255;
+          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        };
+
+        let overlayBgStyle = '';
+        if (overlayType === 'solid') {
+          const startColor = sec.sectionOverlayColor || '#000000';
+          const startOpacity = sec.sectionOverlayStartOpacity !== undefined ? sec.sectionOverlayStartOpacity : 0.85;
+          overlayBgStyle = hexToRgba(startColor, startOpacity);
+        } else if (overlayType === 'gradient') {
+          const angle = sec.sectionOverlayAngle !== undefined ? sec.sectionOverlayAngle : 90;
+          let stops = sec.sectionOverlayStops;
+          if (!stops || stops.length === 0) {
+            const startColor = sec.sectionOverlayColor || '#000000';
+            const startOpacity = sec.sectionOverlayStartOpacity !== undefined ? sec.sectionOverlayStartOpacity : 0.85;
+            const startPos = sec.sectionOverlayStartPos !== undefined ? sec.sectionOverlayStartPos : 0;
+            const isMidEnabled = sec.sectionOverlayEnableMidStop !== false && (sec.id === 'sec-main-hero' || sec.sectionOverlayEnableMidStop === true);
+            const midColor = sec.sectionOverlayMidColor || startColor;
+            const midOpacity = sec.sectionOverlayMidOpacity !== undefined ? sec.sectionOverlayMidOpacity : 0.6;
+            const midPos = sec.sectionOverlayMidPos !== undefined ? sec.sectionOverlayMidPos : 50;
+            const endColor = sec.sectionOverlayEndColor || startColor;
+            const endOpacity = sec.sectionOverlayEndOpacity !== undefined ? sec.sectionOverlayEndOpacity : 0;
+            const endPos = sec.sectionOverlayEndPos !== undefined ? sec.sectionOverlayEndPos : 100;
+
+            stops = [
+              { id: 'stop-start', color: startColor, opacity: startOpacity, pos: startPos },
+            ];
+            if (isMidEnabled) {
+              stops.push({ id: 'stop-mid', color: midColor, opacity: midOpacity, pos: midPos });
+            }
+            stops.push({ id: 'stop-end', color: endColor, opacity: endOpacity, pos: endPos });
+          }
+
+          const sorted = [...stops].sort((a, b) => a.pos - b.pos);
+          const stopExpr = sorted.map(s => `${hexToRgba(s.color, s.opacity)} ${s.pos}%`).join(', ');
+          overlayBgStyle = `linear-gradient(${angle}deg, ${stopExpr})`;
+        }
+
+        styleCss += `.section-${sec.id} {\n`;
+        styleCss += `  position: relative;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .section-overlay-layer {\n`;
+        styleCss += `  position: absolute;\n`;
+        styleCss += `  inset: 0;\n`;
+        styleCss += `  background: ${overlayBgStyle};\n`;
+        styleCss += `  pointer-events: none;\n`;
+        styleCss += `  z-index: 1;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .section-content,\n`;
+        styleCss += `.section-${sec.id} .features-grid-container,\n`;
+        styleCss += `.section-${sec.id} .card-slider-grid,\n`;
+        styleCss += `.section-${sec.id} .promo-banner-content {\n`;
+        styleCss += `  position: relative;\n`;
+        styleCss += `  z-index: 2;\n`;
+        styleCss += `}\n`;
+      }
+
+      if (sec.showScrollDown !== false && (sec.showScrollDown || sec.id === 'sec-main-hero')) {
+        styleCss += `.section-${sec.id} .scroll-down-indicator {\n`;
+        styleCss += `  position: absolute;\n`;
+        styleCss += `  right: 36px;\n`;
+        styleCss += `  bottom: 36px;\n`;
+        styleCss += `  z-index: 30;\n`;
+        styleCss += `  display: flex;\n`;
+        styleCss += `  flex-direction: column;\n`;
+        styleCss += `  align-items: center;\n`;
+        styleCss += `  gap: 10px;\n`;
+        styleCss += `  pointer-events: none;\n`;
+        styleCss += `  user-select: none;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .scroll-down-indicator .scroll-text {\n`;
+        styleCss += `  writing-mode: vertical-rl;\n`;
+        styleCss += `  color: rgba(255, 255, 255, 0.8);\n`;
+        styleCss += `  font-size: 10.5px;\n`;
+        styleCss += `  font-weight: 600;\n`;
+        styleCss += `  letter-spacing: 3px;\n`;
+        styleCss += `  font-family: 'Inter', sans-serif;\n`;
+        styleCss += `  text-transform: uppercase;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .scroll-down-indicator .scroll-arrow-box {\n`;
+        styleCss += `  display: flex;\n`;
+        styleCss += `  flex-direction: column;\n`;
+        styleCss += `  align-items: center;\n`;
+        styleCss += `  gap: 2px;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .scroll-down-indicator .scroll-arrow-line {\n`;
+        styleCss += `  width: 1px;\n`;
+        styleCss += `  height: 44px;\n`;
+        styleCss += `  background: linear-gradient(to bottom, rgba(255, 255, 255, 0.2), #E58E12, #ffffff);\n`;
+        styleCss += `  position: relative;\n`;
+        styleCss += `  overflow: hidden;\n`;
+        styleCss += `  animation: arrowLinePulse 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;\n`;
+        styleCss += `}\n`;
+        styleCss += `.section-${sec.id} .scroll-down-indicator .scroll-arrow-head {\n`;
+        styleCss += `  color: #FFFFFF;\n`;
+        styleCss += `  font-size: 11px;\n`;
+        styleCss += `  font-weight: 700;\n`;
+        styleCss += `  line-height: 1;\n`;
+        styleCss += `  opacity: 0.9;\n`;
+        styleCss += `  animation: arrowHeadBounce 2.2s cubic-bezier(0.65, 0, 0.35, 1) infinite;\n`;
+        styleCss += `}\n`;
+        styleCss += `@keyframes arrowLinePulse {\n`;
+        styleCss += `  0% { transform: scaleY(0.4); transform-origin: top; opacity: 0.4; }\n`;
+        styleCss += `  50% { transform: scaleY(1); transform-origin: top; opacity: 1; }\n`;
+        styleCss += `  100% { transform: scaleY(0.4); transform-origin: bottom; opacity: 0.4; }\n`;
+        styleCss += `}\n`;
+        styleCss += `@keyframes arrowHeadBounce {\n`;
+        styleCss += `  0%, 100% { transform: translateY(0); opacity: 0.6; }\n`;
+        styleCss += `  50% { transform: translateY(6px); opacity: 1; color: #E58E12; }\n`;
+        styleCss += `}\n`;
+      }
 
       if (sec.sectionPresetType === 'main-slide' || sec.id === 'sec-main-slide') {
         const cWidth = sec.contentWidth || (sec.guidelineWidth === '100%' ? '80%' : sec.guidelineWidth || '80%');
@@ -795,21 +922,31 @@ body {
           const iconBgColor = el.colIconBgColor || 'rgba(24, 160, 251, 0.1)';
 
           styleCss += `.three-column-${el.id} {\n`;
-          styleCss += `  display: flex;\n`;
-          styleCss += `  gap: ${el.colGap ?? 24}px;\n`;
-          styleCss += `  width: 100%;\n`;
+          styleCss += `  display: inline-flex;\n`;
+          styleCss += `  gap: ${el.colGap ?? 28}px;\n`;
+          styleCss += `  width: fit-content;\n`;
+          styleCss += `  max-width: 100%;\n`;
           styleCss += `  padding: 12px 0;\n`;
           styleCss += `}\n`;
           const elAlign = el.align || 'left';
           styleCss += `.three-column-${el.id} .col-item {\n`;
-          styleCss += `  flex: 1;\n`;
-          styleCss += `  min-width: 0;\n`;
+          styleCss += `  flex: 1 1 0px;\n`;
+          styleCss += `  min-width: 150px;\n`;
+          styleCss += `  max-width: 220px;\n`;
           styleCss += `  display: flex;\n`;
           styleCss += `  flex-direction: column;\n`;
           styleCss += `  align-items: ${elAlign === 'left' ? 'flex-start' : elAlign === 'right' ? 'flex-end' : 'center'};\n`;
           styleCss += `  text-align: ${elAlign};\n`;
           styleCss += `  gap: ${el.colContentGap ?? 8}px;\n`;
+          styleCss += `  box-sizing: border-box;\n`;
           styleCss += `}\n`;
+
+          if (el.colShowDividers) {
+            styleCss += `.three-column-${el.id} .col-item:not(:last-child) {\n`;
+            styleCss += `  border-right: 1px solid rgba(255, 255, 255, 0.22);\n`;
+            styleCss += `  padding-right: ${el.colGap ?? 24}px;\n`;
+            styleCss += `}\n`;
+          }
           
           if (showIconBg) {
             styleCss += `.three-column-${el.id} .col-icon-circle {\n`;
@@ -1162,7 +1299,7 @@ body {
 .card-desc { font-size: 13px; color: #64748b; margin: 0 0 14px 0; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 .card-date { font-size: 12px; color: #94a3b8; border-top: 1px solid #f1f5f9; padding-top: 10px; margin-top: 10px; }
 
-/* Responsive Media Queries */
+/* Responsive Media Queries (PC / TAB / MOBILE) */
 
 /* Desktop Large Screen (min 1280px) */
 @media screen and (min-width: 1280px) {
@@ -1170,18 +1307,47 @@ body {
     width: var(--content-width, 80%);
     max-width: 1440px;
   }
+  .header-flex-wrapper {
+    height: 80px !important;
+    padding: 0 32px !important;
+  }
+  .header-menu-container {
+    display: flex !important;
+    gap: 32px !important;
+  }
+  .header-menu-link {
+    font-size: 15px !important;
+    font-weight: 600 !important;
+  }
+  .mobile-hamburger-btn, .mobile-nav-dropdown {
+    display: none !important;
+  }
 }
 
 /* Tablet Screen (768px ~ 1279px) */
 @media screen and (min-width: 768px) and (max-width: 1279px) {
   .header-flex-wrapper, .section-content, .footer-wrapper {
-    width: 90% !important;
+    width: 92% !important;
+  }
+  .header-flex-wrapper {
+    height: 70px !important;
+    padding: 0 20px !important;
+    justify-content: space-between !important;
   }
   .header-menu-container {
+    display: flex !important;
     gap: 16px !important;
   }
   .header-menu-link {
     font-size: 13.5px !important;
+    font-weight: 600 !important;
+  }
+  .header-btn-container button {
+    font-size: 13px !important;
+    padding: 8px 16px !important;
+  }
+  .mobile-hamburger-btn, .mobile-nav-dropdown {
+    display: none !important;
   }
   .section {
     padding-left: 20px !important;
@@ -1192,23 +1358,50 @@ body {
 /* Mobile Screen (max 767px) */
 @media screen and (max-width: 767px) {
   .header-flex-wrapper, .section-content, .footer-wrapper {
-    width: 92% !important;
+    width: 94% !important;
   }
-  .header-flex-wrapper.standard-flow,
-  .header-flex-wrapper.layout-spread-between {
-    flex-direction: column !important;
+  .header-flex-wrapper {
+    display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
-    justify-content: center !important;
-    gap: 12px !important;
-    padding: 12px 0 !important;
+    justify-content: space-between !important;
+    padding: 0 16px !important;
+    height: 60px !important;
   }
   .header-menu-container {
-    flex-wrap: wrap !important;
-    justify-content: center !important;
-    gap: 12px !important;
+    display: none !important;
   }
-  .header-menu-link {
-    font-size: 13px !important;
+  .header-btn-container button {
+    font-size: 12px !important;
+    padding: 6px 12px !important;
+    border-radius: 20px !important;
+  }
+  .mobile-hamburger-btn {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: none !important;
+    border: none !important;
+    cursor: pointer !important;
+    padding: 6px !important;
+  }
+  .mobile-nav-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+    z-index: 999;
+    flex-direction: column;
+    padding: 16px 20px;
+    gap: 10px;
+    box-sizing: border-box;
+  }
+  .mobile-nav-dropdown.active {
+    display: flex !important;
   }
   .section-content {
     display: flex !important;
@@ -1220,7 +1413,7 @@ body {
     gap: 20px !important;
   }
   .title-element {
-    font-size: 24px !important;
+    font-size: 22px !important;
     word-break: keep-all !important;
   }
   .text-element {
@@ -1433,7 +1626,11 @@ ${fontLinksHtml}
         const enableDrag = sec.enableDrag !== false;
         const slideAutoPlayMode = sec.slideAutoPlayMode || 'fixed';
         indexHtml += `    <!-- Section: Main Slide Start -->\n`;
-        indexHtml += `    <section class="section section-preset-main-slide section-${sec.id}">\n`;
+        indexHtml += `    <section id="${sec.id}" class="section section-preset-main-slide section-${sec.id}">\n`;
+        const slideOverlayType = sec.sectionOverlayType || (sec.id === 'sec-main-hero' ? 'gradient' : 'none');
+        if (slideOverlayType !== 'none') {
+          indexHtml += `      <div class="section-overlay-layer"></div>\n`;
+        }
         indexHtml += `      <div class="main-slide-container effect-${effect}" id="mainSlideContainer-${sec.id}" data-autoplay="${autoPlay}" data-interval="${autoPlayInterval}" data-autoplaymode="${slideAutoPlayMode}" data-loop="${loop}" data-drag="${enableDrag}">\n`;
         (sec.slideItems || []).forEach((slide, idx) => {
           const mType = slide.mediaType || 'image';
@@ -1488,7 +1685,11 @@ ${fontLinksHtml}
 
       if (sec.sectionPresetType === 'features-grid') {
         indexHtml += `    <!-- Section: Features Grid Start -->\n`;
-        indexHtml += `    <section class="section section-preset-features-grid section-${sec.id}">\n`;
+        indexHtml += `    <section id="${sec.id}" class="section section-preset-features-grid section-${sec.id}">\n`;
+        const featOverlayType = sec.sectionOverlayType || (sec.id === 'sec-main-hero' ? 'gradient' : 'none');
+        if (featOverlayType !== 'none') {
+          indexHtml += `      <div class="section-overlay-layer"></div>\n`;
+        }
         indexHtml += `      <div class="features-grid-container">\n`;
         (sec.featureItems || []).forEach((item, idx) => {
           const isEven = idx % 2 === 1;
@@ -1514,7 +1715,7 @@ ${fontLinksHtml}
       if (sec.sectionPresetType === 'promo-banner') {
         indexHtml += `    <!-- Section: Promo Banner Start -->\n`;
         const bgAttr = sec.backgroundImage ? `style="background-image: url('${sec.backgroundImage}'); background-attachment: ${sec.backgroundAttachment || 'fixed'};"` : '';
-        indexHtml += `    <section class="section section-preset-promo-banner section-${sec.id}" ${bgAttr}>\n`;
+        indexHtml += `    <section id="${sec.id}" class="section section-preset-promo-banner section-${sec.id}" ${bgAttr}>\n`;
         indexHtml += `      <div class="promo-banner-overlay"></div>\n`;
         indexHtml += `      <div class="promo-banner-content">\n`;
         if (sec.sectionSubTitle) {
@@ -1532,7 +1733,11 @@ ${fontLinksHtml}
 
       if (sec.sectionPresetType === 'card-slider') {
         indexHtml += `    <!-- Section: Card Slider Start -->\n`;
-        indexHtml += `    <section class="section section-preset-card-slider section-${sec.id}">\n`;
+        indexHtml += `    <section id="${sec.id}" class="section section-preset-card-slider section-${sec.id}">\n`;
+        const cardOverlayType = sec.sectionOverlayType || (sec.id === 'sec-main-hero' ? 'gradient' : 'none');
+        if (cardOverlayType !== 'none') {
+          indexHtml += `      <div class="section-overlay-layer"></div>\n`;
+        }
         indexHtml += `      <div class="card-slider-header">\n`;
         indexHtml += `        <div>\n`;
         indexHtml += `          <h2 class="card-slider-title">${sec.sectionSubTitle || 'Our Latest News'}</h2>\n`;
@@ -1568,7 +1773,19 @@ ${fontLinksHtml}
       }
 
       indexHtml += `    <!-- Section Start -->\n`;
-      indexHtml += `    <section class="section section-${sec.id}">\n`;
+      indexHtml += `    <section id="${sec.id}" class="section section-${sec.id}">\n`;
+      const stdOverlayType = sec.sectionOverlayType || (sec.id === 'sec-main-hero' ? 'gradient' : 'none');
+      if (stdOverlayType !== 'none') {
+        indexHtml += `      <div class="section-overlay-layer"></div>\n`;
+      }
+      if (sec.showScrollDown !== false && (sec.showScrollDown || sec.id === 'sec-main-hero')) {
+        indexHtml += `      <div class="scroll-down-indicator">\n`;
+        indexHtml += `        <span class="scroll-text">SCROLL DOWN</span>\n`;
+        indexHtml += `        <div class="scroll-line-box">\n`;
+        indexHtml += `          <div class="scroll-line-moving"></div>\n`;
+        indexHtml += `        </div>\n`;
+        indexHtml += `      </div>\n`;
+      }
       indexHtml += `      <div class="section-content">\n`;
 
       const sortedElements = [...sec.elements].sort((a, b) => {
@@ -1676,7 +1893,7 @@ ${fontLinksHtml}
               }
             }
             colHtml += `              <h3${titlePresetClass}>${title}</h3>\n`;
-            colHtml += `              <p${textPresetClass}>${text}</p>\n`;
+            colHtml += `              <p${textPresetClass}>${(text || '').replace(/\n/g, '<br/>')}</p>\n`;
             colHtml += `            </div>\n`;
             return colHtml;
           };

@@ -106,6 +106,18 @@ export const SUPPORTED_FONTS: FontInfo[] = [
 
   // --- Korean Popular Brand & Display Fonts ---
   {
+    name: '프리텐다드',
+    family: "'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif",
+    isKorean: true,
+    importUrl: 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css'
+  },
+  {
+    name: 'Pretendard',
+    family: "'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, 'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', sans-serif",
+    isKorean: true,
+    importUrl: 'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css'
+  },
+  {
     name: '본고딕',
     family: "'Noto Sans KR', sans-serif",
     isKorean: true,

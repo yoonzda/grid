@@ -29,6 +29,21 @@ export const ICON_TEMPLATES: IconTemplate[] = [
     type: 'home',
     name: '홈 (Home)',
     svg: `<svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>`
+  },
+  {
+    type: 'heart',
+    name: '하트 (Heart)',
+    svg: `<svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l8.78-8.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>`
+  },
+  {
+    type: 'shield',
+    name: '방패 (Shield Check)',
+    svg: `<svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="M9 12l2 2 4-4"></path></svg>`
+  },
+  {
+    type: 'handshake',
+    name: '악수 (Handshake)',
+    svg: `<svg class="btn-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 15h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L3 17"></path><path d="m7 21 1.6-1.6c.4-.4.6-1 .6-1.4v-2c0-.6.4-1 1-1h2"></path><path d="M13 9h2a2 2 0 1 0 0-4h-3c-.6 0-1.1.2-1.4.6L7 9"></path><path d="M17 13.5V17c0 .6.4 1 1 1h2.5"></path><path d="M12.5 13.5 16 10"></path></svg>`
   }
 ];
 

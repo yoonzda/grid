@@ -99,6 +99,17 @@ body {
 .w-full { width: 100%; }
 .h-full { height: 100%; }
 
+/* Hide native scrollbars on device screen preview for seamless edge-to-edge rendering */
+.device-screen-scroll-container {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.device-screen-scroll-container::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
 /* Global Custom Select Styles */
 select {
   appearance: none;

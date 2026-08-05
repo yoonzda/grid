@@ -539,128 +539,199 @@ export const EditorContainer: React.FC<EditorContainerProps> = ({
               />
             </div>
           ) : viewportMode === 'tab' ? (
-            /* TAB Mode (Medical Template Only) - Fits 100% inside screen view with internal screen scroll */
+            /* TAB Mode (Medical Template Only) - Generous Balanced iPad Pro Frame */
             <div
               className="device-tablet-shell relative flex flex-col items-center shrink-0 transition-all duration-300"
               style={{
-                width: '818px',
+                width: '836px',
                 height: '100%',
-                maxHeight: 'calc(100vh - 180px)',
-                backgroundColor: '#0f172a',
-                borderRadius: '36px',
-                padding: '16px 20px',
-                border: '10px solid #1e293b',
-                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.45)',
-                boxSizing: 'border-box'
+                maxHeight: 'calc(100vh - 160px)',
+                background: 'linear-gradient(160deg, #1e293b 0%, #0f172a 100%)',
+                borderRadius: '42px',
+                padding: '18px 24px 22px 24px',
+                border: '4px solid #475569',
+                boxShadow: '0 30px 80px -10px rgba(0, 0, 0, 0.65), inset 0 0 0 2px rgba(255, 255, 255, 0.15)',
+                boxSizing: 'border-box',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}
             >
-              {/* Tablet Camera Lens */}
-              <div className="w-full flex justify-center items-center pb-2 shrink-0">
-                <div className="w-3.5 h-3.5 rounded-full bg-slate-800 border-2 border-slate-600"></div>
+              {/* Tablet Top Hardware: Speaker Grilles & TrueDepth Camera */}
+              <div className="w-full flex justify-between items-center px-6 pb-2.5 shrink-0">
+                <div className="w-12 h-1 bg-slate-700/80 rounded-full" />
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-full bg-black border border-slate-600 flex items-center justify-center shadow-inner">
+                    <div className="w-1 h-1 rounded-full bg-indigo-950" />
+                  </div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-800" />
+                </div>
+                <div className="w-12 h-1 bg-slate-700/80 rounded-full" />
               </div>
-              {/* Tablet Screen Container */}
+
+              {/* Tablet Screen Outer Clipping Container (Strictly Clips Rounded Screen Boundaries) */}
               <div
-                className="device-screen relative bg-white rounded-[18px] flex-1 w-full"
+                className="device-screen relative bg-white flex-1 w-full"
                 style={{
                   width: '768px',
-                  height: '100%',
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                  boxShadow: 'inset 0 0 12px rgba(0,0,0,0.15)',
-                  border: '1px solid #334155'
+                  height: '0',
+                  flexGrow: 1,
+                  minHeight: 0,
+                  borderRadius: '22px',
+                  overflow: 'hidden',
+                  boxShadow: 'inset 0 0 12px rgba(0,0,0,0.18)',
+                  border: '1px solid #1e293b',
+                  position: 'relative'
                 }}
               >
-                <CanvasGrid
-                  sections={sections}
-                  setSections={setSections}
-                  activeElement={activeElement}
-                  setActiveElement={setActiveElement}
-                  activeSectionId={activeSectionId}
-                  setActiveSectionId={setActiveSectionId}
-                  activePaddingGuide={activePaddingGuide}
-                  pages={pages}
-                  activePageId={activePageId}
-                  onNavigatePage={(id) => {
-                    setActivePageId(id);
-                    setActiveElement(null);
-                    setActiveSectionId(null);
+                {/* Tablet Screen Inner Scroll Container */}
+                <div 
+                  className="device-screen-scroll-container"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    overflowY: 'auto',
+                    overflowX: 'hidden'
                   }}
-                  hoveredSectionId={hoveredSectionId}
-                  setHoveredSectionId={setHoveredSectionId}
-                  themeSettings={themeSettings}
-                  hoveredGuidelineWidth={hoveredGuidelineWidth}
-                  previewHeaderLayout={previewHeaderLayout}
-                  previewHeaderState={previewHeaderState}
-                  previewFlexAlign={previewFlexAlign}
-                  previewHeaderLogoFont={previewHeaderLogoFont}
-                  viewportMode={viewportMode}
-                />
+                >
+                  <CanvasGrid
+                    sections={sections}
+                    setSections={setSections}
+                    activeElement={activeElement}
+                    setActiveElement={setActiveElement}
+                    activeSectionId={activeSectionId}
+                    setActiveSectionId={setActiveSectionId}
+                    activePaddingGuide={activePaddingGuide}
+                    pages={pages}
+                    activePageId={activePageId}
+                    onNavigatePage={(id) => {
+                      setActivePageId(id);
+                      setActiveElement(null);
+                      setActiveSectionId(null);
+                    }}
+                    hoveredSectionId={hoveredSectionId}
+                    setHoveredSectionId={setHoveredSectionId}
+                    themeSettings={themeSettings}
+                    hoveredGuidelineWidth={hoveredGuidelineWidth}
+                    previewHeaderLayout={previewHeaderLayout}
+                    previewHeaderState={previewHeaderState}
+                    previewFlexAlign={previewFlexAlign}
+                    previewHeaderLogoFont={previewHeaderLogoFont}
+                    viewportMode={viewportMode}
+                  />
+                </div>
               </div>
-              {/* Tablet Home Indicator Bar */}
-              <div className="w-36 h-1.5 bg-slate-600 rounded-full mt-3 shrink-0"></div>
+
+              {/* Tablet Bottom Hardware: Speaker Grilles & Home Indicator */}
+              <div className="w-full flex justify-between items-center px-6 pt-2.5 shrink-0">
+                <div className="w-12 h-1 bg-slate-700/80 rounded-full" />
+                <div className="w-40 h-1.5 bg-slate-400/90 rounded-full" />
+                <div className="w-12 h-1 bg-slate-700/80 rounded-full" />
+              </div>
             </div>
           ) : (
-            /* MO Mode (Medical Template Only) - Fits 100% inside screen view with internal screen scroll */
+            /* MO Mode (Medical Template Only) - Generous Balanced iPhone 15 Pro Frame */
             <div
               className="device-mobile-shell relative flex flex-col items-center shrink-0 transition-all duration-300"
               style={{
-                width: '415px',
+                width: '425px',
                 height: '100%',
-                maxHeight: 'calc(100vh - 180px)',
-                backgroundColor: '#090d16',
-                borderRadius: '46px',
-                padding: '14px 18px',
-                border: '10px solid #1e293b',
-                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.55)',
-                boxSizing: 'border-box'
+                maxHeight: 'calc(100vh - 160px)',
+                background: 'linear-gradient(160deg, #1e293b 0%, #0f172a 100%)',
+                borderRadius: '56px',
+                padding: '16px 20px 22px 20px',
+                border: '4px solid #475569',
+                boxShadow: '0 30px 80px -10px rgba(0, 0, 0, 0.65), inset 0 0 0 2px rgba(255, 255, 255, 0.15)',
+                boxSizing: 'border-box',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between'
               }}
             >
-              {/* Smartphone Dynamic Island Notch */}
-              <div className="w-full flex justify-center items-center pb-2 shrink-0">
-                <div className="w-28 h-5 rounded-full bg-black border border-slate-800 flex items-center justify-end px-2.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-slate-900 border border-slate-700"></div>
+              {/* Physical Volume & Action Buttons (Left Side Frame) */}
+              <div style={{ position: 'absolute', left: '-8px', top: '90px', width: '4px', height: '24px', backgroundColor: '#475569', borderRadius: '2px 0 0 2px' }} />
+              <div style={{ position: 'absolute', left: '-8px', top: '130px', width: '4px', height: '48px', backgroundColor: '#475569', borderRadius: '2px 0 0 2px' }} />
+              <div style={{ position: 'absolute', left: '-8px', top: '190px', width: '4px', height: '48px', backgroundColor: '#475569', borderRadius: '2px 0 0 2px' }} />
+
+              {/* Physical Side Power Button (Right Side Frame) */}
+              <div style={{ position: 'absolute', right: '-8px', top: '150px', width: '4px', height: '70px', backgroundColor: '#475569', borderRadius: '0 2px 2px 0' }} />
+
+              {/* Smartphone Top Earpiece Speaker Grille Slit & Dynamic Island */}
+              <div className="w-full flex flex-col items-center shrink-0 pb-1.5">
+                <div className="w-16 h-1 bg-slate-700/90 rounded-full mb-2 border border-slate-600/40" />
+                <div className="w-28 h-5.5 rounded-full bg-black border border-slate-800 flex items-center justify-between px-3 shadow-md">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#0b0f19] border border-slate-700 shadow-inner" />
+                  <div className="w-2 h-2 rounded-full bg-slate-800" />
                 </div>
               </div>
-              {/* Smartphone Screen Container */}
+
+              {/* Smartphone Screen Outer Clipping Container (Strictly Clips Rounded Screen Boundaries) */}
               <div
-                className="device-screen relative bg-white rounded-[28px] flex-1 w-full"
+                className="device-screen relative bg-white flex-1 w-full"
                 style={{
                   width: '375px',
-                  height: '100%',
-                  overflowY: 'auto',
-                  overflowX: 'hidden',
-                  boxShadow: 'inset 0 0 12px rgba(0,0,0,0.15)',
-                  border: '1px solid #334155'
+                  height: '0',
+                  flexGrow: 1,
+                  minHeight: 0,
+                  borderRadius: '34px',
+                  overflow: 'hidden',
+                  boxShadow: 'inset 0 0 12px rgba(0,0,0,0.18)',
+                  border: '1px solid #1e293b',
+                  position: 'relative'
                 }}
               >
-                <CanvasGrid
-                  sections={sections}
-                  setSections={setSections}
-                  activeElement={activeElement}
-                  setActiveElement={setActiveElement}
-                  activeSectionId={activeSectionId}
-                  setActiveSectionId={setActiveSectionId}
-                  activePaddingGuide={activePaddingGuide}
-                  pages={pages}
-                  activePageId={activePageId}
-                  onNavigatePage={(id) => {
-                    setActivePageId(id);
-                    setActiveElement(null);
-                    setActiveSectionId(null);
+                {/* Smartphone Screen Inner Scroll Container */}
+                <div 
+                  className="device-screen-scroll-container"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    overflowY: 'auto',
+                    overflowX: 'hidden'
                   }}
-                  hoveredSectionId={hoveredSectionId}
-                  setHoveredSectionId={setHoveredSectionId}
-                  themeSettings={themeSettings}
-                  hoveredGuidelineWidth={hoveredGuidelineWidth}
-                  previewHeaderLayout={previewHeaderLayout}
-                  previewHeaderState={previewHeaderState}
-                  previewFlexAlign={previewFlexAlign}
-                  previewHeaderLogoFont={previewHeaderLogoFont}
-                  viewportMode={viewportMode}
-                />
+                >
+                  <CanvasGrid
+                    sections={sections}
+                    setSections={setSections}
+                    activeElement={activeElement}
+                    setActiveElement={setActiveElement}
+                    activeSectionId={activeSectionId}
+                    setActiveSectionId={setActiveSectionId}
+                    activePaddingGuide={activePaddingGuide}
+                    pages={pages}
+                    activePageId={activePageId}
+                    onNavigatePage={(id) => {
+                      setActivePageId(id);
+                      setActiveElement(null);
+                      setActiveSectionId(null);
+                    }}
+                    hoveredSectionId={hoveredSectionId}
+                    setHoveredSectionId={setHoveredSectionId}
+                    themeSettings={themeSettings}
+                    hoveredGuidelineWidth={hoveredGuidelineWidth}
+                    previewHeaderLayout={previewHeaderLayout}
+                    previewHeaderState={previewHeaderState}
+                    previewFlexAlign={previewFlexAlign}
+                    previewHeaderLogoFont={previewHeaderLogoFont}
+                    viewportMode={viewportMode}
+                  />
+                </div>
               </div>
-              {/* Mobile Home Indicator Bar */}
-              <div className="w-36 h-1 bg-slate-600 rounded-full mt-2.5 shrink-0"></div>
+
+              {/* Bottom Hardware: Speaker Grille Holes & Home Indicator Bar */}
+              <div className="w-full flex items-center justify-center gap-3 pt-2.5 shrink-0">
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 rounded-full bg-slate-600" />
+                  <div className="w-1 h-1 rounded-full bg-slate-600" />
+                  <div className="w-1 h-1 rounded-full bg-slate-600" />
+                </div>
+                <div className="w-32 h-1.5 bg-slate-400/90 rounded-full" />
+                <div className="flex gap-1">
+                  <div className="w-1 h-1 rounded-full bg-slate-600" />
+                  <div className="w-1 h-1 rounded-full bg-slate-600" />
+                  <div className="w-1 h-1 rounded-full bg-slate-600" />
+                </div>
+              </div>
             </div>
           )}
         </div>
